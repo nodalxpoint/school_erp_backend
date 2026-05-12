@@ -47,7 +47,7 @@ public class AuthService {
 
 		String token = jwtTokenProvider.generateToken(user);
 
-		return new LoginResponseDto("Login successful", user.getRole(), token);
+		return new LoginResponseDto( user.getRole(), token);
 	}
 
 	public String createSuperAdmin() {

@@ -3,31 +3,24 @@ package com.schoolerp.school_erp_backend.modules.auth;
 
 public class LoginResponseDto {
 
-    private String message;
 
     private UserRole role;
     
     private String token;
 
     
-    public LoginResponseDto(String message, UserRole role) {
-        this.message = message;
+    public LoginResponseDto( UserRole role) {
+
         this.role = role;
     }
     
-    public LoginResponseDto(String message, UserRole role, String token) {
-        this.message = message;
+    public LoginResponseDto( UserRole role, String token) {
+       
         this.role = role;
         this.token = token;
     }
 
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
-	}
+	
 
 	public UserRole getRole() {
 		return role;
@@ -48,8 +41,11 @@ public class LoginResponseDto {
 
 	@Override
 	public String toString() {
-		return "LoginResponseDto [message=" + message + ", role=" + role + "]";
+		return "LoginResponseDto [role=" + role + ", token=" + token + ", getRole()=" + getRole() + ", getToken()="
+				+ getToken() + ", getClass()=" + getClass() + ", hashCode()=" + hashCode() + ", toString()="
+				+ super.toString() + "]";
 	}
-    
+
+	
     
 }

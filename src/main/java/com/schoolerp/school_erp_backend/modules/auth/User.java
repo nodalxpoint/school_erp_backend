@@ -110,6 +110,7 @@ public class User {
 	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
+	
 	public SchoolEntity getSchool() {
 		return school;
 	}
@@ -139,9 +140,5 @@ public class User {
 		return "User [id=" + id + ", email=" + email + ", password=" + password + ", role=" + role + ", isActive="
 				+ isActive + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
-	
-
-    
-    
-    
+	    
 }
