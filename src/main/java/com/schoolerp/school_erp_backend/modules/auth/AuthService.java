@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
 import com.schoolerp.school_erp_backend.common.exceptions.UnauthorizedException;
+import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.security.JwtTokenProvider;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SchoolRepository;
-
 
 @Service
 public class AuthService {
@@ -21,10 +21,9 @@ public class AuthService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	@Autowired
-    private JwtTokenProvider jwtTokenProvider;
+	private JwtTokenProvider jwtTokenProvider;
 	@Autowired
 	private SchoolRepository schoolRepository;
-
 
 //	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
 //		this.userRepository = userRepository;
@@ -36,21 +35,21 @@ public class AuthService {
 		User user = userRepository.findByEmail(requestDto.getEmail())
 				.orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
-		  if (!user.getIsActive()) {
-		        throw new UnauthorizedException("User account is inactive");
-		    }
+		if (!user.getIsActive()) {
+			throw new UnauthorizedException("User account is inactive");
+		}
 
 		boolean matches = passwordEncoder.matches(requestDto.getPassword(), user.getPassword());
 
 		if (!matches) {
-	        throw new UnauthorizedException("Invalid credentials");
-	    }
-		
+			throw new UnauthorizedException("Invalid credentials");
+		}
+
 		String token = jwtTokenProvider.generateToken(user);
 
-		return new LoginResponseDto("Login successful", user.getRole(),token);
+		return new LoginResponseDto("Login successful", user.getRole(), token);
 	}
-	
+
 	public String createSuperAdmin() {
 
 		if (userRepository.existsByEmail("admin@test.com")) {
@@ -61,7 +60,7 @@ public class AuthService {
 
 		SchoolEntity school = schoolRepository.findById(UUID.fromString(CommonConstants.SCHOOL_ID))
 				.orElseThrow(() -> new RuntimeException("School not found"));
-		
+
 		user.setSchool(school);
 		user.setFirstName("Mahima");
 		user.setLastName("Chaudhary");
@@ -69,9 +68,31 @@ public class AuthService {
 		user.setPassword(passwordEncoder.encode("admin123"));
 		user.setRole(UserRole.SUPER_ADMIN);
 		user.setIsActive(true);
-		
+
 		userRepository.save(user);
-		
+
 		return "Super admin created successfully";
+	}
+
+	public void createUser(CreateUserDto request, UserRole role) {
+
+		if (userRepository.existsByEmail(request.getEmail())) {
+			throw new ValidationException("User already exists");
+		}
+
+		User user = new User();
+		SchoolEntity school = schoolRepository.findById(UUID.fromString(CommonConstants.SCHOOL_ID))
+				.orElseThrow(() -> new RuntimeException("School not found"));
+
+		
+		user.setSchool(school);
+		user.setFirstName(request.getFirstName());
+		user.setLastName(request.getLastName());
+		user.setEmail(request.getEmail());
+		user.setRole(role);
+		user.setPassword(passwordEncoder.encode(request.getPassword()));
+		user.setIsActive(true);
+
+		userRepository.save(user);
 	}
 }
