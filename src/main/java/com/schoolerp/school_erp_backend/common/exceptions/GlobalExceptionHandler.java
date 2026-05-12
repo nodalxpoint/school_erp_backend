@@ -10,74 +10,41 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
-            ResourceNotFoundException ex,
-            HttpServletRequest request
-    ) {
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex,
+			HttpServletRequest request) {
 
-        ErrorResponse errorResponse = ErrorResponse.of(
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.name(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
+		ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.name(),
+				ex.getMessage(), request.getRequestURI());
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(errorResponse);
-    }
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+	}
 
+	@ExceptionHandler(UnauthorizedException.class)
+	public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex,
+			HttpServletRequest request) {
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorizedException(
-            UnauthorizedException ex,
-            HttpServletRequest request
-    ) {
+		ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.name(),
+				ex.getMessage(), request.getRequestURI());
 
-        ErrorResponse errorResponse = ErrorResponse.of(
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.name(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+	}
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(errorResponse);
-    }
+	@ExceptionHandler(ValidationException.class)
+	public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex, HttpServletRequest request) {
 
+		ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST.name(),
+				ex.getMessage(), request.getRequestURI());
 
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
-            ValidationException ex,
-            HttpServletRequest request
-    ) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	}
 
-        ErrorResponse errorResponse = ErrorResponse.of(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.name(),
-                ex.getMessage(),
-                request.getRequestURI()
-        );
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(errorResponse);
-    }
+		ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+				HttpStatus.INTERNAL_SERVER_ERROR.name(), "Something went wrong", request.getRequestURI());
 
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(
-            Exception ex,
-            HttpServletRequest request
-    ) {
-
-        ErrorResponse errorResponse = ErrorResponse.of(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.name(),
-                "Something went wrong",
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorResponse);
-    }
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+	}
 }

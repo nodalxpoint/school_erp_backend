@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
+import com.schoolerp.school_erp_backend.common.exceptions.UnauthorizedException;
 import com.schoolerp.school_erp_backend.common.security.JwtTokenProvider;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SchoolRepository;
@@ -35,15 +36,15 @@ public class AuthService {
 		User user = userRepository.findByEmail(requestDto.getEmail())
 				.orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
-		if (!user.getIsActive()) {
-			throw new RuntimeException("User account is inactive");
-		}
+		  if (!user.getIsActive()) {
+		        throw new UnauthorizedException("User account is inactive");
+		    }
 
 		boolean matches = passwordEncoder.matches(requestDto.getPassword(), user.getPassword());
 
 		if (!matches) {
-			throw new RuntimeException("Invalid credentials");
-		}
+	        throw new UnauthorizedException("Invalid credentials");
+	    }
 		
 		String token = jwtTokenProvider.generateToken(user);
 
@@ -65,13 +66,10 @@ public class AuthService {
 		user.setFirstName("Mahima");
 		user.setLastName("Chaudhary");
 		user.setEmail("adminMahima@test.com");
-
 		user.setPassword(passwordEncoder.encode("admin123"));
-
 		user.setRole(UserRole.SUPER_ADMIN);
-
 		user.setIsActive(true);
-
+		
 		userRepository.save(user);
 		
 		return "Super admin created successfully";
