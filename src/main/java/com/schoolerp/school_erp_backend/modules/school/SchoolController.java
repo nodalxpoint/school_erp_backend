@@ -30,7 +30,7 @@ public class SchoolController {
 	        this.schoolService = schoolService;
 	    }
 
-	    @PostMapping("/section-create")
+	    @PostMapping("/createSection")
 	    public ResponseEntity<ApiResponse<String>> createSection(
 	            @Valid @RequestBody SectionDto request) {
 
@@ -44,7 +44,7 @@ public class SchoolController {
 	                .body(response);
 	    }
 
-	    @GetMapping("/allSections")
+	    @GetMapping("/listSections")
 	    public ResponseEntity<PagedResponse<SectionDto>> getAllSections(
 	            @PageableDefault(page = 0, size = 10) Pageable pageable) {
 
