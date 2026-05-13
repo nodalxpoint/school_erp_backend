@@ -1,39 +1,126 @@
 package com.schoolerp.school_erp_backend.modules.school;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
- 
+import org.springframework.stereotype.Service;
+
+import com.schoolerp.school_erp_backend.common.Helper.ValidationHelper;
+import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
- 
+import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
+
+import jakarta.transaction.Transactional;
+
 @Service
 public class SchoolService {
-	  @Autowired
-	    private SectionRepository sectionRepository;
 
-	    public void createSection(SectionDto request) {
+	@Autowired
+	private SectionRepository sectionRepository;
+	@Autowired
+	private ClassesRepository classesRepository;
+	@Autowired
+	private ValidationHelper validationHelper;
 
-	        SectionEntity section = new SectionEntity();
+	@Transactional
+	public void bulkCreateClasses(BulkCreateClassDto request) {
 
-	        section.setClassId(request.getClassId());
-	        section.setSectionName(request.getSectionName());
+		if (request == null || request.getClasses() == null || request.getClasses().isEmpty()) {
 
-	        sectionRepository.save(section);
-	    }
+			throw new ValidationException("Classes are required");
+		}
 
-	    public Page<SectionDto> getAllSections(Pageable pageable) {
+		for (CreateClassDto classDto : request.getClasses()) {
 
-	        Page<SectionEntity> sectionsPage = sectionRepository.findAll(pageable);
-
-	        return sectionsPage.map(section ->
-	                new SectionDto(
-	                        section.getId(),
-	                        section.getSectionName(),
-	                        section.getClassId()
-	                )
-	        );
-	    }
+			createClass(classDto);
+		}
 	}
+
+	@Transactional
+	public void createClass(CreateClassDto requestDTO) {
+
+		validationHelper.validateCreateClassRequest(requestDTO);
+
+		SchoolEntity school = validationHelper.getSchool();
+
+		validationHelper.validateDuplicateClass(school.getId(), requestDTO.getClassName());
+
+		Classes savedClass = saveClass(school.getId(), requestDTO.getClassName());
+
+		createSections(savedClass.getId(), requestDTO.getSections());
+	}
+
+	public Classes saveClass(UUID schoolId, String className) {
+
+		Classes classEntity = new Classes();
+
+		classEntity.setSchoolId(schoolId);
+		classEntity.setClassName(className.trim());
+
+		return classesRepository.save(classEntity);
+	}
+
+	private void createSections(UUID classId, List<String> sections) {
+
+		if (sections == null || sections.isEmpty()) {
+			return;
+		}
+
+		Set<String> uniqueSections = new HashSet<>();
+
+		List<SectionEntity> sectionEntities = new ArrayList<>();
+
+		for (String sectionName : sections) {
+
+			if (sectionName == null || sectionName.trim().isEmpty()) {
+				continue;
+			}
+
+			String formattedSection = sectionName.trim().toUpperCase();
+
+			// SKIP DUPLICATES IN REQUEST
+			if (!uniqueSections.add(formattedSection)) {
+				continue;
+			}
+
+			boolean sectionExists = sectionRepository.existsByClassIdAndSectionName(classId, formattedSection);
+
+			if (sectionExists) {
+				continue;
+			}
+
+			SectionEntity section = buildSectionEntity(classId, formattedSection);
+
+			sectionEntities.add(section);
+		}
+
+		if (!sectionEntities.isEmpty()) {
+			sectionRepository.saveAll(sectionEntities);
+		}
+	}
+
+	private SectionEntity buildSectionEntity(UUID classId, String sectionName) {
+
+		SectionEntity section = new SectionEntity();
+
+		section.setClassId(classId);
+		section.setSectionName(sectionName);
+
+		return section;
+	}
+
+	public Page<SectionDto> getAllSections(Pageable pageable) {
+
+		Page<SectionEntity> sectionsPage = sectionRepository.findAll(pageable);
+
+		return sectionsPage
+				.map(section -> new SectionDto(section.getId(), section.getSectionName(), section.getClassId()));
+	}
+}

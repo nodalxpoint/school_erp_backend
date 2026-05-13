@@ -7,7 +7,11 @@ public class SectionDto {
     private UUID id;
     private String sectionName;
     private UUID classId;
-
+    
+    
+    public SectionDto() {
+    	
+    }
     public SectionDto(UUID id, String sectionName, UUID classId) {
         this.id = id;
         this.sectionName = sectionName;

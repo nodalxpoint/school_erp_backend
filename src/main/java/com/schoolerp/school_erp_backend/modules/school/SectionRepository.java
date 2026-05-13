@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface SectionRepository extends JpaRepository<SectionEntity, UUID> {
 
+	boolean existsByClassIdAndSectionName(UUID classId, String sectionName);
+
 }
