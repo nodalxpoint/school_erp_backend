@@ -2,84 +2,91 @@ package com.schoolerp.school_erp_backend.common.response;
 
 import org.springframework.data.domain.Page;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class PagedResponse<T> {
 
-	private boolean success;
+    private boolean success;
+    private String message;
+    @JsonProperty("data")
+    private List<T> content;
 
-	private String message;
+    private int page;
+    private int size;
+    private long totalElements;
+    private int totalPages;
+    private boolean last;
+    private LocalDateTime timestamp;
 
-	private List<T> content;
+    public PagedResponse() {
+    }
 
-	private int page;
+    public PagedResponse(boolean success, String message, List<T> content,
+                         int page, int size, long totalElements,
+                         int totalPages, boolean last,
+                         LocalDateTime timestamp) {
+        this.success = success;
+        this.message = message;
+        this.content = content;
+        this.page = page;
+        this.size = size;
+        this.totalElements = totalElements;
+        this.totalPages = totalPages;
+        this.last = last;
+        this.timestamp = timestamp;
+    }
 
-	private int size;
+    public static <T> PagedResponse<T> fromPage(Page<T> pageData, String message) {
 
-	private long totalElements;
+        return new PagedResponse<>(
+                true,
+                message,
+                pageData.getContent(),
+                pageData.getNumber(),
+                pageData.getSize(),
+                pageData.getTotalElements(),
+                pageData.getTotalPages(),
+                pageData.isLast(),
+                LocalDateTime.now()
+        );
+    }
 
-	private int totalPages;
+    public boolean isSuccess() {
+        return success;
+    }
 
-	private boolean last;
+    public String getMessage() {
+        return message;
+    }
 
-	private LocalDateTime timestamp;
+    public List<T> getContent() {
+        return content;
+    }
 
-	public PagedResponse() {
-	}
+    public int getPage() {
+        return page;
+    }
 
-	public PagedResponse(boolean success, String message, List<T> content, int page, int size, long totalElements,
-			int totalPages, boolean last, LocalDateTime timestamp) {
-		this.success = success;
-		this.message = message;
-		this.content = content;
-		this.page = page;
-		this.size = size;
-		this.totalElements = totalElements;
-		this.totalPages = totalPages;
-		this.last = last;
-		this.timestamp = timestamp;
-	}
+    public int getSize() {
+        return size;
+    }
 
-	public static <T> PagedResponse<T> fromPage(Page<T> pageData, String message) {
+    public long getTotalElements() {
+        return totalElements;
+    }
 
-		return new PagedResponse<>(true, message, pageData.getContent(), pageData.getNumber(), pageData.getSize(),
-				pageData.getTotalElements(), pageData.getTotalPages(), pageData.isLast(), LocalDateTime.now());
-	}
+    public int getTotalPages() {
+        return totalPages;
+    }
 
-	public boolean isSuccess() {
-		return success;
-	}
+    public boolean isLast() {
+        return last;
+    }
 
-	public String getMessage() {
-		return message;
-	}
-
-	public List<T> getContent() {
-		return content;
-	}
-
-	public int getPage() {
-		return page;
-	}
-
-	public int getSize() {
-		return size;
-	}
-
-	public long getTotalElements() {
-		return totalElements;
-	}
-
-	public int getTotalPages() {
-		return totalPages;
-	}
-
-	public boolean isLast() {
-		return last;
-	}
-
-	public LocalDateTime getTimestamp() {
-		return timestamp;
-	}
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
 }
