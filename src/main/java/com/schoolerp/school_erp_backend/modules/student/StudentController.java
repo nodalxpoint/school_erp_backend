@@ -18,7 +18,7 @@ public class StudentController {
 		this.studentService = studentService;
 	}
 
-	@PostMapping("/filter")
+	@PostMapping("/list")
 	public ResponseEntity<PagedResponse<StudentResponseDto>> filterStudents(@RequestBody StudentFilterRequest request) {
 
 		return ResponseEntity.ok(studentService.filterStudents(request));
