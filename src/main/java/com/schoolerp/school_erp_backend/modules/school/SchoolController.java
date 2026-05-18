@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,9 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("api/school/classAndSection")
 public class SchoolController {
+	
+	private static final Logger LOGGER =
+            LoggerFactory.getLogger(SchoolController.class);
 
 	@Autowired
 	private SchoolService schoolService;
@@ -44,9 +49,14 @@ public class SchoolController {
 
 	@PostMapping("/createClass")
 	public ResponseEntity<ApiResponse<String>> createClass(@Valid @RequestBody CreateClassDto request) {
+		
+		LOGGER.debug("classID : {}",request.getClassId());
+		
+		LOGGER.debug("create class called");
+
 
 		schoolService.createClass(request);
-
+		
 		ApiResponse<String> response = ApiResponse.success("Class created successfully", null);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);

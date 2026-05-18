@@ -6,7 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,9 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class SchoolService {
+	
+	private static final Logger LOGGER =
+            LoggerFactory.getLogger(SchoolService.class);
 
 	@Autowired
 	private SectionRepository sectionRepository;
@@ -45,16 +49,25 @@ public class SchoolService {
 
 	@Transactional
 	public void createClass(CreateClassDto requestDTO) {
+		
+		if(!requestDTO.getClassId().isEmpty()) {
+			LOGGER.debug("Adding Sections To Existing Class");
+			createSections(UUID.fromString(requestDTO.getClassId()),  requestDTO.getSections());
+			
+		}else {
+			LOGGER.debug("Creating Class");
+			validationHelper.validateCreateClassRequest(requestDTO);
 
-		validationHelper.validateCreateClassRequest(requestDTO);
+			SchoolEntity school = validationHelper.getSchool();
 
-		SchoolEntity school = validationHelper.getSchool();
+			validationHelper.validateDuplicateClass(school.getId(), requestDTO.getClassName());
 
-		validationHelper.validateDuplicateClass(school.getId(), requestDTO.getClassName());
+			Classes savedClass = saveClass(school.getId(), requestDTO.getClassName());
 
-		Classes savedClass = saveClass(school.getId(), requestDTO.getClassName());
+			createSections(savedClass.getId(), requestDTO.getSections());
+		}
 
-		createSections(savedClass.getId(), requestDTO.getSections());
+		
 	}
 
 	public Classes saveClass(UUID schoolId, String className) {
