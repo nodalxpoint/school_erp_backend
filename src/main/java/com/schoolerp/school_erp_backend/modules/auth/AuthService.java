@@ -25,11 +25,6 @@ public class AuthService {
 	@Autowired
 	private SchoolRepository schoolRepository;
 
-//	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-//		this.userRepository = userRepository;
-//		this.passwordEncoder = passwordEncoder;
-//	}
-
 	public LoginResponseDto login(LoginRequestDto requestDto) {
 
 		User user = userRepository.findByEmail(requestDto.getEmail())
@@ -64,8 +59,8 @@ public class AuthService {
 		user.setSchool(school);
 		user.setFirstName("Mahima");
 		user.setLastName("Chaudhary");
-		user.setEmail("adminMahima@test.com");
-		user.setPassword(passwordEncoder.encode("admin123"));
+		user.setEmail("adminMahima@gmail.com");
+		user.setPassword(passwordEncoder.encode("admin@123"));
 		user.setRole(UserRole.SUPER_ADMIN);
 		user.setIsActive(true);
 

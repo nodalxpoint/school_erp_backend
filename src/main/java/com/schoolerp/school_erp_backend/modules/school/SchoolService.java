@@ -12,7 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.schoolerp.school_erp_backend.common.Helper.ValidationHelper;
+import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
 import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
@@ -27,7 +27,7 @@ public class SchoolService {
 	@Autowired
 	private ClassesRepository classesRepository;
 	@Autowired
-	private ValidationHelper validationHelper;
+	private ValidationHelperService validationHelper;
 
 	@Transactional
 	public void bulkCreateClasses(BulkCreateClassDto request) {

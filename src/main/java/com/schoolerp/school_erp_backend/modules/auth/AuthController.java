@@ -23,6 +23,12 @@ public class AuthController {
 	private AuthService authService;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	
+	@GetMapping("/helloWorld")
+	public String helloWorld() {
+		return "Hello World!";
+	}
 
 
 
