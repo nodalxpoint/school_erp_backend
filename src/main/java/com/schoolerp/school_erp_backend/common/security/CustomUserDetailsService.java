@@ -1,14 +1,12 @@
 package com.schoolerp.school_erp_backend.common.security;
 
 
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 
-import java.util.Collections;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -27,14 +25,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found"));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                Collections.singletonList(
-                        new SimpleGrantedAuthority(
-                                "ROLE_" + user.getRole().name()
-                        )
-                )
-        );
+        return new CustomUserDetails(user);
     }
 }

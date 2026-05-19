@@ -1,9 +1,14 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
+import java.util.UUID;
+
 import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 public class StudentSpecification {
 
@@ -40,8 +45,33 @@ public class StudentSpecification {
 		return (root, query, cb) -> FilterUtils.equal(cb, root, "admissionNo", admissionNo);
 	}
 
-	public static Specification<StudentEntity> classIdEqual(Long classId) {
+	public static Specification<StudentEntity> classIdEqual(UUID classId) {
 
-		return (root, query, cb) -> FilterUtils.joinEqual(cb, root, "schoolClass", "id", classId);
+	    return (root, query, cb) -> {
+	        if (classId == null) return null;
+
+	        Subquery<UUID> subquery = query.subquery(UUID.class);
+	        Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
+
+	        subquery.select(enrollment.get("studentId"))
+	                .where(cb.equal(enrollment.get("classId"), classId));
+
+	        return root.get("id").in(subquery);
+	    };
+	}
+
+	public static Specification<StudentEntity> sectionIdEqual(UUID sectionId) {
+
+	    return (root, query, cb) -> {
+	        if (sectionId == null) return null;
+
+	        Subquery<UUID> subquery = query.subquery(UUID.class);
+	        Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
+
+	        subquery.select(enrollment.get("studentId"))
+	                .where(cb.equal(enrollment.get("sectionId"), sectionId));
+
+	        return root.get("id").in(subquery);
+	    };
 	}
 }

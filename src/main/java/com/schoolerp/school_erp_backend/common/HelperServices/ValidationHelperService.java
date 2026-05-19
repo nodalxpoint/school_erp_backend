@@ -14,6 +14,11 @@ import com.schoolerp.school_erp_backend.modules.school.CreateClassDto;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SchoolRepository;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.student.StudentEnrollmentRepository;
+import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentEntity;
+import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentRepository;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
 
 @Component
 public class ValidationHelperService {
@@ -24,6 +29,12 @@ public class ValidationHelperService {
 	private SectionRepository sectionRepository;
 	@Autowired
 	private ClassesRepository classesRepository;
+
+	@Autowired
+	private ClassTeacherAssignmentRepository classTeacherAssignmentRepository;
+
+	@Autowired
+	private TeacherRepository teacherRepo;
 
 	public void validateCreateClassRequest(CreateClassDto requestDTO) {
 
@@ -52,6 +63,20 @@ public class ValidationHelperService {
 		}
 	}
 
-	
+	public void validateClassTeacher(UUID userId, UUID classId, UUID sectionId, UUID academicSessionId) {
+
+		ClassTeacherAssignmentEntity assignment = classTeacherAssignmentRepository
+				.findByClassIdAndSectionIdAndAcademicSessionId(classId, sectionId, academicSessionId)
+				.orElseThrow(() -> new ValidationException("No class teacher assigned for this class and section"));
+
+		// get teacher linked to this user
+		// assuming you have TeacherRepository
+		TeacherEntity teacher = teacherRepo.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found for this user"));
+
+		if (!assignment.getTeacherId().equals(teacher.getId())) {
+			throw new RuntimeException("You are not authorized to mark attendance for this class");
+		}
+	}
 
 }

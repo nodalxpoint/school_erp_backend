@@ -27,15 +27,11 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("api/school/classAndSection")
 public class SchoolController {
-	
-	private static final Logger LOGGER =
-            LoggerFactory.getLogger(SchoolController.class);
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SchoolController.class);
 
 	@Autowired
 	private SchoolService schoolService;
-	
-	
-	
 
 	@PostMapping("/bulkCreateClasses")
 	public ResponseEntity<ApiResponse<String>> bulkCreateClasses(@Valid @RequestBody BulkCreateClassDto request) {
@@ -50,26 +46,11 @@ public class SchoolController {
 	@PostMapping("/createClass")
 	public ResponseEntity<ApiResponse<String>> createClass(@Valid @RequestBody CreateClassDto request) {
 		
-		LOGGER.debug("classID : {}",request.getClassId());
-		
-		LOGGER.debug("create class called");
-
-
 		schoolService.createClass(request);
-		
+
 		ApiResponse<String> response = ApiResponse.success("Class created successfully", null);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
-
-	@GetMapping("/listSections")
-	public ResponseEntity<PagedResponse<SectionDto>> getAllSections(
-			@PageableDefault(page = 0, size = 10) Pageable pageable) {
-
-		Page<SectionDto> pageData = schoolService.getAllSections(pageable);
-
-		PagedResponse<SectionDto> response = PagedResponse.fromPage(pageData, "Sections fetched successfully");
-
-		return ResponseEntity.status(HttpStatus.OK).body(response);
-	}
+ 
 }

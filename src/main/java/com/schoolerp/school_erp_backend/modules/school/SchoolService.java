@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -129,11 +130,4 @@ public class SchoolService {
 		return section;
 	}
 
-	public Page<SectionDto> getAllSections(Pageable pageable) {
-
-		Page<SectionEntity> sectionsPage = sectionRepository.findAll(pageable);
-
-		return sectionsPage
-				.map(section -> new SectionDto(section.getId(), section.getSectionName(), section.getClassId()));
-	}
 }

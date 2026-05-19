@@ -1,5 +1,7 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
+import java.util.UUID;
+
 import com.schoolerp.school_erp_backend.common.filters.BaseFilterRequest;
 
 public class StudentFilterRequest
@@ -11,7 +13,9 @@ public class StudentFilterRequest
 
     private String admissionNo;
 
-    private Long classId;
+    private UUID classId;
+    
+    private UUID sectionId;
 
 	public String getFirstName() {
 		return firstName;
@@ -37,13 +41,23 @@ public class StudentFilterRequest
 		this.admissionNo = admissionNo;
 	}
 
-	public Long getClassId() {
+	public UUID getClassId() {
 		return classId;
 	}
 
-	public void setClassId(Long classId) {
+	public void setClassId(UUID classId) {
 		this.classId = classId;
 	}
+
+	public UUID getSectionId() {
+		return sectionId;
+	}
+
+	public void setSectionId(UUID sectionId) {
+		this.sectionId = sectionId;
+	}
+	
+	
     
     
     

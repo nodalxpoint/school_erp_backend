@@ -3,9 +3,9 @@ package com.schoolerp.school_erp_backend.modules.teacher;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class CreateTeacherDto {
+import com.schoolerp.school_erp_backend.common.filters.BaseFilterRequest;
 
-    private UUID schoolId;
+public class TeacherFilterRequest extends BaseFilterRequest{
 
     private String firstName;
 
@@ -20,14 +20,6 @@ public class CreateTeacherDto {
     private String qualification;
 
     private LocalDate joiningDate;
-
-	public UUID getSchoolId() {
-		return schoolId;
-	}
-
-	public void setSchoolId(UUID schoolId) {
-		this.schoolId = schoolId;
-	}
 
 	public String getFirstName() {
 		return firstName;

@@ -1,6 +1,5 @@
-package com.schoolerp.school_erp_backend.modules.attendance;
+package com.schoolerp.school_erp_backend.modules.student;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -12,8 +11,8 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "attendance")
-public class AttendanceEntity {
+@Table(name = "student_enrollments")
+public class StudentEnrollmentEntity {
 
 	@Id
 	@GeneratedValue
@@ -31,16 +30,11 @@ public class AttendanceEntity {
 	@Column(name = "section_id", nullable = false)
 	private UUID sectionId;
 
-	@Column(name = "attendance_date", nullable = false)
-	private LocalDate attendanceDate;
+	@Column(name = "roll_no")
+	private String rollNo;
 
-	private String status;
-
-	@Column(name = "marked_by")
-	private UUID markedBy;
-
-	@Column(name = "remarks")
-	private String remarks;
+	@Column(name = "enrollment_status")
+	private String enrollmentStatus;
 
 	@Column(name = "created_at")
 	private LocalDateTime createdAt;
@@ -50,7 +44,7 @@ public class AttendanceEntity {
 		this.createdAt = LocalDateTime.now();
 	}
 
-	// getters and setters
+
 	public UUID getId() {
 		return id;
 	}
@@ -91,36 +85,20 @@ public class AttendanceEntity {
 		this.sectionId = sectionId;
 	}
 
-	public LocalDate getAttendanceDate() {
-		return attendanceDate;
+	public String getRollNo() {
+		return rollNo;
 	}
 
-	public void setAttendanceDate(LocalDate attendanceDate) {
-		this.attendanceDate = attendanceDate;
+	public void setRollNo(String rollNo) {
+		this.rollNo = rollNo;
 	}
 
-	public String getStatus() {
-		return status;
+	public String getEnrollmentStatus() {
+		return enrollmentStatus;
 	}
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public UUID getMarkedBy() {
-		return markedBy;
-	}
-
-	public void setMarkedBy(UUID markedBy) {
-		this.markedBy = markedBy;
-	}
-
-	public String getRemarks() {
-		return remarks;
-	}
-
-	public void setRemarks(String remarks) {
-		this.remarks = remarks;
+	public void setEnrollmentStatus(String enrollmentStatus) {
+		this.enrollmentStatus = enrollmentStatus;
 	}
 
 	public LocalDateTime getCreatedAt() {

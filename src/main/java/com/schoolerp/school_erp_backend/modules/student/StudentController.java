@@ -1,5 +1,7 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,9 +22,13 @@ public class StudentController {
 
 	@PostMapping("/list")
 	public ResponseEntity<PagedResponse<StudentResponseDto>> filterStudents(@RequestBody StudentFilterRequest request) {
-
-		return ResponseEntity.ok(studentService.filterStudents(request));
+		
+		PagedResponse<StudentResponseDto> response = studentService.filterStudents(request);
+		
+		return ResponseEntity.ok(response);
 	}
+	
+	
 }
 
 //{
