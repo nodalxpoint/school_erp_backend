@@ -40,8 +40,8 @@ public class AttendanceService {
 
 			// skip if already marked for this student on this date
 			boolean alreadyMarked = attendanceRepository.existsByStudentIdAndAttendanceDateAndClassIdAndSectionId(
-					record.getStudentId(), requestDTO.getAttendanceDate(), requestDTO.getClassId(),
-					requestDTO.getSectionId());
+					record.getStudentId(), requestDTO.getAttendanceDate(), UUID.fromString(requestDTO.getClassId()),
+					UUID.fromString(requestDTO.getSectionId()));
 
 			if (alreadyMarked) {
 				LOGGER.debug("Attendance already marked for studentId: {}, skipping", record.getStudentId());
@@ -56,9 +56,9 @@ public class AttendanceService {
 
 			AttendanceEntity entity = new AttendanceEntity();
 			entity.setStudentId(record.getStudentId());
-			entity.setClassId(requestDTO.getClassId());
-			entity.setSectionId(requestDTO.getSectionId());
-			entity.setAcademicSessionId(requestDTO.getAcademicSessionId());
+			entity.setClassId(UUID.fromString(requestDTO.getClassId()));
+			entity.setSectionId(UUID.fromString(requestDTO.getSectionId()));
+			entity.setAcademicSessionId(UUID.fromString(requestDTO.getAcademicSessionId()));
 			entity.setAttendanceDate(requestDTO.getAttendanceDate());
 			entity.setStatus(status);
 			entity.setRemarks(record.getRemarks());
@@ -80,8 +80,8 @@ public class AttendanceService {
 		}
 
 		if (!role.equals(UserRole.SCHOOL_ADMIN)) {
-			validationHelperService.validateClassTeacher(userId, requestDTO.getClassId(),
-					requestDTO.getSectionId(), requestDTO.getAcademicSessionId());
+			validationHelperService.validateClassTeacher(userId, UUID.fromString(requestDTO.getClassId()),
+					UUID.fromString(requestDTO.getSectionId()), UUID.fromString(requestDTO.getAcademicSessionId()));
 		}
 		if (requestDTO.getRecords() == null || requestDTO.getRecords().isEmpty()) {
 			throw new ValidationException("Attendance records cannot be empty");

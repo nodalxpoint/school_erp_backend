@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ClassTeacherAssignmentRepository extends JpaRepository<ClassTeacherAssignmentEntity, UUID> {
 
-    Optional<ClassTeacherAssignmentEntity> findByClassIdAndSectionIdAndAcademicSessionId(
-        UUID classId, UUID sectionId, UUID academicSessionId
-    );
-} 
+	Optional<ClassTeacherAssignmentEntity> findByClassIdAndSectionIdAndAcademicSessionId(UUID classId, UUID sectionId,
+			UUID academicSessionId);
+
+	boolean existsByClassIdAndSectionIdAndAcademicSessionId(UUID classId, UUID sectionId, UUID academicSessionId);
+}

@@ -1,6 +1,7 @@
 package com.schoolerp.school_erp_backend.modules.school;
 
 import java.util.List;
+import java.util.UUID;
 
 public class CreateClassDto {
 

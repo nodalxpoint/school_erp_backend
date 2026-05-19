@@ -2,37 +2,36 @@ package com.schoolerp.school_erp_backend.modules.attendance;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 public class BulkAttendanceRequestDto {
 
-	private UUID classId;
-	private UUID sectionId;
-	private UUID academicSessionId;
+	private String classId;
+	private String sectionId;
+	private String academicSessionId;
 	private LocalDate attendanceDate;
 	private List<AttendanceRecordDto> records;
 
-	public UUID getClassId() {
+	public String getClassId() {
 		return classId;
 	}
 
-	public void setClassId(UUID classId) {
+	public void setClassId(String classId) {
 		this.classId = classId;
 	}
 
-	public UUID getSectionId() {
+	public String getSectionId() {
 		return sectionId;
 	}
 
-	public void setSectionId(UUID sectionId) {
+	public void setSectionId(String sectionId) {
 		this.sectionId = sectionId;
 	}
 
-	public UUID getAcademicSessionId() {
+	public String getAcademicSessionId() {
 		return academicSessionId;
 	}
 
-	public void setAcademicSessionId(UUID academicSessionId) {
+	public void setAcademicSessionId(String academicSessionId) {
 		this.academicSessionId = academicSessionId;
 	}
 

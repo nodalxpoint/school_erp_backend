@@ -1,5 +1,8 @@
 package com.schoolerp.school_erp_backend.modules.teacher;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,34 +21,39 @@ import jakarta.validation.Valid;
 @RequestMapping("api//teacher")
 public class TeacherController {
 
-    private final TeacherService teacherService;
+	private static final Logger LOGGER = LoggerFactory.getLogger(TeacherService.class);
 
-    public TeacherController(TeacherService teacherService) {
-        this.teacherService = teacherService;
-    }
-    
-    
-    @PostMapping("/list")
+	@Autowired
+	private TeacherService teacherService;
+
+	 
+	@PostMapping("/list")
 	public ResponseEntity<PagedResponse<TeacherResponseDto>> filterStudents(@RequestBody TeacherFilterRequest request) {
-		
+
 		PagedResponse<TeacherResponseDto> response = teacherService.filterTeachers(request);
-		
+
 		return ResponseEntity.ok(response);
 	}
 
-    @PostMapping("/create")
-    public ResponseEntity<ApiResponse<String>> createTeacher(@Valid @RequestBody CreateTeacherDto request) {
+	@PostMapping("/addOrUpdate")
+	public ResponseEntity<ApiResponse<String>> createTeacher(@Valid @RequestBody CreateTeacherDto request) {
 
-        teacherService.createTeacher(request);
+		teacherService.createTeacher(request);
 
-        ApiResponse<String> response = ApiResponse.success("Teacher created successfully", null);
+		ApiResponse<String> response = ApiResponse.success("Teacher created successfully", null);
+		
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
 
-        ResponseEntity<ApiResponse<String>> responseEntity = ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+	@PostMapping("/assign")
+	public ResponseEntity<ApiResponse<String>> assignClassTeacher(@RequestBody AssignClassTeacherDto requestDTO) {
 
-        return responseEntity;
-    }
+		LOGGER.debug("assignClassTeacher endpoint called");
 
+		teacherService.assignClassTeacher(requestDTO);
 
+		ApiResponse<String> response = ApiResponse.success("Class Teacher Assigned Successfully");
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
 }
