@@ -26,15 +26,13 @@ public class ValidationHelperService {
 	@Autowired
 	private SchoolRepository schoolRepository;
 	@Autowired
-	private SectionRepository sectionRepository;
-	@Autowired
-	private ClassesRepository classesRepository;
+	public  ClassesRepository classesRepository;
 
 	@Autowired
-	private ClassTeacherAssignmentRepository classTeacherAssignmentRepository;
+	public ClassTeacherAssignmentRepository classTeacherAssignmentRepository;
 
 	@Autowired
-	private TeacherRepository teacherRepo;
+	public TeacherRepository teacherRepo;
 
 	public void validateCreateClassRequest(CreateClassDto requestDTO) {
 

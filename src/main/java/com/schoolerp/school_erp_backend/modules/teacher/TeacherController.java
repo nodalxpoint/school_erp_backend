@@ -18,7 +18,7 @@ import com.schoolerp.school_erp_backend.modules.student.StudentResponseDto;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("api//teacher")
+@RequestMapping("/api//teacher")
 public class TeacherController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TeacherService.class);

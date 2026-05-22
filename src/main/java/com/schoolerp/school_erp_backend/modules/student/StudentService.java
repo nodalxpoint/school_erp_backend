@@ -1,21 +1,54 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
+import java.util.Optional;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.schoolerp.school_erp_backend.common.HelperServices.AdmissionNoGenerator;
+import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
+import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
+import com.schoolerp.school_erp_backend.modules.auth.User;
+import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
+import com.schoolerp.school_erp_backend.modules.auth.UserRole;
+import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherService;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class StudentService {
 
-	private final StudentRepository studentRepository;
+	private static final Logger LOGGER = LoggerFactory.getLogger(StudentService.class);
 
-	public StudentService(StudentRepository studentRepository) {
-		this.studentRepository = studentRepository;
-	}
+	@Autowired
+	private StudentRepository studentRepository;
+	@Autowired
+	private StudentEnrollmentRepository studentEnrollmentRepository;
+	@Autowired
+	private AdmissionNoGenerator admissionNoGenerator;
+	@Autowired
+	private ParentRepository parentRepository;
+	
+
+	@Autowired
+	private UserRepository userRepository;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private ValidationHelperService validationHelperService;
 
 	public PagedResponse<StudentResponseDto> filterStudents(StudentFilterRequest request) {
 
@@ -28,6 +61,139 @@ public class StudentService {
 		Page<StudentResponseDto> dtoPage = studentPage.map(student -> mapToDto(student));
 
 		return PagedResponse.fromPage(dtoPage, "Students fetched successfully");
+	}
+
+	@Transactional
+	public void addOrUpdateStudent(CreateStudentDto request) {
+
+		if (request.getStudentId() != null && !request.getStudentId().isEmpty()) {
+			LOGGER.debug("Updating existing student: {}", request.getStudentId());
+			updateStudent(request);
+		} else {
+			LOGGER.debug("Creating new student");
+			createStudent(request);
+		}
+	}
+
+	// ─── CREATE ────────────────────────────────────────────────
+
+	private void createStudent(CreateStudentDto request) {
+
+		SchoolEntity school = validationHelperService.getSchool();
+
+		// 1. create parent user account
+		User parentUser = createParentUser(request, school);
+
+
+		// 2. create parent
+		ParentEntity parent = createParent(request, parentUser, school);
+
+		// 3. generate admission no
+		String admissionNo = admissionNoGenerator.generate();
+
+		// 4. create student
+		StudentEntity student = new StudentEntity();
+		student.setSchool(school);
+		student.setAdmissionNo(admissionNo);
+		student.setFirstName(request.getFirstName().trim());
+		student.setLastName(request.getLastName() != null ? request.getLastName().trim() : null);
+		student.setGender(request.getGender());
+		student.setDob(request.getDob());
+		student.setAdmissionDate(request.getAdmissionDate());
+		student.setParent(parent);
+
+		StudentEntity saved = studentRepository.save(student);
+
+		LOGGER.debug("Student created with admissionNo: {}", admissionNo);
+
+		// 5. create enrollment
+		createEnrollment(saved.getId(), request);
+	}
+
+	private User createParentUser(CreateStudentDto request, SchoolEntity school) {
+
+		if (userRepository.existsByEmail(request.getParentEmail())) {
+			throw new ValidationException("User already exists with email: " + request.getParentEmail());
+		}
+
+		User user = new User();
+		user.setSchool(school);
+		user.setFirstName(request.getParentFirstName());
+		user.setLastName(request.getParentLastName());
+		user.setEmail(request.getParentEmail());
+		user.setPhoneNumber(request.getParentPhone());
+		user.setRole(UserRole.PARENT);
+		user.setPassword(passwordEncoder.encode(request.getParentPassword()));
+		user.setIsActive(true);
+
+		return userRepository.save(user);
+	}
+
+	private ParentEntity createParent(CreateStudentDto request, User parentUser, SchoolEntity school) {
+
+		ParentEntity parent = new ParentEntity();
+		parent.setSchool(school);
+		parent.setUser(parentUser);
+		parent.setFatherName(request.getFatherName());
+		parent.setMotherName(request.getMotherName());
+		parent.setEmergencyContact(request.getEmergencyContact());
+
+		return parentRepository.save(parent);
+	}
+
+	private void createEnrollment(UUID studentId, CreateStudentDto request) {
+
+		StudentEnrollmentEntity enrollment = new StudentEnrollmentEntity();
+		enrollment.setStudentId(studentId);
+		enrollment.setClassId(UUID.fromString(request.getClassId()));
+		enrollment.setSectionId(UUID.fromString(request.getSectionId()));
+		enrollment.setAcademicSessionId(UUID.fromString(request.getAcademicSessionId()));
+		enrollment.setRollNo(request.getRollNo());
+		enrollment.setEnrollmentStatus("ACTIVE");
+
+		studentEnrollmentRepository.save(enrollment);
+	}
+
+	// ─── UPDATE ────────────────────────────────────────────────
+
+	private void updateStudent(CreateStudentDto request) {
+
+		StudentEntity student = studentRepository.findById(UUID.fromString(request.getStudentId()))
+				.orElseThrow(() -> new RuntimeException("Student not found"));
+
+		if (request.getFirstName() != null)
+			student.setFirstName(request.getFirstName().trim());
+		if (request.getLastName() != null)
+			student.setLastName(request.getLastName().trim());
+		if (request.getGender() != null)
+			student.setGender(request.getGender());
+		if (request.getDob() != null)
+			student.setDob(request.getDob());
+		if (request.getAdmissionDate() != null)
+			student.setAdmissionDate(request.getAdmissionDate());
+
+		studentRepository.save(student);
+
+		// update enrollment if class changed
+		if (request.getClassId() != null && !request.getClassId().isEmpty()) {
+			updateEnrollment(student.getId(), request);
+		}
+	}
+
+	private void updateEnrollment(UUID studentId, CreateStudentDto request) {
+
+		Optional<StudentEnrollmentEntity> existing = studentEnrollmentRepository
+				.findByStudentIdAndAcademicSessionId(studentId, UUID.fromString(request.getAcademicSessionId()));
+
+		if (existing.isPresent()) {
+			StudentEnrollmentEntity enrollment = existing.get();
+			enrollment.setClassId(UUID.fromString(request.getClassId()));
+			enrollment.setSectionId(UUID.fromString(request.getSectionId()));
+			enrollment.setRollNo(request.getRollNo());
+			studentEnrollmentRepository.save(enrollment);
+		} else {
+			createEnrollment(studentId, request);
+		}
 	}
 
 	private StudentResponseDto mapToDto(StudentEntity student) {

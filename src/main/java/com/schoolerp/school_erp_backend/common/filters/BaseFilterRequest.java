@@ -7,7 +7,7 @@ public class BaseFilterRequest {
 
     private Integer size = 10;
 
-    private String sortBy = "id";
+    private String sortBy = "createdAt";
 
     private String sortDirection = "desc";
 

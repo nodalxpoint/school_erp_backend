@@ -32,7 +32,7 @@ public class SchoolService {
 	@Autowired
 	private ClassesRepository classesRepository;
 	@Autowired
-	private ValidationHelperService validationHelper;
+	private ValidationHelperService validationHelperService;
 
 	@Transactional
 	public void bulkCreateClasses(BulkCreateClassDto request) {
@@ -57,11 +57,11 @@ public class SchoolService {
 			
 		}else {
 			LOGGER.debug("Creating Class");
-			validationHelper.validateCreateClassRequest(requestDTO);
+			validationHelperService.validateCreateClassRequest(requestDTO);
 
-			SchoolEntity school = validationHelper.getSchool();
+			SchoolEntity school = validationHelperService.getSchool();
 
-			validationHelper.validateDuplicateClass(school.getId(), requestDTO.getClassName());
+			validationHelperService.validateDuplicateClass(school.getId(), requestDTO.getClassName());
 
 			Classes savedClass = saveClass(school.getId(), requestDTO.getClassName());
 

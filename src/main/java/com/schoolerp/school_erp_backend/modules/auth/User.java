@@ -31,7 +31,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role;
+    private UserRole role;	
     
     @ManyToOne
     @JoinColumn(name = "school_id", nullable = false)
@@ -43,6 +43,9 @@ public class User {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+    
+    @Column(name = "phone",unique = true)
+    private String phoneNumber;
 
     @PrePersist
     public void prePersist() {
@@ -133,6 +136,15 @@ public class User {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+	
+
+	public String getPhoneNumber() {
+		return phoneNumber;
+	}
+
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
 	}
 
 	@Override
