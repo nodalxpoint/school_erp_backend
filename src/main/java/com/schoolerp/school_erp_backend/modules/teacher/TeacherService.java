@@ -35,6 +35,7 @@ public class TeacherService {
 	private TeacherRepository teacherRepo;
 	@Autowired
 	private ClassTeacherAssignmentRepository classTeacherAssignmentRepository;
+	
 
 	public PagedResponse<TeacherResponseDto> filterTeachers(TeacherFilterRequest request) {
 
@@ -49,7 +50,15 @@ public class TeacherService {
 		return PagedResponse.fromPage(dtoPage, "Students fetched successfully");
 	}
 
-	public void createTeacher(CreateTeacherDto request) {
+	public void addOrUpdateTeacher(CreateTeacherDto request) {
+
+		if (request.getUserId() != null && !request.getUserId().isEmpty()) {
+			LOGGER.debug("Updating existing teacher: {}", request.getUserId());
+			updateTeacher(request);
+		} else {
+			LOGGER.debug("Creating new teacher");
+			createTeacher(request);
+		}
 
 		CreateUserDto createUserDto = new CreateUserDto();
 		createUserDto.setFirstName(request.getFirstName());
@@ -79,13 +88,14 @@ public class TeacherService {
 		LOGGER.debug("assignClassTeacher called for classId: {}", requestDTO.getClassId());
 
 		// validate teacher exists
-		
-		teacherRepo.findById(UUID.fromString(requestDTO.getTeacherId())).orElseThrow(() -> new RuntimeException("Teacher not found"));
+
+		teacherRepo.findById(UUID.fromString(requestDTO.getTeacherId()))
+				.orElseThrow(() -> new RuntimeException("Teacher not found"));
 
 		// check if already assigned — update if yes, insert if no
 		Optional<ClassTeacherAssignmentEntity> existing = classTeacherAssignmentRepository
-				.findByClassIdAndSectionIdAndAcademicSessionId(UUID.fromString(requestDTO.getClassId()), UUID.fromString(requestDTO.getSectionId()),
-						UUID.fromString(requestDTO.getAcademicSessionId()));
+				.findByClassIdAndSectionIdAndAcademicSessionId(UUID.fromString(requestDTO.getClassId()),
+						UUID.fromString(requestDTO.getSectionId()), UUID.fromString(requestDTO.getAcademicSessionId()));
 
 		if (existing.isPresent()) {
 			// UPDATE — replace old teacher with new one
@@ -104,6 +114,49 @@ public class TeacherService {
 			entity.setAcademicSessionId(UUID.fromString(requestDTO.getAcademicSessionId()));
 			classTeacherAssignmentRepository.save(entity);
 		}
+	}
+
+	public void createTeacher(CreateTeacherDto request) {
+		
+		CreateUserDto createUserDto = new CreateUserDto();
+		createUserDto.setFirstName(request.getFirstName());
+		createUserDto.setLastName(request.getLastName());
+		createUserDto.setEmail(request.getEmail());
+		createUserDto.setPassword(request.getPassword());
+
+		authService.createUser(createUserDto, UserRole.TEACHER);
+
+		User user = userRepo.findByEmail(request.getEmail())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		TeacherEntity teacher = new TeacherEntity();
+		teacher.setUser(user);
+		teacher.setSchool(user.getSchool());
+		teacher.setEmployeeCode(request.getEmployeeCode());
+		teacher.setQualification(request.getQualification());
+		teacher.setJoiningDate(request.getJoiningDate());
+
+		teacherRepo.save(teacher);
+	}
+
+	public void updateTeacher(CreateTeacherDto request) {
+		User user = userRepo.findById(UUID.fromString(request.getUserId()))
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		user.setFirstName(request.getFirstName());
+		user.setLastName(request.getLastName());
+		// Don't update email/password here unless you want to allow that
+		userRepo.save(user);
+
+		TeacherEntity teacher = teacherRepo.findByUser(user)
+				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+
+		teacher.setEmployeeCode(request.getEmployeeCode());
+		teacher.setQualification(request.getQualification());
+		teacher.setJoiningDate(request.getJoiningDate());
+
+		teacherRepo.save(teacher);
+
 	}
 
 	private TeacherResponseDto mapToDto(TeacherEntity teacher) {

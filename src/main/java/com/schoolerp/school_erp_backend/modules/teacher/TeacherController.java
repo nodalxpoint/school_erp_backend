@@ -12,13 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
-import com.schoolerp.school_erp_backend.modules.student.StudentFilterRequest;
-import com.schoolerp.school_erp_backend.modules.student.StudentResponseDto;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api//teacher")
+@RequestMapping("/api/teacher")
 public class TeacherController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TeacherService.class);
@@ -28,7 +26,7 @@ public class TeacherController {
 
 	 
 	@PostMapping("/list")
-	public ResponseEntity<PagedResponse<TeacherResponseDto>> filterStudents(@RequestBody TeacherFilterRequest request) {
+	public ResponseEntity<PagedResponse<TeacherResponseDto>> filterTeachers(@RequestBody TeacherFilterRequest request) {
 
 		PagedResponse<TeacherResponseDto> response = teacherService.filterTeachers(request);
 

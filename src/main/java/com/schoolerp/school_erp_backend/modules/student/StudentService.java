@@ -205,7 +205,8 @@ public class StudentService {
 		dto.setFirstName(student.getFirstName());
 
 		dto.setLastName(student.getLastName());
-
+		
+		dto.setAdmissionNo(student.getAdmissionNo());
 		return dto;
 	}
 }
