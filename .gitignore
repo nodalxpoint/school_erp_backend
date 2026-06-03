@@ -20,3 +20,7 @@ Thumbs.db
 # Application secrets
 application.properties
 application-prod.properties
+
+# Local deployment scripts
+build.sh
+build.bat

@@ -35,7 +35,6 @@ public class TeacherService {
 	private TeacherRepository teacherRepo;
 	@Autowired
 	private ClassTeacherAssignmentRepository classTeacherAssignmentRepository;
-	
 
 	public PagedResponse<TeacherResponseDto> filterTeachers(TeacherFilterRequest request) {
 
@@ -50,6 +49,7 @@ public class TeacherService {
 		return PagedResponse.fromPage(dtoPage, "Students fetched successfully");
 	}
 
+	@Transactional
 	public void addOrUpdateTeacher(CreateTeacherDto request) {
 
 		if (request.getUserId() != null && !request.getUserId().isEmpty()) {
@@ -59,27 +59,6 @@ public class TeacherService {
 			LOGGER.debug("Creating new teacher");
 			createTeacher(request);
 		}
-
-		CreateUserDto createUserDto = new CreateUserDto();
-		createUserDto.setFirstName(request.getFirstName());
-		createUserDto.setLastName(request.getLastName());
-		createUserDto.setEmail(request.getEmail());
-		createUserDto.setPassword(request.getPassword());
-
-		authService.createUser(createUserDto, UserRole.TEACHER);
-
-		User user = userRepo.findByEmail(request.getEmail())
-				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-		TeacherEntity teacher = new TeacherEntity();
-		teacher.setUser(user);
-		teacher.setSchool(user.getSchool());
-		teacher.setEmployeeCode(request.getEmployeeCode());
-		teacher.setQualification(request.getQualification());
-		teacher.setJoiningDate(request.getJoiningDate());
-
-		teacherRepo.save(teacher);
-
 	}
 
 	@Transactional
@@ -117,7 +96,7 @@ public class TeacherService {
 	}
 
 	public void createTeacher(CreateTeacherDto request) {
-		
+
 		CreateUserDto createUserDto = new CreateUserDto();
 		createUserDto.setFirstName(request.getFirstName());
 		createUserDto.setLastName(request.getLastName());

@@ -24,7 +24,6 @@ public class TeacherController {
 	@Autowired
 	private TeacherService teacherService;
 
-	 
 	@PostMapping("/list")
 	public ResponseEntity<PagedResponse<TeacherResponseDto>> filterTeachers(@RequestBody TeacherFilterRequest request) {
 
@@ -34,12 +33,12 @@ public class TeacherController {
 	}
 
 	@PostMapping("/addOrUpdate")
-	public ResponseEntity<ApiResponse<String>> createTeacher(@Valid @RequestBody CreateTeacherDto request) {
+	public ResponseEntity<ApiResponse<String>> addOrUpdateTeacher(@Valid @RequestBody CreateTeacherDto request) {
 
-		teacherService.createTeacher(request);
+		teacherService.addOrUpdateTeacher(request);
 
-		ApiResponse<String> response = ApiResponse.success("Teacher created successfully", null);
-		
+		ApiResponse<String> response = ApiResponse.success("Teacher saved successfully", null);
+
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 

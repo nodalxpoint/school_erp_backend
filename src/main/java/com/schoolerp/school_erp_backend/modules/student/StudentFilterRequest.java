@@ -4,18 +4,17 @@ import java.util.UUID;
 
 import com.schoolerp.school_erp_backend.common.filters.BaseFilterRequest;
 
-public class StudentFilterRequest
-        extends BaseFilterRequest {
+public class StudentFilterRequest extends BaseFilterRequest {
 
-    private String firstName;
+	private String firstName;
 
-    private String lastName;
+	private String lastName;
 
-    private String admissionNo;
+	private String admissionNo;
 
-    private UUID classId;
-    
-    private UUID sectionId;
+	private UUID classId;
+
+	private UUID sectionId;
 
 	public String getFirstName() {
 		return firstName;
@@ -56,9 +55,5 @@ public class StudentFilterRequest
 	public void setSectionId(UUID sectionId) {
 		this.sectionId = sectionId;
 	}
-	
-	
-    
-    
-    
+
 }

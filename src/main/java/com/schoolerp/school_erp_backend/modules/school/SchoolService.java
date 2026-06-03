@@ -23,9 +23,8 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class SchoolService {
-	
-	private static final Logger LOGGER =
-            LoggerFactory.getLogger(SchoolService.class);
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SchoolService.class);
 
 	@Autowired
 	private SectionRepository sectionRepository;
@@ -50,12 +49,12 @@ public class SchoolService {
 
 	@Transactional
 	public void createClass(CreateClassDto requestDTO) {
-		
-		if(!requestDTO.getClassId().isEmpty()) {
+
+		if (!requestDTO.getClassId().isEmpty()) {
 			LOGGER.debug("Adding Sections To Existing Class");
-			createSections(UUID.fromString(requestDTO.getClassId()),  requestDTO.getSections());
-			
-		}else {
+			createSections(UUID.fromString(requestDTO.getClassId()), requestDTO.getSections());
+
+		} else {
 			LOGGER.debug("Creating Class");
 			validationHelperService.validateCreateClassRequest(requestDTO);
 
@@ -68,7 +67,6 @@ public class SchoolService {
 			createSections(savedClass.getId(), requestDTO.getSections());
 		}
 
-		
 	}
 
 	public Classes saveClass(UUID schoolId, String className) {

@@ -26,7 +26,7 @@ public class ValidationHelperService {
 	@Autowired
 	private SchoolRepository schoolRepository;
 	@Autowired
-	public  ClassesRepository classesRepository;
+	public ClassesRepository classesRepository;
 
 	@Autowired
 	public ClassTeacherAssignmentRepository classTeacherAssignmentRepository;

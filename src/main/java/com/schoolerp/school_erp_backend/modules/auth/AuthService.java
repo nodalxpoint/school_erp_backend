@@ -42,7 +42,7 @@ public class AuthService {
 
 		String token = jwtTokenProvider.generateToken(user);
 
-		return new LoginResponseDto( user.getRole(), token);
+		return new LoginResponseDto(user.getRole(), token);
 	}
 
 	public String createSuperAdmin() {
@@ -75,11 +75,11 @@ public class AuthService {
 			throw new ValidationException("User already exists");
 		}
 
-		User user = new User();
 		SchoolEntity school = schoolRepository.findById(UUID.fromString(CommonConstants.SCHOOL_ID))
 				.orElseThrow(() -> new RuntimeException("School not found"));
 
-		
+		User user = new User();
+
 		user.setSchool(school);
 		user.setFirstName(request.getFirstName());
 		user.setLastName(request.getLastName());

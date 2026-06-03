@@ -38,12 +38,12 @@ public class SchoolController {
 
 	@PostMapping("/addOrUpdate")
 	public ResponseEntity<ApiResponse<String>> createClass(@Valid @RequestBody CreateClassDto request) {
-		
+
 		schoolService.createClass(request);
 
 		ApiResponse<String> response = ApiResponse.success("Class created successfully", null);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
- 
+
 }
