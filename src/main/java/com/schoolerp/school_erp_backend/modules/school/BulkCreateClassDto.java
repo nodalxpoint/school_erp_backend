@@ -2,8 +2,6 @@ package com.schoolerp.school_erp_backend.modules.school;
 
 import java.util.List;
 
-
-
 public class BulkCreateClassDto {
 
     private List<CreateClassDto> classes;
@@ -14,8 +12,6 @@ public class BulkCreateClassDto {
 
 	public void setClasses(List<CreateClassDto> classes) {
 		this.classes = classes;
-	}
-    
-    
+	}  
 
 }
