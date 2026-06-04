@@ -50,23 +50,29 @@ public class SchoolService {
 	@Transactional
 	public void createClass(CreateClassDto requestDTO) {
 
-		if (!requestDTO.getClassId().isEmpty()) {
-			LOGGER.debug("Adding Sections To Existing Class");
+		LOGGER.info("Inside createClass service | requestDTO={}", requestDTO);
+
+		if (requestDTO.getClassId() != null && !requestDTO.getClassId().isEmpty()) {
+			LOGGER.debug("Adding Sections To Existing Class | classId={}", requestDTO.getClassId());
 			createSections(UUID.fromString(requestDTO.getClassId()), requestDTO.getSections());
 
 		} else {
-			LOGGER.debug("Creating Class");
+			LOGGER.debug("Creating Class Flow Started");
+
 			validationHelperService.validateCreateClassRequest(requestDTO);
 
 			SchoolEntity school = validationHelperService.getSchool();
+			LOGGER.debug("Fetched School | schoolId={}", school.getId());
 
 			validationHelperService.validateDuplicateClass(school.getId(), requestDTO.getClassName());
 
 			Classes savedClass = saveClass(school.getId(), requestDTO.getClassName());
+			LOGGER.debug("Class Saved | classId={}", savedClass.getId());
 
 			createSections(savedClass.getId(), requestDTO.getSections());
-		}
 
+			LOGGER.info("Class creation completed successfully");
+		}
 	}
 
 	public Classes saveClass(UUID schoolId, String className) {

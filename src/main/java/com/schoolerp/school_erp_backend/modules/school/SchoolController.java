@@ -39,9 +39,15 @@ public class SchoolController {
 	@PostMapping("/addOrUpdate")
 	public ResponseEntity<ApiResponse<String>> createClass(@Valid @RequestBody CreateClassDto request) {
 
+		LOGGER.info("Received request in /addOrUpdate | request={}", request);
+
 		schoolService.createClass(request);
 
+		LOGGER.info("Service execution completed for createClass");
+
 		ApiResponse<String> response = ApiResponse.success("Class created successfully", null);
+
+		LOGGER.info("Response prepared successfully");
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
