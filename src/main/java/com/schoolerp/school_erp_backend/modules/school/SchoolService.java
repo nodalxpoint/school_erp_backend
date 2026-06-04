@@ -1,23 +1,23 @@
 package com.schoolerp.school_erp_backend.modules.school;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
-import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
-import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
+import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 
 import jakarta.transaction.Transactional;
 
@@ -66,7 +66,7 @@ public class SchoolService {
 
 			validationHelperService.validateDuplicateClass(school.getId(), requestDTO.getClassName());
 
-			Classes savedClass = saveClass(school.getId(), requestDTO.getClassName());
+			ClassesEntity savedClass = saveClass(school.getId(), requestDTO.getClassName());
 			LOGGER.debug("Class Saved | classId={}", savedClass.getId());
 
 			createSections(savedClass.getId(), requestDTO.getSections());
@@ -75,9 +75,9 @@ public class SchoolService {
 		}
 	}
 
-	public Classes saveClass(UUID schoolId, String className) {
+	public ClassesEntity saveClass(UUID schoolId, String className) {
 
-		Classes classEntity = new Classes();
+		ClassesEntity classEntity = new ClassesEntity();
 
 		classEntity.setSchoolId(schoolId);
 		classEntity.setClassName(className.trim());
@@ -132,6 +132,37 @@ public class SchoolService {
 		section.setSectionName(sectionName);
 
 		return section;
+	}
+
+	public PagedResponse<ClassesResponseDto> getAllClassWithSections(ClassesFilterRequest request) {
+
+		Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+
+		Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+		Page<ClassesEntity> classPage = classesRepository.findAll(ClassesSpecification.filter(request), pageable);
+
+		Page<ClassesResponseDto> dtoPage = classPage.map(classEntity -> mapToDto(classEntity));
+
+		return PagedResponse.fromPage(dtoPage, "Classes fetched successfully");
+	}
+
+	private ClassesResponseDto mapToDto(ClassesEntity classEntity) {
+	    ClassesResponseDto dto = new ClassesResponseDto();
+	    dto.setClassId(classEntity.getId().toString());
+	    dto.setClassName(classEntity.getClassName());
+
+	    List<SectionResponseDto> sectionDtos = new ArrayList<>();
+
+	    for (SectionEntity section : classEntity.getSections()) {
+	        SectionResponseDto sectionDto = new SectionResponseDto();
+	        sectionDto.setSectionId(section.getId().toString());
+	        sectionDto.setSectionName(section.getSectionName());
+	        sectionDtos.add(sectionDto);
+	    }
+
+	    dto.setSections(sectionDtos);
+	    return dto;
 	}
 
 }

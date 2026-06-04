@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
-import com.schoolerp.school_erp_backend.modules.school.Classes;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.CreateClassDto;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;

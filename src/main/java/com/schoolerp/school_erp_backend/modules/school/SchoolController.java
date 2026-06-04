@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
+import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+import com.schoolerp.school_erp_backend.modules.student.StudentFilterRequest;
+import com.schoolerp.school_erp_backend.modules.student.StudentResponseDto;
 
 import jakarta.validation.Valid;
 
@@ -25,6 +28,15 @@ public class SchoolController {
 
 	@Autowired
 	private SchoolService schoolService;
+	
+	
+	@PostMapping("/list")
+	public ResponseEntity<PagedResponse<ClassesResponseDto>> filterAllClassWithSections(@RequestBody ClassesFilterRequest request) {
+
+	    PagedResponse<ClassesResponseDto> response = schoolService.getAllClassWithSections(request);
+
+	    return ResponseEntity.ok(response);
+	}
 
 	@PostMapping("/bulkCreateClasses")
 	public ResponseEntity<ApiResponse<String>> bulkCreateClasses(@Valid @RequestBody BulkCreateClassDto request) {
@@ -51,5 +63,10 @@ public class SchoolController {
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
+	
+	
+	
+	
+	
 
 }
