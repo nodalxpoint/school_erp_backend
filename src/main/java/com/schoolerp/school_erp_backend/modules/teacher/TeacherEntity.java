@@ -9,6 +9,7 @@ import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -30,7 +31,7 @@ public class TeacherEntity {
     @JoinColumn(name = "school_id", nullable = false)
     private SchoolEntity school;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", unique = true)
     private User user;
 
