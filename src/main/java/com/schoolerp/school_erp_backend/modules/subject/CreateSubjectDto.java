@@ -9,10 +9,10 @@ public class CreateSubjectDto {
 
     @NotBlank(message = "Subject name is required")
     @Size(max = 100, message = "Subject name must be at most 100 characters")
-    private String Subject_name;
+    private String subjectName;
 
     @Size(max = 50, message = "Subject code must be at most 50 characters")
-    private String Subject_code;
+    private String subjectCode;
 
     public String getSubjectId() {
         return subjectId;
@@ -22,19 +22,19 @@ public class CreateSubjectDto {
         this.subjectId = subjectId;
     }
 
-    public String getSubject_name() {
-        return Subject_name;
+    public String getSubjectName() {
+        return subjectName;
     }
 
-    public void setSubject_name(String Subject_name) {
-        this.Subject_name = Subject_name;
+    public void setSubjectName(String subjectName) {
+        this.subjectName = subjectName;
     }
 
-    public String getSubject_code() {
-        return Subject_code;
+    public String getSubjectCode() {
+        return subjectCode;
     }
 
-    public void setSubject_code(String Subject_code) {
-        this.Subject_code = Subject_code;
+    public void setSubjectCode(String subjectCode) {
+        this.subjectCode = subjectCode;
     }
 }

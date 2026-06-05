@@ -26,10 +26,10 @@ public class SubjectEntity {
     @JoinColumn(name = "school_id", nullable = false)
     private SchoolEntity school;
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(name = "subject_name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "code", length = 50)
+    @Column(name = "subject_code", length = 50)
     private String code;
 
     @Column(name = "created_at")

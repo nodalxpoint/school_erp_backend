@@ -38,4 +38,13 @@ public class SubjectController {
         PagedResponse<SubjectResponseDto> response = subjectService.filterSubjects(request);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/assign")
+    public ResponseEntity<ApiResponse<String>> assignSubjectTeacher(
+            @Valid @RequestBody AssignSubjectTeacherDto request) {
+        LOGGER.debug("assignSubjectTeacher endpoint called");
+        subjectService.assignSubjectTeacher(request);
+        ApiResponse<String> response = ApiResponse.success("Subject Teacher Assigned Successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 }
