@@ -3,6 +3,7 @@ package com.schoolerp.school_erp_backend.modules.school;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -55,7 +56,15 @@ public class SchoolService {
 
 		if (requestDTO.getClassId() != null && !requestDTO.getClassId().isEmpty()) {
 			LOGGER.debug("Adding Sections To Existing Class | classId={}", requestDTO.getClassId());
+			Optional<ClassesEntity> entity = classesRepository.findById(UUID.fromString(requestDTO.getClassId()));
+			if(entity.isPresent()) {
+				entity.get().setClassName(requestDTO.getClassName());
+			}else {
+				throw new ValidationException("Class Not Found");
+			}
+			classesRepository.save(entity.get());
 			syncSections(UUID.fromString(requestDTO.getClassId()), requestDTO.getSections());
+			
 
 		} else {
 			LOGGER.debug("Creating Class Flow Started");
@@ -107,7 +116,10 @@ public class SchoolService {
 	            .collect(Collectors.toList());
 
 	    if (!toDelete.isEmpty()) {
-	        sectionRepository.deleteAll(toDelete);
+	        List<UUID> idsToDelete = toDelete.stream()
+	                .map(SectionEntity::getId)
+	                .collect(Collectors.toList());
+	        sectionRepository.deleteAllByIdInBatch(idsToDelete);
 	    }
 
 	    // ADD sections that are in incoming request but not in DB
