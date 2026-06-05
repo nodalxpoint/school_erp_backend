@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
@@ -21,6 +22,7 @@ import com.schoolerp.school_erp_backend.modules.subject.SubjectRepository;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
 
+@Service
 public class ParamService {
 	
 	@Autowired

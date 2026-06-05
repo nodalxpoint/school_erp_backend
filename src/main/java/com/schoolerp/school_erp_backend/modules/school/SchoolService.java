@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class SchoolService {
 
 		if (requestDTO.getClassId() != null && !requestDTO.getClassId().isEmpty()) {
 			LOGGER.debug("Adding Sections To Existing Class | classId={}", requestDTO.getClassId());
-			createSections(UUID.fromString(requestDTO.getClassId()), requestDTO.getSections());
+			syncSections(UUID.fromString(requestDTO.getClassId()), requestDTO.getSections());
 
 		} else {
 			LOGGER.debug("Creating Class Flow Started");
@@ -67,7 +68,7 @@ public class SchoolService {
 
 			ClassesEntity savedClass = saveClass(school.getId(), requestDTO.getClassName());
 
-			createSections(savedClass.getId(), requestDTO.getSections());
+			syncSections(savedClass.getId(), requestDTO.getSections());
 
 		}
 	}
@@ -82,43 +83,42 @@ public class SchoolService {
 		return classesRepository.save(classEntity);
 	}
 
-	private void createSections(UUID classId, List<String> sections) {
+	private void syncSections(UUID classId, List<String> incomingSections) {
 
-		if (sections == null || sections.isEmpty()) {
-			return;
-		}
+	    // Normalize incoming list
+	    Set<String> incomingSet = new HashSet<>();
+	    if (incomingSections != null) {
+	        for (String s : incomingSections) {
+	            if (s != null && !s.trim().isEmpty()) {
+	                incomingSet.add(s.trim().toUpperCase());
+	            }
+	        }
+	    }
 
-		Set<String> uniqueSections = new HashSet<>();
+	    // Fetch what's currently in DB
+	    List<SectionEntity> existingEntities = sectionRepository.findAllByClassId(classId);
+	    Set<String> existingNames = existingEntities.stream()
+	            .map(SectionEntity::getSectionName)
+	            .collect(Collectors.toSet());
 
-		List<SectionEntity> sectionEntities = new ArrayList<>();
+	    // DELETE sections that are in DB but not in incoming request
+	    List<SectionEntity> toDelete = existingEntities.stream()
+	            .filter(e -> !incomingSet.contains(e.getSectionName()))
+	            .collect(Collectors.toList());
 
-		for (String sectionName : sections) {
+	    if (!toDelete.isEmpty()) {
+	        sectionRepository.deleteAll(toDelete);
+	    }
 
-			if (sectionName == null || sectionName.trim().isEmpty()) {
-				continue;
-			}
+	    // ADD sections that are in incoming request but not in DB
+	    List<SectionEntity> toAdd = incomingSet.stream()
+	            .filter(name -> !existingNames.contains(name))
+	            .map(name -> buildSectionEntity(classId, name))
+	            .collect(Collectors.toList());
 
-			String formattedSection = sectionName.trim().toUpperCase();
-
-			// SKIP DUPLICATES IN REQUEST
-			if (!uniqueSections.add(formattedSection)) {
-				continue;
-			}
-
-			boolean sectionExists = sectionRepository.existsByClassIdAndSectionName(classId, formattedSection);
-
-			if (sectionExists) {
-				continue;
-			}
-
-			SectionEntity section = buildSectionEntity(classId, formattedSection);
-
-			sectionEntities.add(section);
-		}
-
-		if (!sectionEntities.isEmpty()) {
-			sectionRepository.saveAll(sectionEntities);
-		}
+	    if (!toAdd.isEmpty()) {
+	        sectionRepository.saveAll(toAdd);
+	    }
 	}
 
 	private SectionEntity buildSectionEntity(UUID classId, String sectionName) {
