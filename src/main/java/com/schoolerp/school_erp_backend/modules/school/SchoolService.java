@@ -62,16 +62,13 @@ public class SchoolService {
 			validationHelperService.validateCreateClassRequest(requestDTO);
 
 			SchoolEntity school = validationHelperService.getSchool();
-			LOGGER.debug("Fetched School | schoolId={}", school.getId());
 
 			validationHelperService.validateDuplicateClass(school.getId(), requestDTO.getClassName());
 
 			ClassesEntity savedClass = saveClass(school.getId(), requestDTO.getClassName());
-			LOGGER.debug("Class Saved | classId={}", savedClass.getId());
 
 			createSections(savedClass.getId(), requestDTO.getSections());
 
-			LOGGER.info("Class creation completed successfully");
 		}
 	}
 
@@ -148,21 +145,21 @@ public class SchoolService {
 	}
 
 	private ClassesResponseDto mapToDto(ClassesEntity classEntity) {
-	    ClassesResponseDto dto = new ClassesResponseDto();
-	    dto.setClassId(classEntity.getId().toString());
-	    dto.setClassName(classEntity.getClassName());
+		ClassesResponseDto dto = new ClassesResponseDto();
+		dto.setClassId(classEntity.getId().toString());
+		dto.setClassName(classEntity.getClassName());
 
-	    List<SectionResponseDto> sectionDtos = new ArrayList<>();
+		List<SectionResponseDto> sectionDtos = new ArrayList<>();
 
-	    for (SectionEntity section : classEntity.getSections()) {
-	        SectionResponseDto sectionDto = new SectionResponseDto();
-	        sectionDto.setSectionId(section.getId().toString());
-	        sectionDto.setSectionName(section.getSectionName());
-	        sectionDtos.add(sectionDto);
-	    }
+		for (SectionEntity section : classEntity.getSections()) {
+			SectionResponseDto sectionDto = new SectionResponseDto();
+			sectionDto.setSectionId(section.getId().toString());
+			sectionDto.setSectionName(section.getSectionName());
+			sectionDtos.add(sectionDto);
+		}
 
-	    dto.setSections(sectionDtos);
-	    return dto;
+		dto.setSections(sectionDtos);
+		return dto;
 	}
 
 }

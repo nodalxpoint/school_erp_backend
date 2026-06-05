@@ -6,10 +6,10 @@ import java.util.UUID;
 public class CreateClassDto {
 
     private String className;
-    
+
     private String classId;
 
-	private List<String> sections;
+    private List<String> sections;
 
     public String getClassName() {
         return className;
@@ -26,12 +26,18 @@ public class CreateClassDto {
     public void setSections(List<String> sections) {
         this.sections = sections;
     }
-    
-    public String getClassId() {
-		return classId;
-	}
 
-	public void setClassId(String classId) {
-		this.classId = classId;
-	}
+    public String getClassId() {
+        return classId;
+    }
+
+    public void setClassId(String classId) {
+        this.classId = classId;
+    }
+
+    @Override
+    public String toString() {
+        return "CreateClassDto [className=" + className + ", classId=" + classId + ", sections=" + sections + "]";
+    }
+
 }

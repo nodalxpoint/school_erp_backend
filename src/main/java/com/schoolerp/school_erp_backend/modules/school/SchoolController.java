@@ -28,14 +28,14 @@ public class SchoolController {
 
 	@Autowired
 	private SchoolService schoolService;
-	
-	
+
 	@PostMapping("/list")
-	public ResponseEntity<PagedResponse<ClassesResponseDto>> filterAllClassWithSections(@RequestBody ClassesFilterRequest request) {
+	public ResponseEntity<PagedResponse<ClassesResponseDto>> filterAllClassWithSections(
+			@RequestBody ClassesFilterRequest request) {
 
-	    PagedResponse<ClassesResponseDto> response = schoolService.getAllClassWithSections(request);
+		PagedResponse<ClassesResponseDto> response = schoolService.getAllClassWithSections(request);
 
-	    return ResponseEntity.ok(response);
+		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping("/bulkCreateClasses")
@@ -55,18 +55,9 @@ public class SchoolController {
 
 		schoolService.createClass(request);
 
-		LOGGER.info("Service execution completed for createClass");
-
 		ApiResponse<String> response = ApiResponse.success("Class created successfully", null);
-
-		LOGGER.info("Response prepared successfully");
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
-	
-	
-	
-	
-	
 
 }

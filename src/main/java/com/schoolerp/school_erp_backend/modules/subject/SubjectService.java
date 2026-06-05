@@ -146,20 +146,11 @@ public class SubjectService {
         UUID sectionId = UUID.fromString(request.getSectionId());
         UUID academicSessionId = UUID.fromString(request.getAcademicSessionId());
 
-        teacherRepository.findById(teacherId)
-                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
-
-        subjectRepository.findById(subjectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
-
-        classesRepository.findById(classId)
-                .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
-
-        sectionRepository.findById(sectionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Section not found"));
-
-        academicSessionRepository.findById(academicSessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Academic Session not found"));
+        validationHelperService.validateTeacher(teacherId);
+        validationHelperService.validateSubject(subjectId);
+        validationHelperService.validateClass(classId);
+        validationHelperService.validateSection(sectionId);
+        validationHelperService.validateAcademicSession(academicSessionId);
 
         Optional<SubjectTeacherAssignmentEntity> existing = assignmentRepository
                 .findBySubjectIdAndClassIdAndSectionIdAndAcademicSessionId(subjectId, classId, sectionId,
