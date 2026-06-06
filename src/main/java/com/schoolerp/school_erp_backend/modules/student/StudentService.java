@@ -18,12 +18,18 @@ import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperSe
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
+import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
+import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherService;
 
+import java.util.List;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -39,14 +45,20 @@ public class StudentService {
 	private AdmissionNoGenerator admissionNoGenerator;
 	@Autowired
 	private ParentRepository parentRepository;
-	
+
+	@Autowired
+	private AcademicSessionRepository academicSessionRepository;
+	@Autowired
+	private ClassesRepository classesRepository;
+	@Autowired
+	private SectionRepository sectionRepository;
 
 	@Autowired
 	private UserRepository userRepository;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-	
+
 	@Autowired
 	private ValidationHelperService validationHelperService;
 
@@ -83,7 +95,6 @@ public class StudentService {
 
 		// 1. create parent user account
 		User parentUser = createParentUser(request, school);
-
 
 		// 2. create parent
 		ParentEntity parent = createParent(request, parentUser, school);
@@ -199,14 +210,45 @@ public class StudentService {
 	private StudentResponseDto mapToDto(StudentEntity student) {
 
 		StudentResponseDto dto = new StudentResponseDto();
-
 		dto.setId(student.getId());
-
 		dto.setFirstName(student.getFirstName());
-
 		dto.setLastName(student.getLastName());
-		
 		dto.setAdmissionNo(student.getAdmissionNo());
+		dto.setGender(student.getGender());
+		dto.setDob(student.getDob());
+		dto.setAdmissionDate(student.getAdmissionDate());
+
+		// Enrollment Details
+		UUID schoolId = student.getSchool() != null ? student.getSchool().getId() : null;
+		if (schoolId != null) {
+			Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository
+					.findActiveSessionBySchoolId(schoolId);
+			StudentEnrollmentEntity enrollment = null;
+			if (activeSessionOpt.isPresent()) {
+				enrollment = studentEnrollmentRepository
+						.findByStudentIdAndAcademicSessionId(student.getId(), activeSessionOpt.get().getId())
+						.orElse(null);
+			}
+			if (enrollment == null) {
+				List<StudentEnrollmentEntity> enrollments = studentEnrollmentRepository
+						.findByStudentId(student.getId());
+				if (!enrollments.isEmpty()) {
+					enrollment = enrollments.get(enrollments.size() - 1);
+				}
+			}
+
+			if (enrollment != null) {
+				dto.setClassId(enrollment.getClassId());
+				dto.setSectionId(enrollment.getSectionId());
+				dto.setAcademicSessionId(enrollment.getAcademicSessionId());
+				dto.setRollNo(enrollment.getRollNo());
+
+				classesRepository.findById(enrollment.getClassId()).ifPresent(c -> dto.setClassName(c.getClassName()));
+				sectionRepository.findById(enrollment.getSectionId())
+						.ifPresent(s -> dto.setSectionName(s.getSectionName()));
+			}
+		}
+
 		return dto;
 	}
 }

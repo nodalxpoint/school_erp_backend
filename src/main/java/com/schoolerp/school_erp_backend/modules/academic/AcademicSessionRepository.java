@@ -6,9 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.util.Optional;
+
 @Repository
 public interface AcademicSessionRepository extends JpaRepository<AcademicSessionEntity, UUID>,
         JpaSpecificationExecutor<AcademicSessionEntity> {
 
     boolean existsBySessionNameAndSchoolId(String sessionName, UUID schoolId);
+
+    @Query("SELECT a FROM AcademicSessionEntity a WHERE a.school.id = :schoolId AND a.isActive = true")
+    Optional<AcademicSessionEntity> findActiveSessionBySchoolId(@Param("schoolId") UUID schoolId);
 }

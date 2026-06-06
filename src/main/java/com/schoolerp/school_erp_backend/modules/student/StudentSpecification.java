@@ -27,6 +27,8 @@ public class StudentSpecification {
 
 				.with(classIdEqual(request.getClassId()))
 
+				.with(sectionIdEqual(request.getSectionId()))
+
 				.build();
 	}
 
