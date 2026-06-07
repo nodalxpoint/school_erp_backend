@@ -53,4 +53,14 @@ public class TeacherController {
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
+
+	@PostMapping("/assignedList")
+	public ResponseEntity<PagedResponse<ClassTeacherAssignmentResponseDto>> filterClassTeacherAssignments(
+			@RequestBody ClassTeacherAssignmentFilterRequest request) {
+
+		PagedResponse<ClassTeacherAssignmentResponseDto> response = teacherService
+				.filterClassTeacherAssignments(request);
+
+		return ResponseEntity.ok(response);
+	}
 }

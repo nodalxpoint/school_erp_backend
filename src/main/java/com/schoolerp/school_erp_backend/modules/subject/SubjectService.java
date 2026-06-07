@@ -19,10 +19,14 @@ import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperSe
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
 
 import jakarta.transaction.Transactional;
@@ -132,6 +136,76 @@ public class SubjectService {
         dto.setName(entity.getName());
         dto.setCode(entity.getCode());
         dto.setCreatedAt(entity.getCreatedAt());
+        return dto;
+    }
+
+    public PagedResponse<SubjectTeacherAssignmentResponseDto> filterSubjectTeacherAssignments(
+            SubjectTeacherAssignmentFilterRequest request) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        Page<SubjectTeacherAssignmentEntity> page = assignmentRepository
+                .findAll(SubjectTeacherAssignmentSpecification.filter(request), pageable);
+
+        Page<SubjectTeacherAssignmentResponseDto> dtoPage = page
+                .map(assignment -> mapToSubjectTeacherAssignmentDto(assignment));
+
+        return PagedResponse.fromPage(dtoPage, "Subject teacher assignments fetched successfully");
+    }
+
+    private SubjectTeacherAssignmentResponseDto mapToSubjectTeacherAssignmentDto(
+            SubjectTeacherAssignmentEntity assignment) {
+
+        SubjectTeacherAssignmentResponseDto dto = new SubjectTeacherAssignmentResponseDto();
+
+        dto.setId(assignment.getId());
+        dto.setClassId(assignment.getClassId());
+        dto.setSectionId(assignment.getSectionId());
+        dto.setTeacherId(assignment.getTeacherId());
+        dto.setSubjectId(assignment.getSubjectId());
+        dto.setAcademicSessionId(assignment.getAcademicSessionId());
+        dto.setCreatedAt(assignment.getCreatedAt());
+
+        // -------- CLASS --------
+        ClassesEntity classEntity = classesRepository.findById(assignment.getClassId()).orElse(null);
+        if (classEntity != null) {
+            dto.setClassName(classEntity.getClassName());
+        }
+
+        // -------- SECTION --------
+        SectionEntity sectionEntity = sectionRepository.findById(assignment.getSectionId()).orElse(null);
+        if (sectionEntity != null) {
+            dto.setSectionName(sectionEntity.getSectionName());
+        }
+
+        // -------- SUBJECT --------
+        SubjectEntity subject = subjectRepository.findById(assignment.getSubjectId()).orElse(null);
+        if (subject != null) {
+            dto.setSubjectName(subject.getName());
+        }
+
+        // -------- ACADEMIC SESSION --------
+        AcademicSessionEntity session = academicSessionRepository.findById(assignment.getAcademicSessionId())
+                .orElse(null);
+        if (session != null) {
+            dto.setAcademicSessionName(session.getSessionName());
+        }
+
+        // -------- TEACHER --------
+        TeacherEntity teacher = teacherRepository.findById(assignment.getTeacherId()).orElse(null);
+        if (teacher != null && teacher.getUser() != null) {
+
+            String firstName = teacher.getUser().getFirstName();
+            String lastName = teacher.getUser().getLastName();
+
+            if (lastName != null) {
+                dto.setTeacherName(firstName + " " + lastName);
+            } else {
+                dto.setTeacherName(firstName);
+            }
+        }
+
         return dto;
     }
 

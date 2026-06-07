@@ -19,6 +19,12 @@ import com.schoolerp.school_erp_backend.modules.auth.CreateUserDto;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
+import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -35,6 +41,12 @@ public class TeacherService {
 	private TeacherRepository teacherRepo;
 	@Autowired
 	private ClassTeacherAssignmentRepository classTeacherAssignmentRepository;
+	@Autowired
+	private ClassesRepository classesRepository;
+	@Autowired
+	private SectionRepository sectionRepository;
+	@Autowired
+	private AcademicSessionRepository academicSessionRepository;
 
 	public PagedResponse<TeacherResponseDto> filterTeachers(TeacherFilterRequest request) {
 
@@ -47,6 +59,69 @@ public class TeacherService {
 		Page<TeacherResponseDto> dtoPage = studentPage.map(teacher -> mapToDto(teacher));
 
 		return PagedResponse.fromPage(dtoPage, "Students fetched successfully");
+	}
+
+	public PagedResponse<ClassTeacherAssignmentResponseDto> filterClassTeacherAssignments(
+			ClassTeacherAssignmentFilterRequest request) {
+
+		Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+
+		Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+		Page<ClassTeacherAssignmentEntity> page = classTeacherAssignmentRepository
+				.findAll(ClassTeacherAssignmentSpecification.filter(request), pageable);
+
+		Page<ClassTeacherAssignmentResponseDto> dtoPage = page
+				.map(assignment -> mapToClassTeacherAssignmentDto(assignment));
+
+		return PagedResponse.fromPage(dtoPage, "Class teacher assignments fetched successfully");
+	}
+
+	private ClassTeacherAssignmentResponseDto mapToClassTeacherAssignmentDto(ClassTeacherAssignmentEntity assignment) {
+
+		ClassTeacherAssignmentResponseDto dto = new ClassTeacherAssignmentResponseDto();
+
+		dto.setId(assignment.getId());
+		dto.setClassId(assignment.getClassId());
+		dto.setSectionId(assignment.getSectionId());
+		dto.setTeacherId(assignment.getTeacherId());
+		dto.setAcademicSessionId(assignment.getAcademicSessionId());
+		dto.setCreatedAt(assignment.getCreatedAt());
+
+		// -------- CLASS NAME --------
+		ClassesEntity classEntity = classesRepository.findById(assignment.getClassId()).orElse(null);
+		if (classEntity != null) {
+			dto.setClassName(classEntity.getClassName());
+		}
+
+		// -------- SECTION NAME --------
+		SectionEntity sectionEntity = sectionRepository.findById(assignment.getSectionId()).orElse(null);
+		if (sectionEntity != null) {
+			dto.setSectionName(sectionEntity.getSectionName());
+		}
+
+		// -------- ACADEMIC SESSION --------
+		AcademicSessionEntity sessionEntity = academicSessionRepository.findById(assignment.getAcademicSessionId())
+				.orElse(null);
+		if (sessionEntity != null) {
+			dto.setAcademicSessionName(sessionEntity.getSessionName());
+		}
+
+		// -------- TEACHER NAME --------
+		TeacherEntity teacher = teacherRepo.findById(assignment.getTeacherId()).orElse(null);
+		if (teacher != null && teacher.getUser() != null) {
+
+			String firstName = teacher.getUser().getFirstName();
+			String lastName = teacher.getUser().getLastName();
+
+			if (lastName != null) {
+				dto.setTeacherName(firstName + " " + lastName);
+			} else {
+				dto.setTeacherName(firstName);
+			}
+		}
+
+		return dto;
 	}
 
 	@Transactional
