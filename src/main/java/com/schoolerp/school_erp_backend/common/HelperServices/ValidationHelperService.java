@@ -84,7 +84,7 @@ public class ValidationHelperService {
 				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found for this user"));
 
 		if (!assignment.getTeacherId().equals(teacher.getId())) {
-			throw new RuntimeException("You are not authorized to mark attendance for this class");
+			throw new ValidationException("You are not authorized to mark attendance for this class");
 		}
 	}
 

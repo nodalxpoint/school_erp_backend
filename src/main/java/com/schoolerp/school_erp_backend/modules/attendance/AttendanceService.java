@@ -3,6 +3,7 @@ package com.schoolerp.school_erp_backend.modules.attendance;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -13,14 +14,28 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
+import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+import com.schoolerp.school_erp_backend.common.security.CustomUserDetails;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
+import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentEntity;
+import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentRepository;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherClassResponseDto;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
 
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @Service
 public class AttendanceService {
@@ -31,14 +46,28 @@ public class AttendanceService {
 	private AttendanceRepository attendanceRepository;
 
 	@Autowired
+	private TeacherRepository teacherRepository;
+
+	@Autowired
 	private ValidationHelperService validationHelperService;
+
+	@Autowired
+	private AcademicSessionRepository academicSessionRepository;
+
+	@Autowired
+	private ClassTeacherAssignmentRepository classTeacherAssignmentRepository;
+
+	@Autowired
+	private SectionRepository sectionRepository;
+	@Autowired
+	private ClassesRepository classesRepository;
 
 	@Transactional
 	public void submitBulkAttendance(BulkAttendanceRequestDto requestDTO, UUID userId, String role) {
 
 		LOGGER.debug("submitBulkAttendance called for classId: {}", requestDTO.getClassId());
-		
-		validateSubmitBulkAttendance(requestDTO,userId,role);
+
+		validateSubmitBulkAttendance(requestDTO, userId, role);
 
 		List<AttendanceEntity> attendanceList = new ArrayList<>();
 
@@ -78,9 +107,9 @@ public class AttendanceService {
 			LOGGER.debug("Saved {} attendance records", attendanceList.size());
 		}
 	}
-	
+
 	public void validateSubmitBulkAttendance(BulkAttendanceRequestDto requestDTO, UUID userId, String role) {
-		
+
 		if (requestDTO.getAttendanceDate().isAfter(LocalDate.now())) {
 			throw new ValidationException("Cannot mark attendance for a future date");
 		}
@@ -92,98 +121,136 @@ public class AttendanceService {
 		if (requestDTO.getRecords() == null || requestDTO.getRecords().isEmpty()) {
 			throw new ValidationException("Attendance records cannot be empty");
 		}
-		
+
 	}
 
 	private boolean isValidStatus(String status) {
 		return status.equals("PRESENT") || status.equals("ABSENT");
 	}
-	
+
 	// GET attendance for a day
 	public PagedResponse<AttendanceResponseDto> filterAttendance(AttendanceFilterRequest request) {
 
-	    Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+		Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
 
-	    Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+		Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
-	    Page<AttendanceEntity> attendancePage = attendanceRepository
-	        .findAll(AttendanceSpecification.filter(request), pageable);
+		Page<AttendanceEntity> attendancePage = attendanceRepository
+				.findAll(AttendanceSpecification.filter(request), pageable);
 
-	    Page<AttendanceResponseDto> dtoPage = attendancePage.map(this::mapToDto);
+		Page<AttendanceResponseDto> dtoPage = attendancePage.map(this::mapToDto);
 
-	    return PagedResponse.fromPage(dtoPage, "Attendance fetched successfully");
+		return PagedResponse.fromPage(dtoPage, "Attendance fetched successfully");
 	}
 
 	// GET monthly attendance for a student
 	public StudentAttendanceReportDto getStudentAttendanceReport(UUID studentId, UUID academicSessionId) {
 
-	    LOGGER.debug("getStudentAttendanceReport called for studentId: {}", studentId);
+		LOGGER.debug("getStudentAttendanceReport called for studentId: {}", studentId);
 
-	    AttendanceFilterRequest request = new AttendanceFilterRequest();
-	    request.setStudentId(studentId);
-	    request.setAcademicSessionId(academicSessionId);
-	    request.setPage(0);
-	    request.setSize(1000);
-	    request.setSortBy("attendanceDate");
-	    request.setSortDirection("ASC");
+		AttendanceFilterRequest request = new AttendanceFilterRequest();
+		request.setStudentId(studentId);
+		request.setAcademicSessionId(academicSessionId);
+		request.setPage(0);
+		request.setSize(1000);
+		request.setSortBy("attendanceDate");
+		request.setSortDirection("ASC");
 
-	    Page<AttendanceEntity> page = attendanceRepository
-	        .findAll(AttendanceSpecification.filter(request),
-	            PageRequest.of(0, 1000, Sort.by("attendanceDate").ascending()));
+		Page<AttendanceEntity> page = attendanceRepository
+				.findAll(AttendanceSpecification.filter(request),
+						PageRequest.of(0, 1000, Sort.by("attendanceDate").ascending()));
 
-	    List<AttendanceEntity> records = page.getContent();
+		List<AttendanceEntity> records = page.getContent();
 
-	    int present = (int) records.stream().filter(r -> "PRESENT".equals(r.getStatus())).count();
-	    int absent  = (int) records.stream().filter(r -> "ABSENT".equals(r.getStatus())).count();
-	    int late    = (int) records.stream().filter(r -> "LATE".equals(r.getStatus())).count();
-	    int leave   = (int) records.stream().filter(r -> "LEAVE".equals(r.getStatus())).count();
-	    int total   = records.size();
+		int present = (int) records.stream().filter(r -> "PRESENT".equals(r.getStatus())).count();
+		int absent = (int) records.stream().filter(r -> "ABSENT".equals(r.getStatus())).count();
+		int late = (int) records.stream().filter(r -> "LATE".equals(r.getStatus())).count();
+		int leave = (int) records.stream().filter(r -> "LEAVE".equals(r.getStatus())).count();
+		int total = records.size();
 
-	    double percentage = total > 0 ? Math.round(((present + late) * 100.0 / total) * 100.0) / 100.0 : 0.0;
+		double percentage = total > 0 ? Math.round(((present + late) * 100.0 / total) * 100.0) / 100.0 : 0.0;
 
-	    StudentAttendanceReportDto report = new StudentAttendanceReportDto();
-	    report.setStudentId(studentId);
-	    report.setTotalDays(total);
-	    report.setPresentDays(present);
-	    report.setAbsentDays(absent);
-	    report.setLateDays(late);
-	    report.setLeaveDays(leave);
-	    report.setAttendancePercentage(percentage);
-	    report.setRecords(records.stream().map(this::mapToDto).collect(Collectors.toList()));
+		StudentAttendanceReportDto report = new StudentAttendanceReportDto();
+		report.setStudentId(studentId);
+		report.setTotalDays(total);
+		report.setPresentDays(present);
+		report.setAbsentDays(absent);
+		report.setLateDays(late);
+		report.setLeaveDays(leave);
+		report.setAttendancePercentage(percentage);
+		report.setRecords(records.stream().map(this::mapToDto).collect(Collectors.toList()));
 
-	    return report;
+		return report;
 	}
 
 	// PUT edit attendance — admin only
 	@Transactional
 	public void editAttendance(UUID attendanceId, EditAttendanceDto requestDTO) {
 
-	    LOGGER.debug("editAttendance called for id: {}", attendanceId);
+		LOGGER.debug("editAttendance called for id: {}", attendanceId);
 
-	    AttendanceEntity entity = attendanceRepository.findById(attendanceId)
-	        .orElseThrow(() -> new RuntimeException("Attendance record not found"));
+		AttendanceEntity entity = attendanceRepository.findById(attendanceId)
+				.orElseThrow(() -> new RuntimeException("Attendance record not found"));
 
-	    String status = requestDTO.getStatus().trim().toUpperCase();
-	    if (!isValidStatus(status)) {
-	        throw new RuntimeException("Invalid status: " + status);
-	    }
+		String status = requestDTO.getStatus().trim().toUpperCase();
+		if (!isValidStatus(status)) {
+			throw new RuntimeException("Invalid status: " + status);
+		}
 
-	    entity.setStatus(status);
-	    entity.setRemarks(requestDTO.getRemarks());
+		entity.setStatus(status);
+		entity.setRemarks(requestDTO.getRemarks());
 
-	    attendanceRepository.save(entity);
+		attendanceRepository.save(entity);
 	}
 
 	// map entity to dto
 	private AttendanceResponseDto mapToDto(AttendanceEntity entity) {
 
-	    AttendanceResponseDto dto = new AttendanceResponseDto();
-	    dto.setId(entity.getId());
-	    dto.setStudentId(entity.getStudentId());
-	    dto.setStatus(entity.getStatus());
-	    dto.setRemarks(entity.getRemarks());
-	    dto.setAttendanceDate(entity.getAttendanceDate());
-	    dto.setMarkedBy(entity.getMarkedBy());
-	    return dto;
+		AttendanceResponseDto dto = new AttendanceResponseDto();
+		dto.setId(entity.getId());
+		dto.setStudentId(entity.getStudentId());
+		dto.setStatus(entity.getStatus());
+		dto.setRemarks(entity.getRemarks());
+		dto.setAttendanceDate(entity.getAttendanceDate());
+		dto.setMarkedBy(entity.getMarkedBy());
+		return dto;
+	}
+
+	public TeacherClassResponseDto getMyClass(UUID userId) {
+
+		TeacherEntity teacher = teacherRepository
+				.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"Teacher not found"));
+
+		// UUID schoolId = validationHelperService.getSchool().getId();
+
+		AcademicSessionEntity activeSessionOpt = academicSessionRepository
+				.findActiveSessionBySchoolId()
+				.orElseThrow(() -> new ResourceNotFoundException("Academic session not found"));
+
+		ClassTeacherAssignmentEntity assignment = classTeacherAssignmentRepository
+				.findByTeacherIdAndAcademicSessionId(
+						teacher.getId(),
+						activeSessionOpt.getId())
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"No class assigned to teacher"));
+
+		TeacherClassResponseDto dto = new TeacherClassResponseDto();
+
+		ClassesEntity classEntity = classesRepository.findById(assignment.getClassId())
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"Class not found"));
+
+		SectionEntity sectionEntity = sectionRepository.findById(assignment.getSectionId())
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"Section not found"));
+
+		dto.setClassId(assignment.getClassId());
+		dto.setClassName(classEntity.getClassName());
+		dto.setSectionId(assignment.getSectionId());
+		dto.setSectionName(sectionEntity.getSectionName());
+
+		return dto;
 	}
 }

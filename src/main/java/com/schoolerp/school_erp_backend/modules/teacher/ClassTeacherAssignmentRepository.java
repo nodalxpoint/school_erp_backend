@@ -8,10 +8,15 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ClassTeacherAssignmentRepository extends JpaRepository<ClassTeacherAssignmentEntity, UUID>, JpaSpecificationExecutor<ClassTeacherAssignmentEntity> {
+public interface ClassTeacherAssignmentRepository extends JpaRepository<ClassTeacherAssignmentEntity, UUID>,
+		JpaSpecificationExecutor<ClassTeacherAssignmentEntity> {
 
 	Optional<ClassTeacherAssignmentEntity> findByClassIdAndSectionIdAndAcademicSessionId(UUID classId, UUID sectionId,
 			UUID academicSessionId);
 
 	boolean existsByClassIdAndSectionIdAndAcademicSessionId(UUID classId, UUID sectionId, UUID academicSessionId);
+
+	Optional<ClassTeacherAssignmentEntity> findByTeacherIdAndAcademicSessionId(
+			UUID teacherId,
+			UUID academicSessionId);
 }

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.common.security.CustomUserDetails;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherClassResponseDto;
 
 @RestController
 @RequestMapping("/api/attendance")
@@ -46,17 +47,17 @@ public class AttendanceController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
-//	{
-//		  "classId": "0d24d053-6cff-44ff-b9fe-7858f1561803",
-//		  "sectionId": "1a2b3c4d-0000-0000-0000-000000000001",
-//		  "academicSessionId": "5e6f7a8b-0000-0000-0000-000000000002",
-//		  "attendanceDate": "2026-05-20",
-//		  "records": [
-//		    { "studentId": "aaa-...", "status": "PRESENT", "remarks": "" },
-//		    { "studentId": "bbb-...", "status": "ABSENT", "remarks": "sick" },
-//		    { "studentId": "ccc-...", "status": "LATE", "remarks": "10 min late" }
-//		  ]
-//		}
+	// {
+	// "classId": "0d24d053-6cff-44ff-b9fe-7858f1561803",
+	// "sectionId": "1a2b3c4d-0000-0000-0000-000000000001",
+	// "academicSessionId": "5e6f7a8b-0000-0000-0000-000000000002",
+	// "attendanceDate": "2026-05-20",
+	// "records": [
+	// { "studentId": "aaa-...", "status": "PRESENT", "remarks": "" },
+	// { "studentId": "bbb-...", "status": "ABSENT", "remarks": "sick" },
+	// { "studentId": "ccc-...", "status": "LATE", "remarks": "10 min late" }
+	// ]
+	// }
 
 	// GET attendance for a day
 	@PostMapping("/list")
@@ -93,4 +94,17 @@ public class AttendanceController {
 
 		return ResponseEntity.ok("Attendance updated successfully");
 	}
+
+	@GetMapping("/myClass")
+	public ResponseEntity<ApiResponse<TeacherClassResponseDto>> getMyClass(
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		UUID userId = userDetails.getId();
+
+		TeacherClassResponseDto response = attendanceService.getMyClass(userId);
+
+		// Uses default success message
+		return ResponseEntity.ok(ApiResponse.success("Class fetched successfully", response));
+
+	}
+
 }

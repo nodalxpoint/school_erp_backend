@@ -16,6 +16,6 @@ public interface AcademicSessionRepository extends JpaRepository<AcademicSession
 
     boolean existsBySessionNameAndSchoolId(String sessionName, UUID schoolId);
 
-    @Query("SELECT a FROM AcademicSessionEntity a WHERE a.school.id = :schoolId AND a.isActive = true")
-    Optional<AcademicSessionEntity> findActiveSessionBySchoolId(@Param("schoolId") UUID schoolId);
+    @Query("SELECT a FROM AcademicSessionEntity a WHERE a.isActive = true")
+    Optional<AcademicSessionEntity> findActiveSessionBySchoolId();
 }

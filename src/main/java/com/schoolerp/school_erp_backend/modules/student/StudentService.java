@@ -222,7 +222,7 @@ public class StudentService {
 		UUID schoolId = student.getSchool() != null ? student.getSchool().getId() : null;
 		if (schoolId != null) {
 			Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository
-					.findActiveSessionBySchoolId(schoolId);
+					.findActiveSessionBySchoolId();
 			StudentEnrollmentEntity enrollment = null;
 			if (activeSessionOpt.isPresent()) {
 				enrollment = studentEnrollmentRepository
