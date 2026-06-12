@@ -80,6 +80,9 @@ public class ValidationHelperService {
 
 		// get teacher linked to this user
 		// assuming you have TeacherRepository
+		
+		
+		
 		TeacherEntity teacher = teacherRepo.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found for this user"));
 

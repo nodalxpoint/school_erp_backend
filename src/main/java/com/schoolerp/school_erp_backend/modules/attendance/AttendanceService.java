@@ -74,34 +74,35 @@ public class AttendanceService {
 
 		for (AttendanceRecordDto record : requestDTO.getRecords()) {
 
-			// skip if already marked for this student on this date
-			boolean alreadyMarked = attendanceRepository.existsByStudentIdAndAttendanceDateAndClassIdAndSectionId(
-					record.getStudentId(), requestDTO.getAttendanceDate(), UUID.fromString(requestDTO.getClassId()),
-					UUID.fromString(requestDTO.getSectionId()));
+		    AttendanceEntity entity;
+		    Optional<AttendanceEntity> existing =
+		            attendanceRepository.findByStudentIdAndAttendanceDateAndClassIdAndSectionId(
+		                    record.getStudentId(),
+		                    requestDTO.getAttendanceDate(),
+		                    UUID.fromString(requestDTO.getClassId()),
+		                    UUID.fromString(requestDTO.getSectionId())
+		            );
+		    if (existing.isPresent()) {
+		        // UPDATE flow (admin editing)
+		        entity = existing.get();
+		    } else {
+		        // INSERT flow (first time marking)
+		        entity = new AttendanceEntity();
+		        entity.setStudentId(record.getStudentId());
+		        entity.setClassId(UUID.fromString(requestDTO.getClassId()));
+		        entity.setSectionId(UUID.fromString(requestDTO.getSectionId()));
+		        entity.setAcademicSessionId(UUID.fromString(requestDTO.getAcademicSessionId()));
+		        entity.setAttendanceDate(requestDTO.getAttendanceDate());
+		    }
 
-			if (alreadyMarked) {
-				LOGGER.debug("Attendance already marked for studentId: {}, skipping", record.getStudentId());
-				continue;
-			}
+		    entity.setStatus(record.getStatus());
+		    entity.setRemarks(record.getRemarks());
+		    entity.setMarkedBy(userId);
 
-			// validate status value
-			String status = record.getStatus() != null ? record.getStatus().trim().toUpperCase() : null;
-			if (status == null || !isValidStatus(status)) {
-				throw new ValidationException("Invalid status: " + record.getStatus() + ". Allowed: PRESENT, ABSENT");
-			}
-
-			AttendanceEntity entity = new AttendanceEntity();
-			entity.setStudentId(record.getStudentId());
-			entity.setClassId(UUID.fromString(requestDTO.getClassId()));
-			entity.setSectionId(UUID.fromString(requestDTO.getSectionId()));
-			entity.setAcademicSessionId(UUID.fromString(requestDTO.getAcademicSessionId()));
-			entity.setAttendanceDate(requestDTO.getAttendanceDate());
-			entity.setStatus(status);
-			entity.setRemarks(record.getRemarks());
-			entity.setMarkedBy(userId);
-
-			attendanceList.add(entity);
+		    attendanceList.add(entity);
 		}
+
+		attendanceRepository.saveAll(attendanceList);
 
 		if (!attendanceList.isEmpty()) {
 			attendanceRepository.saveAll(attendanceList);
@@ -111,20 +112,24 @@ public class AttendanceService {
 
 	public void validateSubmitBulkAttendance(BulkAttendanceRequestDto requestDTO, UUID userId, String role) {
 
+		UserRole roleEnum = UserRole.valueOf(role);
+
+		boolean isAdmin = roleEnum == UserRole.SCHOOL_ADMIN || roleEnum == UserRole.SUPER_ADMIN;
+
 		boolean attendanceAlreadyTaken = attendanceRepository.existsByClassIdAndSectionIdAndAttendanceDate(
 				UUID.fromString(requestDTO.getClassId()), UUID.fromString(requestDTO.getSectionId()),
 				requestDTO.getAttendanceDate());
 
-		if (attendanceAlreadyTaken) {
+		if (!isAdmin && attendanceAlreadyTaken) {
 			throw new ValidationException(
 					"Attendance has already been submitted for this class on " + requestDTO.getAttendanceDate());
 		}
 
-		if (requestDTO.getAttendanceDate().isAfter(LocalDate.now())) {
+		if (!isAdmin && requestDTO.getAttendanceDate().isAfter(LocalDate.now())) {
 			throw new ValidationException("Cannot mark attendance for a future date");
 		}
 
-		if (!role.equals(UserRole.SCHOOL_ADMIN)) {
+		if (!isAdmin) {
 			validationHelperService.validateClassTeacher(userId, UUID.fromString(requestDTO.getClassId()),
 					UUID.fromString(requestDTO.getSectionId()), UUID.fromString(requestDTO.getAcademicSessionId()));
 		}
@@ -247,13 +252,8 @@ public class AttendanceService {
 		SectionEntity sectionEntity = sectionRepository.findById(assignment.getSectionId())
 				.orElseThrow(() -> new ResourceNotFoundException("Section not found"));
 
-		boolean exists = attendanceRepository.existsByClassIdAndSectionIdAndAttendanceDate(
-				assignment.getClassId(), assignment.getSectionId(), LocalDate.now());
-
-		LOGGER.debug("exists: {}", exists);
-		LOGGER.debug("classId: {}", assignment.getClassId());
-		LOGGER.debug("sectionId: {}", assignment.getSectionId());
-		LOGGER.debug("date: {}", LocalDate.now());
+		boolean exists = attendanceRepository.existsByClassIdAndSectionIdAndAttendanceDate(assignment.getClassId(),
+				assignment.getSectionId(), LocalDate.now());
 
 		dto.setClassId(assignment.getClassId());
 		dto.setClassName(classEntity.getClassName());
