@@ -9,6 +9,9 @@ public class TeacherClassResponseDto {
 
     private UUID sectionId;
     private String sectionName;
+    
+    // exception field
+    private String AttendanceCheck;
 
     public UUID getClassId() {
         return classId;
@@ -41,4 +44,14 @@ public class TeacherClassResponseDto {
     public void setSectionName(String sectionName) {
         this.sectionName = sectionName;
     }
+
+	public String getAttendanceCheck() {
+		return AttendanceCheck;
+	}
+
+	public void setAttendanceCheck(String attendanceCheck) {
+		AttendanceCheck = attendanceCheck;
+	}
+    
+    
 }

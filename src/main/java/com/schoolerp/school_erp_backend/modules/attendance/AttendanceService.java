@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
+import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
@@ -40,8 +41,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 @Service
 public class AttendanceService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AttendanceService.class);
-
 	@Autowired
 	private AttendanceRepository attendanceRepository;
 
@@ -61,6 +60,8 @@ public class AttendanceService {
 	private SectionRepository sectionRepository;
 	@Autowired
 	private ClassesRepository classesRepository;
+
+	Logger LOGGER = LoggerFactory.getLogger(AttendanceService.class);
 
 	@Transactional
 	public void submitBulkAttendance(BulkAttendanceRequestDto requestDTO, UUID userId, String role) {
@@ -110,6 +111,15 @@ public class AttendanceService {
 
 	public void validateSubmitBulkAttendance(BulkAttendanceRequestDto requestDTO, UUID userId, String role) {
 
+		boolean attendanceAlreadyTaken = attendanceRepository.existsByClassIdAndSectionIdAndAttendanceDate(
+				UUID.fromString(requestDTO.getClassId()), UUID.fromString(requestDTO.getSectionId()),
+				requestDTO.getAttendanceDate());
+
+		if (attendanceAlreadyTaken) {
+			throw new ValidationException(
+					"Attendance has already been submitted for this class on " + requestDTO.getAttendanceDate());
+		}
+
 		if (requestDTO.getAttendanceDate().isAfter(LocalDate.now())) {
 			throw new ValidationException("Cannot mark attendance for a future date");
 		}
@@ -135,8 +145,8 @@ public class AttendanceService {
 
 		Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
-		Page<AttendanceEntity> attendancePage = attendanceRepository
-				.findAll(AttendanceSpecification.filter(request), pageable);
+		Page<AttendanceEntity> attendancePage = attendanceRepository.findAll(AttendanceSpecification.filter(request),
+				pageable);
 
 		Page<AttendanceResponseDto> dtoPage = attendancePage.map(this::mapToDto);
 
@@ -156,9 +166,8 @@ public class AttendanceService {
 		request.setSortBy("attendanceDate");
 		request.setSortDirection("ASC");
 
-		Page<AttendanceEntity> page = attendanceRepository
-				.findAll(AttendanceSpecification.filter(request),
-						PageRequest.of(0, 1000, Sort.by("attendanceDate").ascending()));
+		Page<AttendanceEntity> page = attendanceRepository.findAll(AttendanceSpecification.filter(request),
+				PageRequest.of(0, 1000, Sort.by("attendanceDate").ascending()));
 
 		List<AttendanceEntity> records = page.getContent();
 
@@ -218,38 +227,41 @@ public class AttendanceService {
 
 	public TeacherClassResponseDto getMyClass(UUID userId) {
 
-		TeacherEntity teacher = teacherRepository
-				.findByUserId(userId)
-				.orElseThrow(() -> new ResourceNotFoundException(
-						"Teacher not found"));
+		TeacherEntity teacher = teacherRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
 
 		// UUID schoolId = validationHelperService.getSchool().getId();
 
-		AcademicSessionEntity activeSessionOpt = academicSessionRepository
-				.findActiveSessionBySchoolId()
+		AcademicSessionEntity activeSessionOpt = academicSessionRepository.findActiveSessionBySchoolId()
 				.orElseThrow(() -> new ResourceNotFoundException("Academic session not found"));
 
 		ClassTeacherAssignmentEntity assignment = classTeacherAssignmentRepository
-				.findByTeacherIdAndAcademicSessionId(
-						teacher.getId(),
-						activeSessionOpt.getId())
-				.orElseThrow(() -> new ResourceNotFoundException(
-						"No class assigned to teacher"));
+				.findByTeacherIdAndAcademicSessionId(teacher.getId(), activeSessionOpt.getId())
+				.orElseThrow(() -> new ResourceNotFoundException("No class assigned to teacher"));
 
 		TeacherClassResponseDto dto = new TeacherClassResponseDto();
 
 		ClassesEntity classEntity = classesRepository.findById(assignment.getClassId())
-				.orElseThrow(() -> new ResourceNotFoundException(
-						"Class not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Class not found"));
 
 		SectionEntity sectionEntity = sectionRepository.findById(assignment.getSectionId())
-				.orElseThrow(() -> new ResourceNotFoundException(
-						"Section not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Section not found"));
+
+		boolean exists = attendanceRepository.existsByClassIdAndSectionIdAndAttendanceDate(
+				assignment.getClassId(), assignment.getSectionId(), LocalDate.now());
+
+		LOGGER.debug("exists: {}", exists);
+		LOGGER.debug("classId: {}", assignment.getClassId());
+		LOGGER.debug("sectionId: {}", assignment.getSectionId());
+		LOGGER.debug("date: {}", LocalDate.now());
 
 		dto.setClassId(assignment.getClassId());
 		dto.setClassName(classEntity.getClassName());
 		dto.setSectionId(assignment.getSectionId());
 		dto.setSectionName(sectionEntity.getSectionName());
+		if (exists) {
+			dto.setAttendanceCheck(CommonConstants.ATTENDANCE_TAKEN);
+		}
 
 		return dto;
 	}

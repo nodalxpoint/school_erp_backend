@@ -9,5 +9,6 @@ public final class CommonConstants {
 	public static final String SCHOOL_ADMIN = "SCHOOL_ADMIN";
 	public static final String TEACHER = "TEACHER";
 	public static final String PARENT = "PARENT";
+	public static final String ATTENDANCE_TAKEN = "ATTENDANCE_TAKEN";
 
 }

@@ -14,4 +14,6 @@ public interface AttendanceRepository
 
 	boolean existsByStudentIdAndAttendanceDateAndClassIdAndSectionId(UUID studentId, LocalDate attendanceDate,
 			UUID classId, UUID sectionId);
+
+	boolean existsByClassIdAndSectionIdAndAttendanceDate(UUID classId, UUID sectionId, LocalDate attendanceDate);
 }
