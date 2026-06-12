@@ -220,6 +220,7 @@ public class TeacherService {
 		dto.setEmployeeCode(teacher.getEmployeeCode());
 		dto.setQualification(teacher.getQualification());
 		dto.setJoiningDate(teacher.getJoiningDate());
+		dto.setTeacherId(teacher.getId().toString());
 
 		if (teacher.getUser() != null) {
 			dto.setFirstName(teacher.getUser().getFirstName());

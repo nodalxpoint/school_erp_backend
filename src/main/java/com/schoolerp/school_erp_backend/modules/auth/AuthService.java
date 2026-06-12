@@ -59,7 +59,7 @@ public class AuthService {
 		user.setSchool(school);
 		user.setFirstName("Mahima");
 		user.setLastName("Chaudhary");
-		user.setEmail("admin@test.com.com");
+		user.setEmail("admin@test.com");
 		user.setPassword(passwordEncoder.encode("admin@123"));
 		user.setRole(UserRole.SUPER_ADMIN);
 		user.setIsActive(true);

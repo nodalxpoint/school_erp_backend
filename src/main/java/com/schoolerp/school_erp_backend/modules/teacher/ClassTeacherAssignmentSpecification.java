@@ -41,7 +41,8 @@ public class ClassTeacherAssignmentSpecification {
 
 	public static Specification<ClassTeacherAssignmentEntity> teacherNameLike(String teacherName) {
 		return (root, query, cb) -> {
-			if (teacherName == null || teacherName.isBlank()) return null;
+			if (teacherName == null || teacherName.isBlank())
+				return null;
 
 			Subquery<UUID> subquery = query.subquery(UUID.class);
 			Root<TeacherEntity> teacher = subquery.from(TeacherEntity.class);
@@ -49,9 +50,8 @@ public class ClassTeacherAssignmentSpecification {
 
 			subquery.select(teacher.get("id"))
 					.where(cb.or(
-						cb.like(cb.lower(userJoin.get("firstName")), "%" + teacherName.toLowerCase() + "%"),
-						cb.like(cb.lower(userJoin.get("lastName")), "%" + teacherName.toLowerCase() + "%")
-					));
+							cb.like(cb.lower(userJoin.get("firstName")), "%" + teacherName.toLowerCase() + "%"),
+							cb.like(cb.lower(userJoin.get("lastName")), "%" + teacherName.toLowerCase() + "%")));
 
 			return root.get("teacherId").in(subquery);
 		};

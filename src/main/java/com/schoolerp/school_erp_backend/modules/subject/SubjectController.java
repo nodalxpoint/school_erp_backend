@@ -56,10 +56,5 @@ public class SubjectController {
                 .filterSubjectTeacherAssignments(request);
         return ResponseEntity.ok(response);
     }
-    // assinedList API
 
-    // i have to make a api like list api i have to query in table
-    // teacher_subject_assignments query find all se specifiaction ke saath
-    // jaise list api hamari or bani h
-    // specificatin me imp filter for now sunbject class section and teacher name
 }
