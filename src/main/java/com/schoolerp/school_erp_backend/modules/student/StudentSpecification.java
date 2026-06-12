@@ -1,11 +1,13 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.modules.attendance.AttendanceEntity;
 
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
@@ -28,6 +30,7 @@ public class StudentSpecification {
 				.with(classIdEqual(request.getClassId()))
 
 				.with(sectionIdEqual(request.getSectionId()))
+				.with(attendanceStatusEqual(request.getAttendanceDate(), request.getAttendanceStatus()))
 
 				.build();
 	}
@@ -49,31 +52,50 @@ public class StudentSpecification {
 
 	public static Specification<StudentEntity> classIdEqual(UUID classId) {
 
-	    return (root, query, cb) -> {
-	        if (classId == null) return null;
+		return (root, query, cb) -> {
+			if (classId == null)
+				return null;
 
-	        Subquery<UUID> subquery = query.subquery(UUID.class);
-	        Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
+			Subquery<UUID> subquery = query.subquery(UUID.class);
+			Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
 
-	        subquery.select(enrollment.get("studentId"))
-	                .where(cb.equal(enrollment.get("classId"), classId));
+			subquery.select(enrollment.get("studentId")).where(cb.equal(enrollment.get("classId"), classId));
 
-	        return root.get("id").in(subquery);
-	    };
+			return root.get("id").in(subquery);
+		};
 	}
 
 	public static Specification<StudentEntity> sectionIdEqual(UUID sectionId) {
 
-	    return (root, query, cb) -> {
-	        if (sectionId == null) return null;
+		return (root, query, cb) -> {
+			if (sectionId == null)
+				return null;
 
-	        Subquery<UUID> subquery = query.subquery(UUID.class);
-	        Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
+			Subquery<UUID> subquery = query.subquery(UUID.class);
+			Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
 
-	        subquery.select(enrollment.get("studentId"))
-	                .where(cb.equal(enrollment.get("sectionId"), sectionId));
+			subquery.select(enrollment.get("studentId")).where(cb.equal(enrollment.get("sectionId"), sectionId));
 
-	        return root.get("id").in(subquery);
-	    };
+			return root.get("id").in(subquery);
+		};
+	}
+
+	public static Specification<StudentEntity> attendanceStatusEqual(LocalDate date, String status) {
+
+		return (root, query, cb) -> {
+
+			if (date == null || status == null) {
+				return null;
+			}
+
+			Subquery<UUID> subquery = query.subquery(UUID.class);
+
+			Root<AttendanceEntity> attendance = subquery.from(AttendanceEntity.class);
+
+			subquery.select(attendance.get("studentId")).where(cb.equal(attendance.get("attendanceDate"), date),
+					cb.equal(attendance.get("status"), status));
+
+			return root.get("id").in(subquery);
+		};
 	}
 }
