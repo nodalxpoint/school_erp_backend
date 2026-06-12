@@ -3,6 +3,7 @@ package com.schoolerp.school_erp_backend.modules.attendance;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -66,48 +67,52 @@ public class AttendanceService {
 	@Transactional
 	public void submitBulkAttendance(BulkAttendanceRequestDto requestDTO, UUID userId, String role) {
 
-		LOGGER.debug("submitBulkAttendance called for classId: {}", requestDTO.getClassId());
+	    LOGGER.debug("submitBulkAttendance called for classId: {}", requestDTO.getClassId());
 
-		validateSubmitBulkAttendance(requestDTO, userId, role);
+	    validateSubmitBulkAttendance(requestDTO, userId, role);
 
-		List<AttendanceEntity> attendanceList = new ArrayList<>();
+	    UUID classId     = UUID.fromString(requestDTO.getClassId());
+	    UUID sectionId   = UUID.fromString(requestDTO.getSectionId());
+	    UUID sessionId   = UUID.fromString(requestDTO.getAcademicSessionId());
+	    LocalDate date   = requestDTO.getAttendanceDate();
 
-		for (AttendanceRecordDto record : requestDTO.getRecords()) {
+	    //  Single bulk fetch for existing records
+	    Map<UUID, AttendanceEntity> existingMap =
+	        attendanceRepository.findByClassIdAndSectionIdAndAttendanceDate(classId, sectionId, date)
+	            .stream()
+	            .collect(Collectors.toMap(AttendanceEntity::getStudentId, a -> a));
 
-		    AttendanceEntity entity;
-		    Optional<AttendanceEntity> existing =
-		            attendanceRepository.findByStudentIdAndAttendanceDateAndClassIdAndSectionId(
-		                    record.getStudentId(),
-		                    requestDTO.getAttendanceDate(),
-		                    UUID.fromString(requestDTO.getClassId()),
-		                    UUID.fromString(requestDTO.getSectionId())
-		            );
-		    if (existing.isPresent()) {
-		        // UPDATE flow (admin editing)
-		        entity = existing.get();
-		    } else {
-		        // INSERT flow (first time marking)
-		        entity = new AttendanceEntity();
-		        entity.setStudentId(record.getStudentId());
-		        entity.setClassId(UUID.fromString(requestDTO.getClassId()));
-		        entity.setSectionId(UUID.fromString(requestDTO.getSectionId()));
-		        entity.setAcademicSessionId(UUID.fromString(requestDTO.getAcademicSessionId()));
-		        entity.setAttendanceDate(requestDTO.getAttendanceDate());
-		    }
+	    // Upsert loop — no DB call inside
+	    List<AttendanceEntity> attendanceList = new ArrayList<>();
 
-		    entity.setStatus(record.getStatus());
-		    entity.setRemarks(record.getRemarks());
-		    entity.setMarkedBy(userId);
+	    for (AttendanceRecordDto record : requestDTO.getRecords()) {
 
-		    attendanceList.add(entity);
-		}
+	        AttendanceEntity entity = existingMap.getOrDefault(
+	            record.getStudentId(),
+	            buildNewEntity(record.getStudentId(), classId, sectionId, sessionId, date)
+	        );
 
-		attendanceRepository.saveAll(attendanceList);
+	        entity.setStatus(record.getStatus());
+	        entity.setRemarks(record.getRemarks());
+	        entity.setMarkedBy(userId);
 
-		if (!attendanceList.isEmpty()) {
-			attendanceRepository.saveAll(attendanceList);
-			LOGGER.debug("Saved {} attendance records", attendanceList.size());
-		}
+	        attendanceList.add(entity);
+	    }
+
+	    // 3. Single saveAll
+	    attendanceRepository.saveAll(attendanceList);
+	    LOGGER.debug("Saved {} attendance records", attendanceList.size());
+	}
+
+	private AttendanceEntity buildNewEntity(UUID studentId, UUID classId,
+	                                         UUID sectionId, UUID sessionId, LocalDate date) {
+	    AttendanceEntity e = new AttendanceEntity();
+	    e.setStudentId(studentId);
+	    e.setClassId(classId);
+	    e.setSectionId(sectionId);
+	    e.setAcademicSessionId(sessionId);
+	    e.setAttendanceDate(date);
+	    return e;
 	}
 
 	public void validateSubmitBulkAttendance(BulkAttendanceRequestDto requestDTO, UUID userId, String role) {

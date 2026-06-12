@@ -1,4 +1,4 @@
-package com.schoolerp.school_erp_backend.modules.academic;
+ package com.schoolerp.school_erp_backend.modules.academic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

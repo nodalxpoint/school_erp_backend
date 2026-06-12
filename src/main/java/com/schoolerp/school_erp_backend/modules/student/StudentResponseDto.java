@@ -3,6 +3,8 @@ package com.schoolerp.school_erp_backend.modules.student;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import com.schoolerp.school_erp_backend.modules.attendance.AttendanceSummaryDto;
+
 public class StudentResponseDto {
 
     private UUID id;
@@ -20,6 +22,8 @@ public class StudentResponseDto {
     private String sectionName;
     private UUID academicSessionId;
     private String rollNo;
+    
+    private AttendanceSummaryDto attendance;
 
     public StudentResponseDto() {
     }
@@ -127,5 +131,15 @@ public class StudentResponseDto {
     public void setRollNo(String rollNo) {
         this.rollNo = rollNo;
     }
+
+	public AttendanceSummaryDto getAttendance() {
+		return attendance;
+	}
+
+	public void setAttendance(AttendanceSummaryDto attendance) {
+		this.attendance = attendance;
+	}
+    
+    
 
 }

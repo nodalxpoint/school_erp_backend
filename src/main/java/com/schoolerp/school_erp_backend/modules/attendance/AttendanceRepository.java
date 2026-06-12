@@ -17,10 +17,14 @@ public interface AttendanceRepository
 			UUID classId, UUID sectionId);
 
 	boolean existsByClassIdAndSectionIdAndAttendanceDate(UUID classId, UUID sectionId, LocalDate attendanceDate);
-	Optional<AttendanceEntity> findByStudentIdAndAttendanceDateAndClassIdAndSectionId(
-	        UUID studentId,
-	        LocalDate attendanceDate,
-	        UUID classId,
-	        UUID sectionId
-	);
+
+	Optional<AttendanceEntity> findByStudentIdAndAttendanceDateAndClassIdAndSectionId(UUID studentId,
+			LocalDate attendanceDate, UUID classId, UUID sectionId);
+
+	List<AttendanceEntity> findByClassIdAndSectionIdAndAttendanceDate(UUID classId, UUID sectionId,
+			LocalDate attendanceDate);
+	
+	List<AttendanceEntity> findByAttendanceDateAndStudentIdIn(
+		    LocalDate attendanceDate, List<UUID> studentIds
+		);
 }

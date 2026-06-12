@@ -1,7 +1,11 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,19 +21,19 @@ import com.schoolerp.school_erp_backend.common.HelperServices.AdmissionNoGenerat
 import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
-import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
-import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
-import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
-import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
-import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
+import com.schoolerp.school_erp_backend.modules.attendance.AttendanceEntity;
+import com.schoolerp.school_erp_backend.modules.attendance.AttendanceRecordDto;
+import com.schoolerp.school_erp_backend.modules.attendance.AttendanceRepository;
+import com.schoolerp.school_erp_backend.modules.attendance.AttendanceSummaryDto;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
+import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
-import com.schoolerp.school_erp_backend.modules.teacher.TeacherService;
+import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
 
-import java.util.List;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -60,6 +64,9 @@ public class StudentService {
 	private PasswordEncoder passwordEncoder;
 
 	@Autowired
+	private AttendanceRepository attendanceRepository;
+
+	@Autowired
 	private ValidationHelperService validationHelperService;
 
 	public PagedResponse<StudentResponseDto> filterStudents(StudentFilterRequest request) {
@@ -70,7 +77,17 @@ public class StudentService {
 
 		Page<StudentEntity> studentPage = studentRepository.findAll(StudentSpecification.filter(request), pageable);
 
-		Page<StudentResponseDto> dtoPage = studentPage.map(student -> mapToDto(student));
+		Map<UUID, AttendanceEntity> attendanceMap = new HashMap<>();
+		if (request.getAttendanceDate() != null && studentPage.hasContent()) {
+
+			List<UUID> studentIds = studentPage.getContent().stream().map(StudentEntity::getId)
+					.collect(Collectors.toList());
+
+			attendanceRepository.findByAttendanceDateAndStudentIdIn(request.getAttendanceDate(), studentIds)
+					.forEach(a -> attendanceMap.put(a.getStudentId(), a));
+		}
+
+		Page<StudentResponseDto> dtoPage = studentPage.map(student -> mapToDto(student,attendanceMap.get(student.getId())));
 
 		return PagedResponse.fromPage(dtoPage, "Students fetched successfully");
 	}
@@ -207,7 +224,7 @@ public class StudentService {
 		}
 	}
 
-	private StudentResponseDto mapToDto(StudentEntity student) {
+	private StudentResponseDto mapToDto(StudentEntity student,AttendanceEntity attendance) {
 
 		StudentResponseDto dto = new StudentResponseDto();
 		dto.setId(student.getId());
@@ -221,8 +238,7 @@ public class StudentService {
 		// Enrollment Details
 		UUID schoolId = student.getSchool() != null ? student.getSchool().getId() : null;
 		if (schoolId != null) {
-			Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository
-					.findActiveSessionBySchoolId();
+			Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository.findActiveSessionBySchoolId();
 			StudentEnrollmentEntity enrollment = null;
 			if (activeSessionOpt.isPresent()) {
 				enrollment = studentEnrollmentRepository
@@ -248,6 +264,14 @@ public class StudentService {
 						.ifPresent(s -> dto.setSectionName(s.getSectionName()));
 			}
 		}
+		if (attendance != null) {
+		    AttendanceSummaryDto attendanceDto = new AttendanceSummaryDto();
+		    attendanceDto.setStatus(attendance.getStatus());
+		    attendanceDto.setRemarks(attendance.getRemarks());
+		    attendanceDto.setMarkedBy(attendance.getMarkedBy());
+		    dto.setAttendance(attendanceDto);
+		}
+
 
 		return dto;
 	}
