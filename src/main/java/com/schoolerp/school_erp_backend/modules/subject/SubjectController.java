@@ -48,7 +48,7 @@ public class SubjectController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/assinedList")
+    @PostMapping("/assignedList")
     public ResponseEntity<PagedResponse<SubjectTeacherAssignmentResponseDto>> filterAssignedSubjects(
             @RequestBody SubjectTeacherAssignmentFilterRequest request) {
         LOGGER.debug("filterAssignedSubjects called");
