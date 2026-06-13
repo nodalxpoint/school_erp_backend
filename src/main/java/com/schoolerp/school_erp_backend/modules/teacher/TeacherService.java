@@ -194,16 +194,20 @@ public class TeacherService {
 	}
 
 	public void updateTeacher(CreateTeacherDto request) {
-		User user = userRepo.findById(UUID.fromString(request.getUserId()))
-				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		// UserId which comes from payload is actually a teacher id will fix later
+		
+		TeacherEntity teacher = teacherRepo.findById(UUID.fromString(request.getUserId()))
+				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+		
+		User user  = teacher.getUser();
+		
+//		User user = userRepo.findById(UUID.fromString(request.getUserId()))
+//				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		user.setFirstName(request.getFirstName());
 		user.setLastName(request.getLastName());
 		// Don't update email/password here unless you want to allow that
 		userRepo.save(user);
-
-		TeacherEntity teacher = teacherRepo.findByUser(user)
-				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
 
 		teacher.setEmployeeCode(request.getEmployeeCode());
 		teacher.setQualification(request.getQualification());
