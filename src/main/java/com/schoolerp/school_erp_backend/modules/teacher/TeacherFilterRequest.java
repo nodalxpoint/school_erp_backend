@@ -5,21 +5,21 @@ import java.util.UUID;
 
 import com.schoolerp.school_erp_backend.common.filters.BaseFilterRequest;
 
-public class TeacherFilterRequest extends BaseFilterRequest{
+public class TeacherFilterRequest extends BaseFilterRequest {
 
-    private String firstName;
+	private String firstName;
 
-    private String lastName; 
+	private String lastName;
 
-    private String email;
+	private String email;
 
-    private String password;
+	private String password;
 
-    private String employeeCode;
+	private String employeeCode;
 
-    private String qualification;
+	private String qualification;
 
-    private LocalDate joiningDate;
+	private LocalDate joiningDate;
 
 	public String getFirstName() {
 		return firstName;
@@ -76,7 +76,10 @@ public class TeacherFilterRequest extends BaseFilterRequest{
 	public void setJoiningDate(LocalDate joiningDate) {
 		this.joiningDate = joiningDate;
 	}
-    
-    
-    
+
+	public Object getAcademicSessionId() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'getAcademicSessionId'");
+	}
+
 }

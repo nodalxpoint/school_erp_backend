@@ -1,9 +1,16 @@
 package com.schoolerp.school_erp_backend.modules.teacher;
 
+import java.util.UUID;
+
 import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.modules.auth.User;
+
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 public class TeacherSpecification {
 
@@ -18,6 +25,7 @@ public class TeacherSpecification {
                 .with(employeeCodeEqual(request.getEmployeeCode()))
 
                 .with(qualificationLike(request.getQualification()))
+                .with(teacherNameLike(request.getFirstName()))
 
 
                 .build();
@@ -31,5 +39,22 @@ public class TeacherSpecification {
     public static Specification<TeacherEntity> qualificationLike(String qualification) {
 
         return (root, query, cb) -> FilterUtils.likeIgnoreCase(cb, root, "qualification", qualification);
+    }
+    
+    public static Specification<TeacherEntity> teacherNameLike(String teacherName) {
+        return (root, query, cb) -> {
+
+            if (teacherName == null || teacherName.isBlank())
+                return null;
+
+            Join<TeacherEntity, User> userJoin = root.join("user");
+
+            String pattern = "%" + teacherName.toLowerCase() + "%";
+
+            return cb.or(
+                    cb.like(cb.lower(userJoin.get("firstName")), pattern),
+                    cb.like(cb.lower(userJoin.get("lastName")), pattern)
+            );
+        };
     }
 }

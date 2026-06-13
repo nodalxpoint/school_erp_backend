@@ -141,31 +141,68 @@ public class TeacherService {
 
 		LOGGER.debug("assignClassTeacher called for classId: {}", requestDTO.getClassId());
 
-		// validate teacher exists
+		UUID teacherId = UUID.fromString(requestDTO.getTeacherId());
+		UUID classId = UUID.fromString(requestDTO.getClassId());
+		UUID sectionId = UUID.fromString(requestDTO.getSectionId());
+		UUID academicSessionId = UUID.fromString(requestDTO.getAcademicSessionId());
 
-		teacherRepo.findById(UUID.fromString(requestDTO.getTeacherId()))
-				.orElseThrow(() -> new RuntimeException("Teacher not found"));
+		// Validate teacher exists
+		teacherRepo.findById(teacherId)
+				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
 
-		// check if already assigned — update if yes, insert if no
-		Optional<ClassTeacherAssignmentEntity> existing = classTeacherAssignmentRepository
-				.findByClassIdAndSectionIdAndAcademicSessionId(UUID.fromString(requestDTO.getClassId()),
-						UUID.fromString(requestDTO.getSectionId()), UUID.fromString(requestDTO.getAcademicSessionId()));
+		// Find if teacher is already assigned somewhere in this academic session
+		Optional<ClassTeacherAssignmentEntity> teacherAssignment = classTeacherAssignmentRepository
+				.findByTeacherIdAndAcademicSessionId(
+						teacherId,
+						academicSessionId);
 
-		if (existing.isPresent()) {
-			// UPDATE — replace old teacher with new one
+		if (teacherAssignment.isPresent()) {
+
+			ClassTeacherAssignmentEntity oldAssignment = teacherAssignment.get();
+
+			// If already assigned to the same class-section, do nothing
+			if (oldAssignment.getClassId().equals(classId)
+					&& oldAssignment.getSectionId().equals(sectionId)) {
+
+				LOGGER.debug("Teacher already assigned to the same class-section");
+				return;
+			}
+
+			// Remove old assignment
+			LOGGER.debug("Deleting previous class teacher assignment");
+			classTeacherAssignmentRepository.delete(oldAssignment);
+		}
+
+		// Check if target class already has a class teacher
+		Optional<ClassTeacherAssignmentEntity> existingClassAssignment = classTeacherAssignmentRepository
+				.findByClassIdAndSectionIdAndAcademicSessionId(
+						classId,
+						sectionId,
+						academicSessionId);
+
+		if (existingClassAssignment.isPresent()) {
+
+			// Replace existing teacher
 			LOGGER.debug("Updating existing class teacher assignment");
-			ClassTeacherAssignmentEntity entity = existing.get();
-			entity.setTeacherId(UUID.fromString(requestDTO.getTeacherId()));
+
+			ClassTeacherAssignmentEntity entity = existingClassAssignment.get();
+
+			entity.setTeacherId(teacherId);
+
 			classTeacherAssignmentRepository.save(entity);
 
 		} else {
-			// INSERT — fresh assignment
+
+			// Create new assignment
 			LOGGER.debug("Creating new class teacher assignment");
+
 			ClassTeacherAssignmentEntity entity = new ClassTeacherAssignmentEntity();
-			entity.setClassId(UUID.fromString(requestDTO.getClassId()));
-			entity.setSectionId(UUID.fromString(requestDTO.getSectionId()));
-			entity.setTeacherId(UUID.fromString(requestDTO.getTeacherId()));
-			entity.setAcademicSessionId(UUID.fromString(requestDTO.getAcademicSessionId()));
+
+			entity.setClassId(classId);
+			entity.setSectionId(sectionId);
+			entity.setTeacherId(teacherId);
+			entity.setAcademicSessionId(academicSessionId);
+
 			classTeacherAssignmentRepository.save(entity);
 		}
 	}
@@ -195,14 +232,14 @@ public class TeacherService {
 
 	public void updateTeacher(CreateTeacherDto request) {
 		// UserId which comes from payload is actually a teacher id will fix later
-		
+
 		TeacherEntity teacher = teacherRepo.findById(UUID.fromString(request.getUserId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
-		
-		User user  = teacher.getUser();
-		
-//		User user = userRepo.findById(UUID.fromString(request.getUserId()))
-//				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		User user = teacher.getUser();
+
+		// User user = userRepo.findById(UUID.fromString(request.getUserId()))
+		// .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
 		user.setFirstName(request.getFirstName());
 		user.setLastName(request.getLastName());
