@@ -8,14 +8,15 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TimetableRepository extends JpaRepository<TimetableEntity, UUID>, JpaSpecificationExecutor<TimetableEntity> {
+public interface TimetableRepository
+                extends JpaRepository<TimetableEntity, UUID>, JpaSpecificationExecutor<TimetableEntity> {
 
-    List<TimetableEntity> findByAcademicSessionIdAndClassIdAndSectionIdAndDayOfWeekAndPeriod(
-            UUID academicSessionId, UUID classId, UUID sectionId, String dayOfWeek, Integer period);
+        List<TimetableEntity> findByAcademicSessionIdAndClassIdAndSectionIdAndDayOfWeekAndPeriod(
+                        UUID academicSessionId, UUID classId, UUID sectionId, String dayOfWeek, Integer period);
 
-    List<TimetableEntity> findByAcademicSessionIdAndTeacherIdAndDayOfWeekAndPeriod(
-            UUID academicSessionId, UUID teacherId, String dayOfWeek, Integer period);
+        List<TimetableEntity> findByAcademicSessionIdAndTeacherIdAndDayOfWeekAndPeriod(
+                        UUID academicSessionId, UUID teacherId, String dayOfWeek, Integer period);
 
-    List<TimetableEntity> findByAcademicSessionIdAndRoomNoAndDayOfWeekAndPeriod(
-            UUID academicSessionId, String roomNo, String dayOfWeek, Integer period);
+        List<TimetableEntity> findByAcademicSessionIdAndRoomNoAndDayOfWeekAndPeriod(
+                        UUID academicSessionId, String roomNo, String dayOfWeek, Integer period);
 }

@@ -4,14 +4,22 @@ import java.util.UUID;
 
 public class TeacherClassResponseDto {
 
+    private UUID teacherId;
     private UUID classId;
     private String className;
-
     private UUID sectionId;
     private String sectionName;
-    
+
     // exception field
     private String AttendanceCheck;
+
+    public UUID getTeacherId() {
+        return teacherId;
+    }
+
+    public void setTeacherId(UUID teacherId) {
+        this.teacherId = teacherId;
+    }
 
     public UUID getClassId() {
         return classId;
@@ -45,13 +53,12 @@ public class TeacherClassResponseDto {
         this.sectionName = sectionName;
     }
 
-	public String getAttendanceCheck() {
-		return AttendanceCheck;
-	}
+    public String getAttendanceCheck() {
+        return AttendanceCheck;
+    }
 
-	public void setAttendanceCheck(String attendanceCheck) {
-		AttendanceCheck = attendanceCheck;
-	}
-    
-    
+    public void setAttendanceCheck(String attendanceCheck) {
+        AttendanceCheck = attendanceCheck;
+    }
+
 }

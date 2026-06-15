@@ -95,16 +95,4 @@ public class AttendanceController {
 		return ResponseEntity.ok("Attendance updated successfully");
 	}
 
-	@GetMapping("/myClass")
-	public ResponseEntity<ApiResponse<TeacherClassResponseDto>> getMyClass(
-			@AuthenticationPrincipal CustomUserDetails userDetails) {
-		UUID userId = userDetails.getId();
-
-		TeacherClassResponseDto response = attendanceService.getMyClass(userId);
-
-		// Uses default success message
-		return ResponseEntity.ok(ApiResponse.success("Class fetched successfully", response));
-
-	}
-
 }
