@@ -13,6 +13,8 @@ import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperSe
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
+import com.schoolerp.school_erp_backend.modules.exam.ExamEntity;
+import com.schoolerp.school_erp_backend.modules.exam.ExamRepository;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
@@ -46,7 +48,7 @@ public class ParamService {
 	private AcademicSessionRepository academicSessionRepository;
 
 	@Autowired
-	private ValidationHelperService validationHelperService;
+	private ExamRepository examRepository;
 
 	public PagedResponse<ResponseDropdownOption> getParamList(ParamListRequest request) {
 
@@ -60,6 +62,7 @@ public class ParamService {
 			case "subjects" -> fetchSubjects(request.getSearch(), pageable);
 			case "students" -> fetchStudents(request.getSearch(), pageable);
 			case "academic_sessions" -> fetchAcademicSessions(request.getSearch(), pageable);
+			case "exams" -> fetchExams(request.getSearch(), pageable);
 			default -> throw new IllegalArgumentException("Unknown type: " + request.getType());
 		};
 	}
@@ -110,6 +113,16 @@ public class ParamService {
 		Page<ResponseDropdownOption> dtoPage = page
 				.map(a -> new ResponseDropdownOption(a.getId().toString(), a.getSessionName()));
 		return PagedResponse.fromPage(dtoPage, "Academic sessions fetched successfully");
+	}
+
+	private PagedResponse<ResponseDropdownOption> fetchExams(String search, Pageable pageable) {
+		// Cleaner call signature
+		Page<ExamEntity> page = examRepository.findAll(ExamParamSpecification.filter(search), pageable);
+
+		Page<ResponseDropdownOption> dtoPage = page
+				.map(e -> new ResponseDropdownOption(e.getId().toString(), e.getExamName()));
+
+		return PagedResponse.fromPage(dtoPage, "Exams fetched successfully");
 	}
 
 }

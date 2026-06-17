@@ -13,7 +13,7 @@ public class ExamDto {
     private LocalDate startDate;
     private LocalDate endDate;
     private LocalDateTime createdAt;
-    private List<ExamSubjectDto> subjects;
+    private List<ExamSubjectDto> examSubjects;
 
     public UUID getExamId() {
         return examId;
@@ -63,12 +63,12 @@ public class ExamDto {
         this.createdAt = createdAt;
     }
 
-    public List<ExamSubjectDto> getSubjects() {
-        return subjects;
+    public List<ExamSubjectDto> getExamSubjects() {
+        return examSubjects;
     }
 
-    public void setSubjects(List<ExamSubjectDto> subjects) {
-        this.subjects = subjects;
+    public void setExamSubjects(List<ExamSubjectDto> examSubjects) {
+        this.examSubjects = examSubjects;
     }
 
 }

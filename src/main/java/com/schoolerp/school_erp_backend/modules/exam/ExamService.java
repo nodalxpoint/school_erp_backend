@@ -26,14 +26,11 @@ import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundExcept
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
-import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
-import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
 import com.schoolerp.school_erp_backend.modules.student.StudentEnrollmentRepository;
 import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
 import com.schoolerp.school_erp_backend.modules.student.StudentRepository;
 import com.schoolerp.school_erp_backend.modules.subject.SubjectEntity;
-import com.schoolerp.school_erp_backend.modules.subject.SubjectRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -56,15 +53,6 @@ public class ExamService {
 
 	@Autowired
 	private StudentEnrollmentRepository studentEnrollmentRepository;
-
-	@Autowired
-	private ClassesRepository classesRepository;
-
-	@Autowired
-	private SectionRepository sectionRepository;
-
-	@Autowired
-	private SubjectRepository subjectRepository;
 
 	@Autowired
 	private ValidationHelperService validationHelperService;
@@ -139,102 +127,41 @@ public class ExamService {
 	}
 
 	private ExamDto mapToExamDto(ExamEntity entity, boolean includeSubjects) {
-	    ExamDto dto = new ExamDto();
-	    dto.setExamId(entity.getId());
-	    dto.setAcademicSessionId(entity.getAcademicSessionId());
-	    dto.setExamName(entity.getExamName());
-	    dto.setStartDate(entity.getStartDate());
-	    dto.setEndDate(entity.getEndDate());
-	    dto.setCreatedAt(entity.getCreatedAt());
-	    dto.setSubjects(includeSubjects ? mapSubjects(entity.getExamSubjects()) : null);
-	    return dto;
+		ExamDto dto = new ExamDto();
+		dto.setExamId(entity.getId());
+		dto.setAcademicSessionId(entity.getAcademicSessionId());
+		dto.setExamName(entity.getExamName());
+		dto.setStartDate(entity.getStartDate());
+		dto.setEndDate(entity.getEndDate());
+		dto.setCreatedAt(entity.getCreatedAt());
+		dto.setExamSubjects(includeSubjects ? mapSubjects(entity.getExamSubjects()) : null);
+		return dto;
 	}
+
 	private List<ExamSubjectDto> mapSubjects(List<ExamSubjectEntity> examSubjects) {
-	    if (examSubjects == null) return null;
-	    return examSubjects.stream()
-	            .map(this::mapToExamSubjectDto)
-	            .collect(Collectors.toList());
+		if (examSubjects == null)
+			return null;
+		return examSubjects.stream()
+				.map(this::mapToExamSubjectDto)
+				.collect(Collectors.toList());
 	}
-	
+
 	private ExamSubjectDto mapToExamSubjectDto(ExamSubjectEntity entity) {
-	    ExamSubjectDto dto = new ExamSubjectDto();
-	    dto.setId(entity.getId());
-	    dto.setExamId(entity.getExam().getId());
-	    dto.setSubjectId(entity.getSubject().getId());
-	    dto.setSubjectName(entity.getSubject().getName());
-	    dto.setSubjectCode(entity.getSubject().getCode());
-	    dto.setMaxMarks(entity.getMaxMarks());
-	    dto.setPassingMarks(entity.getPassingMarks());
-	    dto.setExamDate(entity.getExamDate());
-	    dto.setExamDay(entity.getExamDay());
-	    dto.setCreatedAt(entity.getCreatedAt());
-	    dto.setClassId(entity.getClass_id().getId());
-	    dto.setClassName(entity.getClass_id().getClassName());
-	    return dto;
+		ExamSubjectDto dto = new ExamSubjectDto();
+		dto.setId(entity.getId());
+		dto.setExamId(entity.getExam().getId());
+		dto.setSubjectId(entity.getSubject().getId());
+		dto.setSubjectName(entity.getSubject().getName());
+		dto.setSubjectCode(entity.getSubject().getCode());
+		dto.setMaxMarks(entity.getMaxMarks());
+		dto.setPassingMarks(entity.getPassingMarks());
+		dto.setExamDate(entity.getExamDate());
+		dto.setExamDay(entity.getExamDay());
+		dto.setCreatedAt(entity.getCreatedAt());
+		dto.setClassId(entity.getClass_id().getId());
+		dto.setClassName(entity.getClass_id().getClassName());
+		return dto;
 	}
-
-	// private ExamDto mapToExamDto(ExamEntity entity) {
-	// ExamDto dto = new ExamDto();
-	// dto.setId(entity.getId());
-	// dto.setAcademicSessionId(entity.getAcademicSessionId());
-	// dto.setExamName(entity.getExamName());
-	// dto.setStartDate(entity.getStartDate());
-	// dto.setEndDate(entity.getEndDate());
-	// dto.setCreatedAt(entity.getCreatedAt());
-
-	// if (entity.getSubjectEntity() != null &&
-	// !entity.getSubjectEntity().isEmpty()) {
-
-	// List<ExamSubjectDto> subjects = new ArrayList<>();
-
-	// for (ExamSubjectEntity subEntity : entity.getSubjectEntity()) {
-
-	// ExamSubjectDto subDto = new ExamSubjectDto();
-
-	// subDto.setId(subEntity.getId());
-	// subDto.setExamId(entity.getId());
-
-	// subDto.setMaxMarks(subEntity.getMaxMarks());
-	// subDto.setPassingMarks(subEntity.getPassingMarks());
-
-	// subDto.setExamDate(subEntity.getExamDate());
-	// subDto.setExamDay(subEntity.getExamDay());
-
-	// subDto.setCreatedAt(subEntity.getCreatedAt());
-
-	// // class data
-	// if (subEntity.getClass_id() != null) {
-
-	// subDto.setClassId(
-	// subEntity.getClass_id().getId());
-
-	// subDto.setClassName(
-	// subEntity.getClass_id().getClassName());
-	// }
-
-	// // subject data
-	// if (subEntity.getSubject() != null) {
-
-	// subDto.setSubjectId(
-	// subEntity.getSubject().getId());
-
-	// subDto.setSubjectName(
-	// subEntity.getSubject().getName());
-
-	// subDto.setSubjectCode(
-	// subEntity.getSubject().getCode());
-	// }
-
-	// // DTO list me add kar diya
-	// subjects.add(subDto);
-	// }
-
-	// // final list ExamDto me set
-	// dto.setSubjects(subjects);
-	// }
-
-	// return dto;
-	// }
 
 	// ─── EXAM SUBJECTS ────────────────────────────────────────────────────────
 
@@ -305,40 +232,6 @@ public class ExamService {
 		}
 	}
 
-	public List<ExamSubjectDto> getExamSubjects(UUID examId) {
-		if (!examRepository.existsById(examId)) {
-			throw new ResourceNotFoundException("Exam not found");
-		}
-
-		List<ExamSubjectEntity> list = examSubjectRepository.findByExamId(examId);
-		List<ExamSubjectDto> dtoList = new ArrayList<>();
-
-		for (ExamSubjectEntity entity : list) {
-			ExamSubjectDto dto = new ExamSubjectDto();
-			dto.setId(entity.getId());
-			dto.setExamId(entity.getExam().getId());
-			dto.setSubjectId(entity.getSubject().getId());
-			dto.setMaxMarks(entity.getMaxMarks());
-			dto.setPassingMarks(entity.getPassingMarks());
-			dto.setExamDate(entity.getExamDate());
-			dto.setExamDay(entity.getExamDay());
-			dto.setCreatedAt(entity.getCreatedAt());
-			if (entity.getClass_id() != null) {
-				dto.setClassId(entity.getClass_id().getId());
-				dto.setClassName(entity.getClass_id().getClassName());
-			}
-
-			if (entity.getSubject() != null) {
-				dto.setSubjectName(entity.getSubject().getName());
-				dto.setSubjectCode(entity.getSubject().getCode());
-			}
-
-			dtoList.add(dto);
-		}
-
-		return dtoList;
-	}
-
 	// ─── STUDENT MARKS ────────────────────────────────────────────────────────
 
 	@Transactional
@@ -383,40 +276,5 @@ public class ExamService {
 
 			studentMarksRepository.save(marksEntity);
 		}
-	}
-
-	public List<StudentMarksDto> getStudentMarksBySubject(UUID examSubjectId) {
-		ExamSubjectEntity examSubject = examSubjectRepository.findById(examSubjectId)
-				.orElseThrow(() -> new ResourceNotFoundException("Exam subject setup not found"));
-
-		List<StudentMarksEntity> marksList = studentMarksRepository.findByExamSubjectId(examSubjectId);
-		List<StudentMarksDto> dtoList = new ArrayList<>();
-
-		UUID academicSessionId = examSubject.getExam().getAcademicSessionId();
-
-		for (StudentMarksEntity entity : marksList) {
-			StudentMarksDto dto = new StudentMarksDto();
-			dto.setId(entity.getId());
-			dto.setExamSubjectId(entity.getExamSubject().getId());
-			dto.setStudentId(entity.getStudent().getId());
-			dto.setMarksObtained(entity.getMarksObtained());
-			dto.setRemarks(entity.getRemarks());
-			dto.setCreatedAt(entity.getCreatedAt());
-
-			// Student details
-			studentRepository.findById(entity.getStudent().getId()).ifPresent(student -> {
-				dto.setStudentFirstName(student.getFirstName());
-				dto.setStudentLastName(student.getLastName());
-				dto.setAdmissionNo(student.getAdmissionNo());
-
-				// Resolve roll number from enrollment
-				studentEnrollmentRepository.findByStudentIdAndAcademicSessionId(student.getId(), academicSessionId)
-						.ifPresent(enrollment -> dto.setRollNo(enrollment.getRollNo()));
-			});
-
-			dtoList.add(dto);
-		}
-
-		return dtoList;
 	}
 }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StudentMarksRepository extends JpaRepository<StudentMarksEntity, UUID> {
 
-    List<StudentMarksEntity> findByExamSubjectId(UUID examSubjectId);
+    // List<StudentMarksEntity> findByExamSubjectId(UUID examSubjectId);
 
     Optional<StudentMarksEntity> findByExamSubjectIdAndStudentId(UUID examSubjectId, UUID studentId);
 

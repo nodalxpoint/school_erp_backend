@@ -67,17 +67,6 @@ public class ExamController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * Retrieves the list of subjects mapped to a specific exam.
-     */
-    @GetMapping("/{examId}/subjects")
-    public ResponseEntity<ApiResponse<List<ExamSubjectDto>>> getExamSubjects(@PathVariable UUID examId) {
-        LOGGER.debug("getExamSubjects called for examId: {}", examId);
-        List<ExamSubjectDto> data = examService.getExamSubjects(examId);
-        ApiResponse<List<ExamSubjectDto>> response = ApiResponse.success("Exam subjects fetched successfully", data);
-        return ResponseEntity.ok(response);
-    }
-
     // ─── STUDENT MARKS ────────────────────────────────────────────────────────
 
     /**
@@ -89,18 +78,6 @@ public class ExamController {
         examService.bulkSaveStudentMarks(request);
         ApiResponse<String> response = ApiResponse.success("Student marks saved successfully", null);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    /**
-     * Retrieves all student marks records for a specific exam subject setup.
-     */
-    @GetMapping("/marks/subject/{examSubjectId}")
-    public ResponseEntity<ApiResponse<List<StudentMarksDto>>> getStudentMarksBySubject(
-            @PathVariable UUID examSubjectId) {
-        LOGGER.debug("getStudentMarksBySubject called for examSubjectId: {}", examSubjectId);
-        List<StudentMarksDto> data = examService.getStudentMarksBySubject(examSubjectId);
-        ApiResponse<List<StudentMarksDto>> response = ApiResponse.success("Student marks fetched successfully", data);
-        return ResponseEntity.ok(response);
     }
 
 }
