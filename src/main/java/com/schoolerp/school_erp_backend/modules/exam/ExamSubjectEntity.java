@@ -1,8 +1,10 @@
 package com.schoolerp.school_erp_backend.modules.exam;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.subject.SubjectEntity;
 
 import jakarta.persistence.Column;
@@ -36,6 +38,16 @@ public class ExamSubjectEntity {
 
     @Column(name = "passing_marks", nullable = false)
     private Integer passingMarks;
+
+    @Column(name = "exam_date")
+    private LocalDate examDate;
+
+    @Column(name = "exam_day", length = 20)
+    private String examDay;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id", nullable = false)
+    private ClassesEntity class_id;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -83,6 +95,30 @@ public class ExamSubjectEntity {
 
     public void setPassingMarks(Integer passingMarks) {
         this.passingMarks = passingMarks;
+    }
+
+    public LocalDate getExamDate() {
+        return examDate;
+    }
+
+    public void setExamDate(LocalDate examDate) {
+        this.examDate = examDate;
+    }
+
+    public String getExamDay() {
+        return examDay;
+    }
+
+    public void setExamDay(String examDay) {
+        this.examDay = examDay;
+    }
+
+    public ClassesEntity getClass_id() {
+        return class_id;
+    }
+
+    public void setClass_id(ClassesEntity class_id) {
+        this.class_id = class_id;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -16,7 +16,6 @@ public class TimetableDto {
     private LocalTime startTime;
     private LocalTime endTime;
     private String roomNo;
-
     private String className;
     private String sectionName;
     private String subjectName;

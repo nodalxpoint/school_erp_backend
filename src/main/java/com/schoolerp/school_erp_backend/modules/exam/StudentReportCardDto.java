@@ -163,6 +163,8 @@ public class StudentReportCardDto {
         private BigDecimal marksObtained;
         private String status;
         private String remarks;
+        private LocalDate examDate;
+        private String examDay;
 
         public String getSubjectName() {
             return subjectName;
@@ -218,6 +220,22 @@ public class StudentReportCardDto {
 
         public void setRemarks(String remarks) {
             this.remarks = remarks;
+        }
+
+        public LocalDate getExamDate() {
+            return examDate;
+        }
+
+        public void setExamDate(LocalDate examDate) {
+            this.examDate = examDate;
+        }
+
+        public String getExamDay() {
+            return examDay;
+        }
+
+        public void setExamDay(String examDay) {
+            this.examDay = examDay;
         }
     }
 }

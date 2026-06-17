@@ -2,23 +2,25 @@ package com.schoolerp.school_erp_backend.modules.exam;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class ExamDto {
 
-    private UUID id;
+    private UUID examId;
     private UUID academicSessionId;
     private String examName;
     private LocalDate startDate;
     private LocalDate endDate;
     private LocalDateTime createdAt;
+    private List<ExamSubjectDto> subjects;
 
-    public UUID getId() {
-        return id;
+    public UUID getExamId() {
+        return examId;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setExamId(UUID id) {
+        this.examId = id;
     }
 
     public UUID getAcademicSessionId() {
@@ -60,4 +62,13 @@ public class ExamDto {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public List<ExamSubjectDto> getSubjects() {
+        return subjects;
+    }
+
+    public void setSubjects(List<ExamSubjectDto> subjects) {
+        this.subjects = subjects;
+    }
+
 }

@@ -2,6 +2,7 @@ package com.schoolerp.school_erp_backend.modules.exam;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
@@ -13,6 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -42,6 +44,9 @@ public class ExamEntity {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "exam", fetch = FetchType.LAZY)
+    private List<ExamSubjectEntity> examSubjects;
 
     @PrePersist
     public void prePersist() {
@@ -103,4 +108,17 @@ public class ExamEntity {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public List<ExamSubjectEntity> getSubjectEntity() {
+        return examSubjects;
+    }
+
+    public void setSubjectEntity(List<ExamSubjectEntity> examSubjects) {
+        this.examSubjects = examSubjects;
+    }
+    
+    public List<ExamSubjectEntity> getExamSubjects() {
+        return examSubjects;
+    }
+
 }

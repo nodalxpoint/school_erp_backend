@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
@@ -31,7 +30,8 @@ public class ExamController {
     private ExamService examService;
 
     /**
-     * Filters and retrieves a paged list of exams matching academic session and search filters.
+     * Filters and retrieves a paged list of exams matching academic session and
+     * search filters.
      */
     @PostMapping("/list")
     public ResponseEntity<PagedResponse<ExamDto>> filterExams(@RequestBody ExamFilterRequest request) {
@@ -56,7 +56,8 @@ public class ExamController {
     // ─── EXAM SUBJECTS ────────────────────────────────────────────────────────
 
     /**
-     * Maps a subject to an exam, setting the maximum and passing marks limits.
+     * Maps a subject to an exam, setting the maximum and passing marks limits and
+     * date and date.
      */
     @PostMapping("/subject/addOrUpdate")
     public ResponseEntity<ApiResponse<String>> addOrUpdateExamSubject(@Valid @RequestBody ExamSubjectDto request) {
@@ -102,17 +103,4 @@ public class ExamController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Generates and retrieves a comprehensive student report card summarizing all exam marks for a session.
-     */
-    @GetMapping("/marks/student/{studentId}")
-    public ResponseEntity<ApiResponse<StudentReportCardDto>> getStudentReportCard(
-            @PathVariable UUID studentId,
-            @RequestParam UUID academicSessionId) {
-        LOGGER.debug("getStudentReportCard called for studentId: {} and sessionId: {}", studentId, academicSessionId);
-        StudentReportCardDto data = examService.getStudentReportCard(studentId, academicSessionId);
-        ApiResponse<StudentReportCardDto> response = ApiResponse.success("Student report card fetched successfully",
-                data);
-        return ResponseEntity.ok(response);
-    }
 }

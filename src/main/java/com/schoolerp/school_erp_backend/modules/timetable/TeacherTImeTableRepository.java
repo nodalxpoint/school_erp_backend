@@ -9,8 +9,17 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TeacherTImeTableRepository
-        extends JpaRepository<TeacherTimeTableEntity, UUID>, JpaSpecificationExecutor<TeacherTimeTableEntity> {
+                extends JpaRepository<TeacherTimeTableEntity, UUID>, JpaSpecificationExecutor<TeacherTimeTableEntity> {
 
-    List<TeacherTimeTableEntity> findByAcademicSessionIdAndTeacherIdAndDayOfWeekAndPeriod(
-            UUID academicSessionId, UUID teacherId, String dayOfWeek, Integer period);
+        List<TeacherTimeTableEntity> findByAcademicSessionIdAndTeacherIdAndDayOfWeekAndPeriod(
+                        UUID academicSessionId, UUID teacherId, String dayOfWeek, Integer period);
+
+        List<TeacherTimeTableEntity> findByAcademicSessionIdAndTeacherIdAndDayOfWeek(
+                        UUID academicSessionId, UUID teacherId, String dayOfWeek);
+
+        List<TeacherTimeTableEntity> findByAcademicSessionIdAndClassIdAndSectionIdAndDayOfWeek(
+                        UUID academicSessionId, UUID classId, UUID sectionId, String dayOfWeek);
+
+        List<TeacherTimeTableEntity> findByAcademicSessionIdAndRoomNoAndDayOfWeek(
+                        UUID academicSessionId, String roomNo, String dayOfWeek);
 }

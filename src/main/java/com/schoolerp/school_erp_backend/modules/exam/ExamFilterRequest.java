@@ -7,6 +7,17 @@ public class ExamFilterRequest extends BaseFilterRequest {
 
     private UUID academicSessionId;
     private String examName;
+    private UUID classId;
+    private UUID subjectId;
+    private UUID examId;
+
+    public UUID getExamId() {
+        return examId;
+    }
+
+    public void setExamId(UUID examId) {
+        this.examId = examId;
+    }
 
     public UUID getAcademicSessionId() {
         return academicSessionId;
@@ -23,4 +34,21 @@ public class ExamFilterRequest extends BaseFilterRequest {
     public void setExamName(String examName) {
         this.examName = examName;
     }
+
+    public UUID getClassId() {
+        return classId;
+    }
+
+    public void setClassId(UUID classId) {
+        this.classId = classId;
+    }
+
+    public UUID getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(UUID subjectId) {
+        this.subjectId = subjectId;
+    }
+
 }

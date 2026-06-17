@@ -1,5 +1,6 @@
 package com.schoolerp.school_erp_backend.modules.exam;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -12,7 +13,11 @@ public class ExamSubjectDto {
     private String subjectCode;
     private Integer maxMarks;
     private Integer passingMarks;
+    private LocalDate examDate;
+    private String examDay;
     private LocalDateTime createdAt;
+    private UUID classId;
+    private String className;
 
     public UUID getId() {
         return id;
@@ -70,11 +75,43 @@ public class ExamSubjectDto {
         this.passingMarks = passingMarks;
     }
 
+    public LocalDate getExamDate() {
+        return examDate;
+    }
+
+    public void setExamDate(LocalDate examDate) {
+        this.examDate = examDate;
+    }
+
+    public String getExamDay() {
+        return examDay;
+    }
+
+    public void setExamDay(String examDay) {
+        this.examDay = examDay;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public UUID getClassId() {
+        return classId;
+    }
+
+    public void setClassId(UUID classId) {
+        this.classId = classId;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
     }
 }
