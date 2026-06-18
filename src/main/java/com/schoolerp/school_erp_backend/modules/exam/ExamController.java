@@ -1,15 +1,10 @@
 package com.schoolerp.school_erp_backend.modules.exam;
 
-import java.util.List;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,8 +52,9 @@ public class ExamController {
 
     /**
      * Maps a subject to an exam, setting the maximum and passing marks limits and
-     * date and date.
+     * date and date.by
      */
+    // this api tell kon sa exam kb hai
     @PostMapping("/subject/addOrUpdate")
     public ResponseEntity<ApiResponse<String>> addOrUpdateExamSubject(@Valid @RequestBody ExamSubjectDto request) {
         LOGGER.debug("addOrUpdateExamSubject endpoint called");
@@ -67,10 +63,10 @@ public class ExamController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // ─── STUDENT MARKS ────────────────────────────────────────────────────────
+    // ─── STUDENT MARKS ───────────────────────x─────────────────────────────────
 
     /**
-     * Saves or updates marks obtained by multiple students in an exam subject.
+     * Saves or updates marks obtained multiple students in an exam subject.
      */
     @PostMapping("/marks/bulkSave")
     public ResponseEntity<ApiResponse<String>> bulkSaveStudentMarks(@Valid @RequestBody BulkSaveMarksDto request) {

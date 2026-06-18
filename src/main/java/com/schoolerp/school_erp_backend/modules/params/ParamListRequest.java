@@ -4,7 +4,7 @@ import com.schoolerp.school_erp_backend.common.filters.BaseFilterRequest;
 
 public class ParamListRequest extends BaseFilterRequest {
 
-	private String type; // "classes", "sections", "teachers", "subjects", "students",examName
+	private String type; // "classes", "sections", "teachers", "subjects", "students",examName,exams
 							// "academic_sessions"
 	private String classId; // required when type = "sections"
 	private String search;
