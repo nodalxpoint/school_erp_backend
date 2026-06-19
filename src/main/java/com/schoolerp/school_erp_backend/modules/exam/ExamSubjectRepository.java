@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ExamSubjectRepository extends JpaRepository<ExamSubjectEntity, UUID> {
 
-    Optional<ExamSubjectEntity> findByExamIdAndSubjectId(UUID examId, UUID subjectId);
+    Optional<ExamSubjectEntity> findByExamIdAndSubjectIdAndClassEntityId(UUID examId, UUID subjectId, UUID classId);
 }

@@ -158,8 +158,8 @@ public class ExamService {
 		dto.setExamDate(entity.getExamDate());
 		dto.setExamDay(entity.getExamDay());
 		dto.setCreatedAt(entity.getCreatedAt());
-		dto.setClassId(entity.getClass_id().getId());
-		dto.setClassName(entity.getClass_id().getClassName());
+		dto.setClassId(entity.getClassEntity().getId());
+		dto.setClassName(entity.getClassEntity().getClassName());
 		return dto;
 	}
 
@@ -182,9 +182,10 @@ public class ExamService {
 		ExamEntity exam = examRepository.findById(request.getExamId())
 				.orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
 
-		// Unique check for exam + subject combination
-		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExamIdAndSubjectId(request.getExamId(),
-				request.getSubjectId());
+		// Unique check for exam + subject + class combination
+		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExamIdAndSubjectIdAndClassEntityId(
+				request.getExamId(),
+				request.getSubjectId(), request.getClassId());
 		if (existing.isPresent()) {
 			throw new ValidationException("Subject is already assigned to this exam");
 		}
@@ -218,7 +219,7 @@ public class ExamService {
 
 		ClassesEntity classes = new ClassesEntity();
 		classes.setId(request.getClassId());
-		entity.setClass_id(classes);
+		entity.setClassEntity(classes);
 
 		if (request.getExamDate() != null) {
 			if (request.getExamDay() == null || request.getExamDay().trim().isEmpty()) {

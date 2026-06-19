@@ -87,7 +87,8 @@ public class StudentService {
 					.forEach(a -> attendanceMap.put(a.getStudentId(), a));
 		}
 
-		Page<StudentResponseDto> dtoPage = studentPage.map(student -> mapToDto(student,attendanceMap.get(student.getId())));
+		Page<StudentResponseDto> dtoPage = studentPage
+				.map(student -> mapToDto(student, attendanceMap.get(student.getId())));
 
 		return PagedResponse.fromPage(dtoPage, "Students fetched successfully");
 	}
@@ -140,7 +141,9 @@ public class StudentService {
 
 	private User createParentUser(CreateStudentDto request, SchoolEntity school) {
 
-		if (userRepository.existsByEmail(request.getParentEmail())) {
+		String parentEmail = request.getParentEmail().trim();
+
+		if (userRepository.existsByEmail(parentEmail)) {
 			throw new ValidationException("User already exists with email: " + request.getParentEmail());
 		}
 
@@ -224,7 +227,7 @@ public class StudentService {
 		}
 	}
 
-	private StudentResponseDto mapToDto(StudentEntity student,AttendanceEntity attendance) {
+	private StudentResponseDto mapToDto(StudentEntity student, AttendanceEntity attendance) {
 
 		StudentResponseDto dto = new StudentResponseDto();
 		dto.setId(student.getId());
@@ -265,13 +268,12 @@ public class StudentService {
 			}
 		}
 		if (attendance != null) {
-		    AttendanceSummaryDto attendanceDto = new AttendanceSummaryDto();
-		    attendanceDto.setStatus(attendance.getStatus());
-		    attendanceDto.setRemarks(attendance.getRemarks());
-		    attendanceDto.setMarkedBy(attendance.getMarkedBy());
-		    dto.setAttendance(attendanceDto);
+			AttendanceSummaryDto attendanceDto = new AttendanceSummaryDto();
+			attendanceDto.setStatus(attendance.getStatus());
+			attendanceDto.setRemarks(attendance.getRemarks());
+			attendanceDto.setMarkedBy(attendance.getMarkedBy());
+			dto.setAttendance(attendanceDto);
 		}
-
 
 		return dto;
 	}

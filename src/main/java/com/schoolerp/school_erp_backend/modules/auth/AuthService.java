@@ -27,7 +27,9 @@ public class AuthService {
 
 	public LoginResponseDto login(LoginRequestDto requestDto) {
 
-		User user = userRepository.findByEmail(requestDto.getEmail())
+		String emailId = requestDto.getEmail();
+
+		User user = userRepository.findByEmail(emailId)
 				.orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
 		if (!user.getIsActive()) {

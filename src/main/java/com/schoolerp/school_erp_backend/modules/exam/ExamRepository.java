@@ -23,7 +23,7 @@ public interface ExamRepository extends JpaRepository<ExamEntity, UUID>, JpaSpec
     @EntityGraph(attributePaths = {
             "examSubjects",
             "examSubjects.subject",
-            "examSubjects.class_id"
+            "examSubjects.classEntity"
     })
     Page<ExamEntity> findAll(Specification<ExamEntity> spec, Pageable pageable);
 }

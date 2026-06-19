@@ -43,7 +43,7 @@ public class ExamSpecification {
             Subquery<UUID> subquery = query.subquery(UUID.class);
             Root<ExamSubjectEntity> subRoot = subquery.from(ExamSubjectEntity.class);
             subquery.select(subRoot.get("exam").get("id"))
-                    .where(cb.equal(subRoot.get("class_id").get("id"), classId));
+                    .where(cb.equal(subRoot.get("classEntity").get("id"), classId));
 
             return root.get("id").in(subquery);
         };

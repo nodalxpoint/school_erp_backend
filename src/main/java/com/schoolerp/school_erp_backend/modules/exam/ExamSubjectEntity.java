@@ -47,7 +47,7 @@ public class ExamSubjectEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id", nullable = false)
-    private ClassesEntity class_id;
+    private ClassesEntity classEntity;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -113,12 +113,12 @@ public class ExamSubjectEntity {
         this.examDay = examDay;
     }
 
-    public ClassesEntity getClass_id() {
-        return class_id;
+    public ClassesEntity getClassEntity() {
+        return classEntity;
     }
 
-    public void setClass_id(ClassesEntity class_id) {
-        this.class_id = class_id;
+    public void setClassEntity(ClassesEntity classEntity) {
+        this.classEntity = classEntity;
     }
 
     public LocalDateTime getCreatedAt() {
