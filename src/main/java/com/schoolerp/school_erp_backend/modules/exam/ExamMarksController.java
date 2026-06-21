@@ -31,7 +31,7 @@ public class ExamMarksController {
     }
 
     @PostMapping("/addOrUpdate")
-    public ResponseEntity<Void> addOrUpdateExamMarks(@RequestBody List<ExamMarksDto> request) {
+    public ResponseEntity<Void> addOrUpdateExamMarks(@RequestBody ExamMarksDto request) {
         LOGGER.debug("addOrUpdateExamMarks endpoint called");
         examMarksService.addOrUpdateExamMarks(request);
         return ResponseEntity.ok().build();

@@ -173,7 +173,7 @@ public class ExamService {
 				.orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
 
 		// Unique check for exam + subject + class combination
-		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExamIdAndSubjectIdAndClassEntityId(
+		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExam_IdAndSubject_IdAndClassEntity_Id(
 				request.getExamId(),
 				request.getSubjectId(), request.getClassId());
 		if (existing.isPresent()) {
@@ -191,7 +191,7 @@ public class ExamService {
 
 		validationHelperService.validateExamSubjectRequest(request, request.getId());
 		
-		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExamIdAndSubjectIdAndClassEntityId(
+		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExam_IdAndSubject_IdAndClassEntity_Id(
 				request.getExamId(),
 				request.getSubjectId(), request.getClassId());
 		if (existing.isPresent()) {

@@ -1,6 +1,7 @@
 package com.schoolerp.school_erp_backend.modules.exam;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,7 +9,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,9 +22,9 @@ import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundExcept
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
-import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
 import com.schoolerp.school_erp_backend.modules.student.StudentEnrollmentEntity;
 import com.schoolerp.school_erp_backend.modules.student.StudentEnrollmentRepository;
+import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
 import com.schoolerp.school_erp_backend.modules.student.StudentRepository;
 
 import jakarta.transaction.Transactional;
@@ -32,7 +32,8 @@ import jakarta.transaction.Transactional;
 @Service
 public class ExamMarksService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ExamMarksService.class);
+	private static final Logger log =
+	        LoggerFactory.getLogger(ExamMarksService.class);
 
 	@Autowired
 	private StudentMarksRepository studentMarksRepository;
@@ -67,161 +68,289 @@ public class ExamMarksService {
 	}
 
 	private ExamMarksDto mapToStudentMarksDto(StudentMarksEntity entity) {
-		ExamMarksDto dto = new ExamMarksDto();
-		dto.setId(entity.getId());
-		dto.setExamSubjectId(entity.getExamSubject().getId());
-		dto.setRemarks(entity.getRemarks());
 
-		StudentMarkDto studentMarkDto = new StudentMarkDto();
-		studentMarkDto.setMarksObtained(entity.getMarksObtained());
+	    ExamMarksDto dto = new ExamMarksDto();
 
-		if (entity.getStudent() != null) {
-			studentMarkDto.setStudentId(entity.getStudent().getId());
-		}
+	    dto.setId(entity.getId());
+	    dto.setExamSubjectId(entity.getExamSubject().getId());
+	    dto.setExamId(entity.getExam().getId());
 
-		dto.setStudentMark(studentMarkDto);
+	    StudentMarkDto studentMarkDto = new StudentMarkDto();
+	    studentMarkDto.setStudentId(entity.getStudent().getId());
+	    studentMarkDto.setMarksObtained(entity.getMarksObtained());
+	    studentMarkDto.setRemarks(entity.getRemarks());
 
-		return dto;
+	    dto.setRecords(List.of(studentMarkDto));
+
+	    return dto;
 	}
 
 	@Transactional
-	public void addOrUpdateExamMarks(List<ExamMarksDto> request) {
+	public void addOrUpdateExamMarks(ExamMarksDto request) {
 
-		for (ExamMarksDto dto : request) {
-			if (dto.getId() != null) {
+		
+			if (request.getId() != null) {
 				updateExamMarks(request);
 			} else {
 				createExamMarks(request);
 			}
 
-		}
+		
 
 	}
 
-	private void createExamMarks(List<ExamMarksDto> dto) {
 
-		for (ExamMarksDto request : dto) {
+	private void createExamMarks(ExamMarksDto request) {
 
-			SchoolEntity school = validationHelperService.getSchool();
+	    SchoolEntity school = validationHelperService.getSchool();
 
-			ExamSubjectEntity examSubject = validateExamMarksRequest(request);
+	    log.info("Creating exam marks for examSubjectId={}, examId={}, recordsSize={}",
+	            request.getExamSubjectId(),
+	            request.getExamId(),
+	            request.getRecords() != null ? request.getRecords().size() : 0
+	    );
 
-			BigDecimal marks = request.getStudentMark().getMarksObtained();
-			BigDecimal maxMarks = BigDecimal.valueOf(examSubject.getMaxMarks());
+	    ExamSubjectEntity examSubject = validateExamMarksRequest(request);
 
-			UUID studId = request.getStudentMark().getStudentId(); // single UUID now
+	    log.info("Resolved examSubjectId={}, examId={}, classId={}, maxMarks={}",
+	            examSubject.getId(),
+	            request.getExamId(),
+	            examSubject.getClassEntity().getId(),
+	            examSubject.getMaxMarks()
+	    );
 
-			StudentEntity student = studentRepository.findById(studId)
-					.orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + studId));
+	    BigDecimal maxMarks = BigDecimal.valueOf(examSubject.getMaxMarks());
 
-			Optional<StudentMarksEntity> existingOpt = studentMarksRepository.findByExamSubjectIdAndStudentIdAndExamId(
-					examSubject.getId(), studId, examSubject.getExam().getId());
+	    for (StudentMarkDto studentMark : request.getRecords()) {
 
-			StudentMarksEntity entity;
+	        log.info("Processing studentId={}, marks={}",
+	                studentMark.getStudentId(),
+	                studentMark.getMarksObtained()
+	        );
 
-			if (existingOpt.isPresent()) {
-				entity = existingOpt.get();
-			} else {
-				entity = new StudentMarksEntity();
-				entity.setStudent(student);
-				entity.setExamSubject(examSubject);
-				entity.setExam(examSubject.getExam());
-			}
+	        UUID studId = studentMark.getStudentId();
 
-			entity.setMarksObtained(marks);
-			entity.setRemarks(request.getRemarks());
-			entity.setTotalMarks(maxMarks);
+	        StudentEntity student = studentRepository.findById(studId)
+	                .orElseThrow(() -> {
+	                    log.error("Student NOT FOUND: {}", studId);
+	                    return new ResourceNotFoundException(
+	                            "Student not found with ID: " + studId);
+	                });
 
-			studentMarksRepository.save(entity);
+	        Optional<StudentMarksEntity> existingOpt =
+	                studentMarksRepository.findByExamSubjectIdAndStudentIdAndExamId(
+	                        examSubject.getId(),
+	                        studId,
+	                        request.getExamId()
+	                );
 
-		}
+	        log.info("Existing record for studentId={} exists={}",
+	                studId,
+	                existingOpt.isPresent()
+	        );
 
+	        StudentMarksEntity entity;
+
+	        if (existingOpt.isPresent()) {
+	            log.info("Updating existing marks id={}", existingOpt.get().getId());
+	            entity = existingOpt.get();
+	        } else {
+	            log.info("Creating new marks entry for studentId={}", studId);
+	            entity = new StudentMarksEntity();
+	            entity.setStudent(student);
+	            entity.setExamSubject(examSubject);
+	            entity.setExam(examSubject.getExam());
+	        }
+
+	        entity.setMarksObtained(studentMark.getMarksObtained());
+	        entity.setRemarks(studentMark.getRemarks());
+	        entity.setTotalMarks(maxMarks);
+
+	        studentMarksRepository.save(entity);
+
+	        log.info("Saved marks for studentId={}, marks={}",
+	                studId,
+	                studentMark.getMarksObtained());
+	    }
 	}
 
-	private void updateExamMarks(List<ExamMarksDto> dto) {
+	private void updateExamMarks(ExamMarksDto request) {
 
-		for (ExamMarksDto request : dto) {
-			StudentMarksEntity entity = studentMarksRepository.findById(request.getId())
-					.orElseThrow(() -> new ResourceNotFoundException("Exam marks not found"));
+	    ExamSubjectEntity examSubject = validateExamMarksRequest(request);
 
-			BigDecimal marks = request.getStudentMark().getMarksObtained();
-			if (marks == null || marks.compareTo(BigDecimal.ZERO) < 0) {
-				throw new ValidationException("Marks obtained cannot be negative");
-			}
+	    for (StudentMarkDto studentMark : request.getRecords()) {
 
-			ExamSubjectEntity examSubject = entity.getExamSubject();
-			BigDecimal maxMarks = BigDecimal.valueOf(examSubject.getMaxMarks());
-			if (marks.compareTo(maxMarks) > 0) {
-				throw new ValidationException("Marks obtained cannot exceed max marks (" + maxMarks + ")");
-			}
+	        UUID targetStudentId = studentMark.getStudentId();
 
-			entity.setMarksObtained(marks);
-			entity.setRemarks(request.getRemarks());
-			entity.setTotalMarks(maxMarks);
+	        StudentMarksEntity entity =
+	                studentMarksRepository
+	                        .findByExamSubjectIdAndStudentIdAndExamId(
+	                                examSubject.getId(),
+	                                targetStudentId,
+	                                request.getExamId()
+	                        )
+	                        .orElseThrow(() ->
+	                                new ResourceNotFoundException("Exam marks not found"));
 
-			// Update student list if provided (updates the entity's student to the first
-			// student in the list)
-			if (request.getStudentMark().getStudentId() != null) {
-				UUID targetStudentId = request.getStudentMark().getStudentId();
-				if (!entity.getStudent().getId().equals(targetStudentId)) {
-					StudentEntity student = studentRepository.findById(targetStudentId).orElseThrow(
-							() -> new ResourceNotFoundException("Student not found with ID: " + targetStudentId));
-					entity.setStudent(student);
-				}
-			}
+	        BigDecimal marks = studentMark.getMarksObtained();
 
-			studentMarksRepository.save(entity);
-		}
+	        if (marks == null || marks.compareTo(BigDecimal.ZERO) < 0) {
+	            throw new ValidationException("Marks obtained cannot be negative");
+	        }
 
+	        BigDecimal maxMarks = BigDecimal.valueOf(examSubject.getMaxMarks());
+
+	        if (marks.compareTo(maxMarks) > 0) {
+	            throw new ValidationException(
+	                    "Marks obtained cannot exceed max marks (" + maxMarks + ")");
+	        }
+
+	        entity.setMarksObtained(marks);
+	        entity.setRemarks(studentMark.getRemarks());
+	        entity.setTotalMarks(maxMarks);
+
+	        if (entity.getStudent() != null &&
+	                !entity.getStudent().getId().equals(targetStudentId)) {
+
+	            StudentEntity student = studentRepository.findById(targetStudentId)
+	                    .orElseThrow(() -> new ResourceNotFoundException(
+	                            "Student not found with ID: " + targetStudentId));
+
+	            entity.setStudent(student);
+	        }
+
+	        studentMarksRepository.save(entity);
+	    }
 	}
+
+
 
 	private ExamSubjectEntity validateExamMarksRequest(ExamMarksDto request) {
 
-		if (request.getExamSubjectId() == null) {
-			throw new ValidationException("Exam Subject ID is required");
-		}
+	    log.info("Starting validateExamMarksRequest");
+	    log.info("examSubjectId={}, examId={}, academicSessionId={}",
+	            request.getExamSubjectId(),
+	            request.getExamId(),
+	            request.getAcademicSessionId());
 
-		Optional<StudentEnrollmentEntity> studentEnrollmentOpt = studentEnrollmentRepository
-		        .findByStudentIdAndAcademicSessionId(
-		                request.getStudentMark().getStudentId(),
-		                request.getAcademicSessionId());
+	    if (request.getExamSubjectId() == null) {
+	        throw new ValidationException("Exam Subject ID is required");
+	    }
 
-		if (studentEnrollmentOpt.isEmpty()) {
-		    throw new ResourceNotFoundException(
-		            "Student enrollment not found for studentId: " 
-		            + request.getStudentMark().getStudentId() 
-		            + " and academicSessionId: " + request.getAcademicSessionId());
-		}
+	    if (request.getRecords() == null || request.getRecords().isEmpty()) {
+	        throw new ValidationException("Student records are required");
+	    }
 
-		UUID subjectId = request.getExamSubjectId();
-		UUID classId = studentEnrollmentOpt.get().getClassId();
-		UUID examId = request.getExamId();
+	    UUID subjectId = request.getExamSubjectId();
+	    UUID examId = request.getExamId();
 
-		ExamSubjectEntity examSubject = examSubjectRepository
-				.findBySubjectIdAndClassEntityIdAndExamId(subjectId, classId, examId)
-				.orElseThrow(() -> new ResourceNotFoundException("Exam Subject not found"));
+	    log.info("SubjectId={}, ExamId={}", subjectId, examId);
 
-//        for(UUID studentId : request.getStudentId()) {
-//        	
-//
-//            studentEnrollmentRepository.findByStudentIdAndAcademicSessionId(studentId,request.getAcademicSessionId());
-//            
-//        }
+	    // 👉 STEP 1: FIRST STUDENT
+	    StudentMarkDto firstStudent = request.getRecords().get(0);
 
-		// validationHelperService.validateSubject(request.getExamSubjectId());
+	    log.info("First studentId={}", firstStudent.getStudentId());
 
-		BigDecimal marks = request.getStudentMark().getMarksObtained();
+	    StudentEnrollmentEntity firstEnrollment =
+	            studentEnrollmentRepository.findByStudentIdAndAcademicSessionId(
+	                    firstStudent.getStudentId(),
+	                    request.getAcademicSessionId()
+	            ).orElseThrow(() -> {
+	                log.error("Enrollment NOT FOUND for studentId={}, sessionId={}",
+	                        firstStudent.getStudentId(),
+	                        request.getAcademicSessionId());
 
-		if (marks == null || marks.compareTo(BigDecimal.ZERO) < 0) {
-			throw new ValidationException("Marks obtained cannot be negative");
-		}
+	                return new ResourceNotFoundException(
+	                        "Student enrollment not found for studentId: "
+	                                + firstStudent.getStudentId()
+	                );
+	            });
 
-		BigDecimal maxMarks = BigDecimal.valueOf(examSubject.getMaxMarks());
+	    UUID classId = firstEnrollment.getClassId();
 
-		if (marks.compareTo(maxMarks) > 0) {
-			throw new ValidationException("Marks obtained cannot exceed max marks (" + maxMarks + ")");
-		}
+	    log.info("Resolved classId from first student = {}", classId);
 
-		return examSubject;
+	    // 👉 STEP 2: validate all students
+	    for (StudentMarkDto studentMark : request.getRecords()) {
+
+	        log.info("Validating studentId={}", studentMark.getStudentId());
+
+	        StudentEnrollmentEntity enrollment =
+	                studentEnrollmentRepository.findByStudentIdAndAcademicSessionId(
+	                        studentMark.getStudentId(),
+	                        request.getAcademicSessionId()
+	                ).orElseThrow(() -> {
+	                    log.error("Enrollment missing studentId={}", studentMark.getStudentId());
+	                    return new ResourceNotFoundException(
+	                            "Student enrollment not found for studentId: "
+	                                    + studentMark.getStudentId()
+	                    );
+	                });
+
+	        log.info("StudentId={}, classId={}",
+	                studentMark.getStudentId(),
+	                enrollment.getClassId());
+
+	        if (!enrollment.getClassId().equals(classId)) {
+	            log.error("CLASS MISMATCH! studentId={}, expectedClassId={}, actualClassId={}",
+	                    studentMark.getStudentId(),
+	                    classId,
+	                    enrollment.getClassId());
+
+	            throw new ValidationException("All students must belong to same class");
+	        }
+
+	        BigDecimal marks = studentMark.getMarksObtained();
+
+	        log.info("Marks for studentId={} = {}", studentMark.getStudentId(), marks);
+
+	        if (marks == null || marks.compareTo(BigDecimal.ZERO) < 0) {
+	            throw new ValidationException("Marks obtained cannot be negative");
+	        }
+	    }
+
+	    // 👉 STEP 3: examSubject fetch
+	    log.info("Fetching ExamSubject with subjectId={}, classId={}, examId={}",
+	            subjectId, classId, examId);
+
+	    ExamSubjectEntity examSubject =
+	            examSubjectRepository.findBySubject_IdAndClassEntity_IdAndExam_Id(
+	                    subjectId,
+	                    classId,
+	                    examId
+	            ).orElseThrow(() -> {
+	                log.error("ExamSubject NOT FOUND for subjectId={}, classId={}, examId={}",
+	                        subjectId, classId, examId);
+
+	                return new ResourceNotFoundException("Exam Subject not found");
+	            });
+
+	    log.info("ExamSubject FOUND: id={}, maxMarks={}",
+	            examSubject.getId(),
+	            examSubject.getMaxMarks());
+
+	    // 👉 STEP 4: marks validation
+	    BigDecimal maxMarks = BigDecimal.valueOf(examSubject.getMaxMarks());
+
+	    for (StudentMarkDto studentMark : request.getRecords()) {
+
+	        log.info("Final marks check studentId={}, marks={}",
+	                studentMark.getStudentId(),
+	                studentMark.getMarksObtained());
+
+	        if (studentMark.getMarksObtained().compareTo(maxMarks) > 0) {
+	            log.error("MARKS EXCEEDED studentId={}, marks={}, maxMarks={}",
+	                    studentMark.getStudentId(),
+	                    studentMark.getMarksObtained(),
+	                    maxMarks);
+
+	            throw new ValidationException(
+	                    "Marks obtained cannot exceed max marks (" + maxMarks + ")");
+	        }
+	    }
+
+	    log.info("Validation SUCCESS completed");
+
+	    return examSubject;
 	}
 }

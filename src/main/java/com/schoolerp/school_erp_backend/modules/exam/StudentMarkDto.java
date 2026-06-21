@@ -9,6 +9,8 @@ public class StudentMarkDto {
 	private UUID studentId;
 	
 	private BigDecimal marksObtained;
+	
+	private String remarks;
 
 	public UUID getStudentId() {
 		return studentId;
@@ -25,6 +27,15 @@ public class StudentMarkDto {
 	public void setMarksObtained(BigDecimal marksObtained) {
 		this.marksObtained = marksObtained;
 	}
+
+	public String getRemarks() {
+		return remarks;
+	}
+
+	public void setRemarks(String remarks) {
+		this.remarks = remarks;
+	}
+	
 	
 	
 	

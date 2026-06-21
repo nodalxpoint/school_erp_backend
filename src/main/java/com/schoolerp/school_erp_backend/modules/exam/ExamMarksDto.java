@@ -9,13 +9,13 @@ public class ExamMarksDto {
 //    private List<UUID> studentId;
     private UUID examSubjectId;
     
-    private StudentMarkDto studentMark;
+    private List<StudentMarkDto> records;
     
     
 //    private BigDecimal marksObtained;
     
     
-    private String remarks;
+
     
     private UUID examId;
     
@@ -37,16 +37,6 @@ public class ExamMarksDto {
     public void setExamSubjectId(UUID examSubjectId) {
         this.examSubjectId = examSubjectId;
     }
-
-
-    public String getRemarks() {
-        return remarks;
-    }
-
-    public void setRemarks(String remarks) {
-        this.remarks = remarks;
-    }
-
     public UUID getExamId() {
         return examId;
     }
@@ -63,13 +53,15 @@ public class ExamMarksDto {
         this.academicSessionId = academicSessionId;
     }
 
-	public StudentMarkDto getStudentMark() {
-		return studentMark;
+	public List<StudentMarkDto> getRecords() {
+		return records;
 	}
 
-	public void setStudentMark(StudentMarkDto studentMark) {
-		this.studentMark = studentMark;
+	public void setRecords(List<StudentMarkDto> records) {
+		this.records = records;
 	}
+
+	
     
     
     
