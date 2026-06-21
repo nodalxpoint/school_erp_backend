@@ -1,14 +1,8 @@
 package com.schoolerp.school_erp_backend.modules.exam;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -27,7 +21,6 @@ import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
-import com.schoolerp.school_erp_backend.modules.student.StudentEnrollmentRepository;
 import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
 import com.schoolerp.school_erp_backend.modules.student.StudentRepository;
 import com.schoolerp.school_erp_backend.modules.subject.SubjectEntity;
@@ -50,9 +43,6 @@ public class ExamService {
 
 	@Autowired
 	private StudentRepository studentRepository;
-
-	@Autowired
-	private StudentEnrollmentRepository studentEnrollmentRepository;
 
 	@Autowired
 	private ValidationHelperService validationHelperService;
@@ -200,6 +190,14 @@ public class ExamService {
 				.orElseThrow(() -> new ResourceNotFoundException("Exam subject setup not found"));
 
 		validationHelperService.validateExamSubjectRequest(request, request.getId());
+		
+		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExamIdAndSubjectIdAndClassEntityId(
+				request.getExamId(),
+				request.getSubjectId(), request.getClassId());
+		if (existing.isPresent()) {
+			throw new ValidationException("Subject is already assigned to this exam");
+		}
+		
 
 		ExamEntity exam = examRepository.findById(request.getExamId())
 				.orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
@@ -274,6 +272,8 @@ public class ExamService {
 
 			marksEntity.setMarksObtained(marks);
 			marksEntity.setRemarks(record.getRemarks());
+			marksEntity.setExam(examSubject.getExam());
+			marksEntity.setTotalMarks(BigDecimal.valueOf(examSubject.getMaxMarks()));
 
 			studentMarksRepository.save(marksEntity);
 		}

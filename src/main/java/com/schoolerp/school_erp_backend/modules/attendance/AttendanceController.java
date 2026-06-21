@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.common.security.CustomUserDetails;
-import com.schoolerp.school_erp_backend.modules.teacher.TeacherClassResponseDto;
 
 @RestController
 @RequestMapping("/api/attendance")

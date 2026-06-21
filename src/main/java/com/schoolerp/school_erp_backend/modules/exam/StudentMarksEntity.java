@@ -38,6 +38,13 @@ public class StudentMarksEntity {
     @Column(name = "remarks", columnDefinition = "TEXT")
     private String remarks;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exam_id")
+    private ExamEntity exam;
+
+    @Column(name = "total_marks", precision = 5, scale = 2)
+    private BigDecimal totalMarks;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -84,6 +91,22 @@ public class StudentMarksEntity {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public ExamEntity getExam() {
+        return exam;
+    }
+
+    public void setExam(ExamEntity exam) {
+        this.exam = exam;
+    }
+
+    public BigDecimal getTotalMarks() {
+        return totalMarks;
+    }
+
+    public void setTotalMarks(BigDecimal totalMarks) {
+        this.totalMarks = totalMarks;
     }
 
     public LocalDateTime getCreatedAt() {

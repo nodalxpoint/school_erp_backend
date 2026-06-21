@@ -104,6 +104,71 @@ public class TeacherTimeTableService {
         }
     }
 
+    private void copyDtoToEntity(TimetableDto dto, TeacherTimeTableEntity entity) {
+        entity.setAcademicSessionId(dto.getAcademicSessionId());
+        entity.setClassId(dto.getClassId());
+        entity.setSectionId(dto.getSectionId());
+        entity.setSubjectId(dto.getSubjectId());
+        entity.setTeacherId(dto.getTeacherId());
+        entity.setPeriod(dto.getPeriod());
+        entity.setDayOfWeek(dto.getDayOfWeek().trim().toUpperCase());
+        entity.setStartTime(dto.getStartTime());
+        entity.setEndTime(dto.getEndTime());
+        entity.setRoomNo(dto.getRoomNo() != null ? dto.getRoomNo().trim() : null);
+    }
+
+    public PagedResponse<TimetableDto> filterTeacherTimeTable(TeacherTimeTableFilterRequest request) {
+        Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        Page<TeacherTimeTableEntity> page = teacherTimeTableRepository.findAll(
+                TeacherTimeTableSpecification.filter(request), pageable);
+
+        List<TimetableDto> dtoList = new ArrayList<>();
+        for (TeacherTimeTableEntity entry : page.getContent()) {
+            dtoList.add(mapToDto(entry));
+        }
+
+        Page<TimetableDto> dtoPage = new PageImpl<>(dtoList, page.getPageable(), page.getTotalElements());
+        return PagedResponse.fromPage(dtoPage, "Teacher timetable entries fetched successfully");
+    }
+
+    private TimetableDto mapToDto(TeacherTimeTableEntity entity) {
+        TimetableDto dto = new TimetableDto();
+        dto.setId(entity.getId());
+        dto.setAcademicSessionId(entity.getAcademicSessionId());
+        dto.setClassId(entity.getClassId());
+        dto.setSectionId(entity.getSectionId());
+        dto.setSubjectId(entity.getSubjectId());
+        dto.setTeacherId(entity.getTeacherId());
+        dto.setPeriod(entity.getPeriod());
+        dto.setDayOfWeek(entity.getDayOfWeek());
+        dto.setStartTime(entity.getStartTime());
+        dto.setEndTime(entity.getEndTime());
+        dto.setRoomNo(entity.getRoomNo());
+
+        // Resolve names for display
+        classesRepository.findById(entity.getClassId()).ifPresent(c -> dto.setClassName(c.getClassName()));
+        sectionRepository.findById(entity.getSectionId()).ifPresent(s -> dto.setSectionName(s.getSectionName()));
+        academicSessionRepository.findById(entity.getAcademicSessionId())
+                .ifPresent(session -> dto.setAcademicSessionName(session.getSessionName()));
+        subjectRepository.findById(entity.getSubjectId()).ifPresent(sub -> dto.setSubjectName(sub.getName()));
+
+        teacherRepository.findById(entity.getTeacherId()).ifPresent(teacher -> {
+            if (teacher.getUser() != null) {
+                String firstName = teacher.getUser().getFirstName();
+                String lastName = teacher.getUser().getLastName();
+                if (lastName != null && !lastName.trim().isEmpty()) {
+                    dto.setTeacherName(firstName + " " + lastName);
+                } else {
+                    dto.setTeacherName(firstName);
+                }
+            }
+        });
+
+        return dto;
+    }
+
     private void validateConflicts(TimetableDto request, UUID excludeId) {
         String dayOfWeek = request.getDayOfWeek().trim().toUpperCase();
 
@@ -228,68 +293,4 @@ public class TeacherTimeTableService {
         }
     }
 
-    private void copyDtoToEntity(TimetableDto dto, TeacherTimeTableEntity entity) {
-        entity.setAcademicSessionId(dto.getAcademicSessionId());
-        entity.setClassId(dto.getClassId());
-        entity.setSectionId(dto.getSectionId());
-        entity.setSubjectId(dto.getSubjectId());
-        entity.setTeacherId(dto.getTeacherId());
-        entity.setPeriod(dto.getPeriod());
-        entity.setDayOfWeek(dto.getDayOfWeek().trim().toUpperCase());
-        entity.setStartTime(dto.getStartTime());
-        entity.setEndTime(dto.getEndTime());
-        entity.setRoomNo(dto.getRoomNo() != null ? dto.getRoomNo().trim() : null);
-    }
-
-    public PagedResponse<TimetableDto> filterTeacherTimeTable(TeacherTimeTableFilterRequest request) {
-        Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
-
-        Page<TeacherTimeTableEntity> page = teacherTimeTableRepository.findAll(
-                TeacherTimeTableSpecification.filter(request), pageable);
-
-        List<TimetableDto> dtoList = new ArrayList<>();
-        for (TeacherTimeTableEntity entry : page.getContent()) {
-            dtoList.add(mapToDto(entry));
-        }
-
-        Page<TimetableDto> dtoPage = new PageImpl<>(dtoList, page.getPageable(), page.getTotalElements());
-        return PagedResponse.fromPage(dtoPage, "Teacher timetable entries fetched successfully");
-    }
-
-    private TimetableDto mapToDto(TeacherTimeTableEntity entity) {
-        TimetableDto dto = new TimetableDto();
-        dto.setId(entity.getId());
-        dto.setAcademicSessionId(entity.getAcademicSessionId());
-        dto.setClassId(entity.getClassId());
-        dto.setSectionId(entity.getSectionId());
-        dto.setSubjectId(entity.getSubjectId());
-        dto.setTeacherId(entity.getTeacherId());
-        dto.setPeriod(entity.getPeriod());
-        dto.setDayOfWeek(entity.getDayOfWeek());
-        dto.setStartTime(entity.getStartTime());
-        dto.setEndTime(entity.getEndTime());
-        dto.setRoomNo(entity.getRoomNo());
-
-        // Resolve names for display
-        classesRepository.findById(entity.getClassId()).ifPresent(c -> dto.setClassName(c.getClassName()));
-        sectionRepository.findById(entity.getSectionId()).ifPresent(s -> dto.setSectionName(s.getSectionName()));
-        academicSessionRepository.findById(entity.getAcademicSessionId())
-                .ifPresent(session -> dto.setAcademicSessionName(session.getSessionName()));
-        subjectRepository.findById(entity.getSubjectId()).ifPresent(sub -> dto.setSubjectName(sub.getName()));
-
-        teacherRepository.findById(entity.getTeacherId()).ifPresent(teacher -> {
-            if (teacher.getUser() != null) {
-                String firstName = teacher.getUser().getFirstName();
-                String lastName = teacher.getUser().getLastName();
-                if (lastName != null && !lastName.trim().isEmpty()) {
-                    dto.setTeacherName(firstName + " " + lastName);
-                } else {
-                    dto.setTeacherName(firstName);
-                }
-            }
-        });
-
-        return dto;
-    }
 }

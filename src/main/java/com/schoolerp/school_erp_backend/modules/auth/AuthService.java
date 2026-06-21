@@ -49,7 +49,7 @@ public class AuthService {
 
 	public String createSuperAdmin() {
 
-		if (userRepository.existsByEmail("admin@test.com.com")) {
+		if (userRepository.existsByEmail("admin@test.com")) {
 			return "Super admin already exists";
 		}
 

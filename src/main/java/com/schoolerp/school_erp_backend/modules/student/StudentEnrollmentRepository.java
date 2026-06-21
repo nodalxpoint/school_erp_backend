@@ -7,6 +7,8 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.schoolerp.school_erp_backend.modules.exam.ExamSubjectEntity;
+
 @Repository
 public interface StudentEnrollmentRepository extends JpaRepository<StudentEnrollmentEntity, UUID> {
 
@@ -18,4 +20,9 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
 	Optional<StudentEnrollmentEntity> findByStudentIdAndAcademicSessionId(UUID studentId, UUID academicSessionId);
 
 	List<StudentEnrollmentEntity> findByStudentId(UUID studentId);
+	
+	
+
+	
+	
 }

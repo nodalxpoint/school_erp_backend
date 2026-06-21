@@ -15,6 +15,8 @@ public class StudentMarksDto {
     private String rollNo;
     private BigDecimal marksObtained;
     private String remarks;
+    private UUID examId;
+    private BigDecimal totalMarks;
     private LocalDateTime createdAt;
 
     public UUID getId() {
@@ -87,6 +89,22 @@ public class StudentMarksDto {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public UUID getExamId() {
+        return examId;
+    }
+
+    public void setExamId(UUID examId) {
+        this.examId = examId;
+    }
+
+    public BigDecimal getTotalMarks() {
+        return totalMarks;
+    }
+
+    public void setTotalMarks(BigDecimal totalMarks) {
+        this.totalMarks = totalMarks;
     }
 
     public LocalDateTime getCreatedAt() {
