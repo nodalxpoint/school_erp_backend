@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class ExamMarksDto {
+    
     private UUID id;
 //    private List<UUID> studentId;
     private UUID examSubjectId;
@@ -13,9 +14,6 @@ public class ExamMarksDto {
     
     
 //    private BigDecimal marksObtained;
-    
-    
-
     
     private UUID examId;
     

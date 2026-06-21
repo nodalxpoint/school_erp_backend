@@ -68,8 +68,12 @@ public class ExamService {
 			page = examRepository.findAll(ExamSpecification.filter(request, school.getId()), pageable);
 		}
 
-		List<ExamDto> dtoList = page.getContent().stream().map(entity -> mapToExamDto(entity, includeSubjects))
-				.collect(Collectors.toList());
+		List<ExamDto> dtoList = page.getContent().stream()
+		        .map(entity -> mapToExamDto(
+		                entity,
+		                includeSubjects,
+		                request))
+		        .collect(Collectors.toList());
 
 		Page<ExamDto> dtoPage = new PageImpl<>(dtoList, page.getPageable(), page.getTotalElements());
 		return PagedResponse.fromPage(dtoPage, "Exams fetched successfully");
@@ -116,16 +120,44 @@ public class ExamService {
 		examRepository.save(entity);
 	}
 
-	private ExamDto mapToExamDto(ExamEntity entity, boolean includeSubjects) {
-		ExamDto dto = new ExamDto();
-		dto.setExamId(entity.getId());
-		dto.setAcademicSessionId(entity.getAcademicSessionId());
-		dto.setExamName(entity.getExamName());
-		dto.setStartDate(entity.getStartDate());
-		dto.setEndDate(entity.getEndDate());
-		dto.setCreatedAt(entity.getCreatedAt());
-		dto.setExamSubjects(includeSubjects ? mapSubjects(entity.getExamSubjects()) : null);
-		return dto;
+	private ExamDto mapToExamDto(
+	        ExamEntity entity,
+	        boolean includeSubjects,
+	        ExamFilterRequest request) {
+
+	    ExamDto dto = new ExamDto();
+
+	    dto.setExamId(entity.getId());
+	    dto.setAcademicSessionId(entity.getAcademicSessionId());
+	    dto.setExamName(entity.getExamName());
+	    dto.setStartDate(entity.getStartDate());
+	    dto.setEndDate(entity.getEndDate());
+	    dto.setCreatedAt(entity.getCreatedAt());
+
+	    if (includeSubjects) {
+
+	        List<ExamSubjectEntity> filteredSubjects =
+	                entity.getExamSubjects()
+	                      .stream()
+
+	                      .filter(es ->
+	                              request.getClassId() == null ||
+	                              es.getClassEntity()
+	                                .getId()
+	                                .equals(request.getClassId()))
+
+	                      .filter(es ->
+	                              request.getSubjectId() == null ||
+	                              es.getSubject()
+	                                .getId()
+	                                .equals(request.getSubjectId()))
+
+	                      .toList();
+
+	        dto.setExamSubjects(mapSubjects(filteredSubjects));
+	    }
+
+	    return dto;
 	}
 
 	private List<ExamSubjectDto> mapSubjects(List<ExamSubjectEntity> examSubjects) {
