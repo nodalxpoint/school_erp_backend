@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class CreateTeacherDto {
 	
-	
+	private String userId;
     private String firstName;
 
     private String lastName; 
@@ -19,7 +19,7 @@ public class CreateTeacherDto {
 
     private LocalDate joiningDate;
 
-    private String userId;
+   
 
     public String getFirstName() {
 		return firstName;

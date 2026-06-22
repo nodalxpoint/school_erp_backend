@@ -11,13 +11,13 @@ import org.springframework.stereotype.Repository;
 public interface TeacherTImeTableRepository
                 extends JpaRepository<TeacherTimeTableEntity, UUID>, JpaSpecificationExecutor<TeacherTimeTableEntity> {
 
-        List<TeacherTimeTableEntity> findByAcademicSessionIdAndTeacherIdAndDayOfWeekAndPeriod(
+        List<TeacherTimeTableEntity> findByAcademicSessionIdAndTeacherEntity_IdAndDayOfWeekAndPeriod(
                         UUID academicSessionId, UUID teacherId, String dayOfWeek, Integer period);
 
-        List<TeacherTimeTableEntity> findByAcademicSessionIdAndTeacherIdAndDayOfWeek(
+        List<TeacherTimeTableEntity> findByAcademicSessionIdAndTeacherEntity_IdAndDayOfWeek(
                         UUID academicSessionId, UUID teacherId, String dayOfWeek);
 
-        List<TeacherTimeTableEntity> findByAcademicSessionIdAndClassIdAndSectionIdAndDayOfWeek(
+        List<TeacherTimeTableEntity> findByAcademicSessionIdAndClassEntity_IdAndSectionEntity_IdAndDayOfWeek(
                         UUID academicSessionId, UUID classId, UUID sectionId, String dayOfWeek);
 
         List<TeacherTimeTableEntity> findByAcademicSessionIdAndRoomNoAndDayOfWeek(

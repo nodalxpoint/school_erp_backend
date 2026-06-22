@@ -252,7 +252,7 @@ public class ExamMarksService {
 	    log.info("First studentId={}", firstStudent.getStudentId());
 
 	    StudentEnrollmentEntity firstEnrollment =
-	            studentEnrollmentRepository.findByStudentIdAndAcademicSessionId(
+	            studentEnrollmentRepository.findByStudentEntity_IdAndAcademicSessionId(
 	                    firstStudent.getStudentId(),
 	                    request.getAcademicSessionId()
 	            ).orElseThrow(() -> {
@@ -266,7 +266,7 @@ public class ExamMarksService {
 	                );
 	            });
 
-	    UUID classId = firstEnrollment.getClassId();
+	    UUID classId = firstEnrollment.getClassEntity().getId();
 
 	    log.info("Resolved classId from first student = {}", classId);
 
@@ -276,7 +276,7 @@ public class ExamMarksService {
 	        log.info("Validating studentId={}", studentMark.getStudentId());
 
 	        StudentEnrollmentEntity enrollment =
-	                studentEnrollmentRepository.findByStudentIdAndAcademicSessionId(
+	                studentEnrollmentRepository.findByStudentEntity_IdAndAcademicSessionId(
 	                        studentMark.getStudentId(),
 	                        request.getAcademicSessionId()
 	                ).orElseThrow(() -> {
@@ -289,13 +289,13 @@ public class ExamMarksService {
 
 	        log.info("StudentId={}, classId={}",
 	                studentMark.getStudentId(),
-	                enrollment.getClassId());
+	                enrollment.getClassEntity().getId());
 
-	        if (!enrollment.getClassId().equals(classId)) {
+	        if (!enrollment.getClassEntity().getId().equals(classId)) {
 	            log.error("CLASS MISMATCH! studentId={}, expectedClassId={}, actualClassId={}",
 	                    studentMark.getStudentId(),
 	                    classId,
-	                    enrollment.getClassId());
+	                    enrollment.getClassEntity().getId());
 
 	            throw new ValidationException("All students must belong to same class");
 	        }

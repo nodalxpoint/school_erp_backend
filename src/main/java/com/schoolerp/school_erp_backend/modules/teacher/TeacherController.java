@@ -1,5 +1,6 @@
 package com.schoolerp.school_erp_backend.modules.teacher;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -84,4 +85,20 @@ public class TeacherController {
 		return ResponseEntity.ok(ApiResponse.success("Class fetched successfully", response));
 
 	}
+	
+	@PostMapping("/myClassesList")
+	public ResponseEntity<ApiResponse<List<TeacherClassSectionMapDto>>> teacherClassMap(
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		UUID userId = userDetails.getId();
+
+		List<TeacherClassSectionMapDto> response = teacherService.teacherClassMapList(userId);
+
+		// Uses default success message
+		return ResponseEntity.ok(ApiResponse.success("Teacher Class Map fetched successfully", response));
+
+	}
+	
+	
+	
+	
 }

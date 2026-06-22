@@ -10,5 +10,6 @@ import com.schoolerp.school_erp_backend.modules.auth.User;
 
 public interface TeacherRepository extends JpaRepository <TeacherEntity, UUID>, JpaSpecificationExecutor<TeacherEntity>{
 	Optional<TeacherEntity> findByUserId(UUID userId);
+	
 	Optional<TeacherEntity> findByUser(User user);
 }

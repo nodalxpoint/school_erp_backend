@@ -68,12 +68,8 @@ public class ExamService {
 			page = examRepository.findAll(ExamSpecification.filter(request, school.getId()), pageable);
 		}
 
-		List<ExamDto> dtoList = page.getContent().stream()
-		        .map(entity -> mapToExamDto(
-		                entity,
-		                includeSubjects,
-		                request))
-		        .collect(Collectors.toList());
+		List<ExamDto> dtoList = page.getContent().stream().map(entity -> mapToExamDto(entity,includeSubjects,request))
+		.collect(Collectors.toList());
 
 		Page<ExamDto> dtoPage = new PageImpl<>(dtoList, page.getPageable(), page.getTotalElements());
 		return PagedResponse.fromPage(dtoPage, "Exams fetched successfully");

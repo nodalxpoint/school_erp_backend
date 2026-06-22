@@ -1,5 +1,7 @@
 package com.schoolerp.school_erp_backend.modules.teacher;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
 import com.schoolerp.school_erp_backend.modules.auth.AuthService;
 import com.schoolerp.school_erp_backend.modules.auth.CreateUserDto;
 import com.schoolerp.school_erp_backend.modules.auth.User;
@@ -23,8 +27,7 @@ import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
-import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
-import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
+import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableEntity;
 
 import jakarta.transaction.Transactional;
 
@@ -47,6 +50,8 @@ public class TeacherService {
 	private SectionRepository sectionRepository;
 	@Autowired
 	private AcademicSessionRepository academicSessionRepository;
+	@Autowired
+	private TeacherTimetableRepo teacherTimetableRepo;
 
 	public PagedResponse<TeacherResponseDto> filterTeachers(TeacherFilterRequest request) {
 
@@ -232,7 +237,6 @@ public class TeacherService {
 
 	public void updateTeacher(CreateTeacherDto request) {
 		// UserId which comes from payload is actually a teacher id will fix later
-
 		TeacherEntity teacher = teacherRepo.findById(UUID.fromString(request.getUserId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
 
@@ -252,6 +256,35 @@ public class TeacherService {
 
 		teacherRepo.save(teacher);
 
+	}
+	
+	public List<TeacherClassSectionMapDto> teacherClassMapList(UUID userId) {
+
+		TeacherEntity teacher = teacherRepo.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+
+		// UUID schoolId = validationHelperService.getSchool().getId();
+		
+		UUID teacherId = teacher.getId();
+		
+		List<TeacherTimeTableEntity> teacherMap = teacherTimetableRepo.findUniqueClassSections(teacherId);
+		
+		List<TeacherClassSectionMapDto> teacherMapList = new ArrayList<>();
+		
+		for(TeacherTimeTableEntity entity :teacherMap) {
+			
+			TeacherClassSectionMapDto dto = new TeacherClassSectionMapDto();
+			
+			dto.setClassId(entity.getClassEntity().getId());
+			dto.setSectionId(entity.getSectionEntity().getId());
+			dto.setClassName(entity.getClassEntity().getClassName());
+			dto.setSectionName(entity.getSectionEntity().getSectionName());
+			teacherMapList.add(dto);
+
+		}
+		
+
+		return teacherMapList;
 	}
 
 	private TeacherResponseDto mapToDto(TeacherEntity teacher) {

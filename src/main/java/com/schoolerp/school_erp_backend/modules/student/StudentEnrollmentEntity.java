@@ -3,10 +3,16 @@ package com.schoolerp.school_erp_backend.modules.student;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -18,17 +24,20 @@ public class StudentEnrollmentEntity {
 	@GeneratedValue
 	private UUID id;
 
-	@Column(name = "student_id", nullable = false)
-	private UUID studentId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "student_id", nullable = false)
+	private StudentEntity studentEntity;
 
 	@Column(name = "academic_session_id", nullable = false)
 	private UUID academicSessionId;
 
-	@Column(name = "class_id", nullable = false)
-	private UUID classId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "class_id")
+	private ClassesEntity classEntity;
 
-	@Column(name = "section_id", nullable = false)
-	private UUID sectionId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "section_id")
+	private SectionEntity sectionEntity;
 
 	@Column(name = "roll_no")
 	private String rollNo;
@@ -44,7 +53,6 @@ public class StudentEnrollmentEntity {
 		this.createdAt = LocalDateTime.now();
 	}
 
-
 	public UUID getId() {
 		return id;
 	}
@@ -53,36 +61,12 @@ public class StudentEnrollmentEntity {
 		this.id = id;
 	}
 
-	public UUID getStudentId() {
-		return studentId;
-	}
-
-	public void setStudentId(UUID studentId) {
-		this.studentId = studentId;
-	}
-
 	public UUID getAcademicSessionId() {
 		return academicSessionId;
 	}
 
 	public void setAcademicSessionId(UUID academicSessionId) {
 		this.academicSessionId = academicSessionId;
-	}
-
-	public UUID getClassId() {
-		return classId;
-	}
-
-	public void setClassId(UUID classId) {
-		this.classId = classId;
-	}
-
-	public UUID getSectionId() {
-		return sectionId;
-	}
-
-	public void setSectionId(UUID sectionId) {
-		this.sectionId = sectionId;
 	}
 
 	public String getRollNo() {
@@ -108,4 +92,29 @@ public class StudentEnrollmentEntity {
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
+
+	public StudentEntity getStudentEntity() {
+		return studentEntity;
+	}
+
+	public void setStudentEntity(StudentEntity studentEntity) {
+		this.studentEntity = studentEntity;
+	}
+
+	public ClassesEntity getClassEntity() {
+		return classEntity;
+	}
+
+	public void setClassEntity(ClassesEntity classEntity) {
+		this.classEntity = classEntity;
+	}
+
+	public SectionEntity getSectionEntity() {
+		return sectionEntity;
+	}
+
+	public void setSectionEntity(SectionEntity sectionEntity) {
+		this.sectionEntity = sectionEntity;
+	}
+
 }

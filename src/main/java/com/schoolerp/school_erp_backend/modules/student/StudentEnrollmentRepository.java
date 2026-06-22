@@ -12,14 +12,14 @@ import com.schoolerp.school_erp_backend.modules.exam.ExamSubjectEntity;
 @Repository
 public interface StudentEnrollmentRepository extends JpaRepository<StudentEnrollmentEntity, UUID> {
 
-	List<StudentEnrollmentEntity> findByClassIdAndSectionIdAndAcademicSessionIdAndEnrollmentStatus(UUID classId,
+	List<StudentEnrollmentEntity> findByClassEntity_IdAndSectionEntity_IdAndAcademicSessionIdAndEnrollmentStatus(UUID classId,
 			UUID sectionId, UUID academicSessionId, String enrollmentStatus);
 
-	boolean existsByStudentIdAndAcademicSessionId(UUID studentId, UUID academicSessionId);
+	boolean existsByStudentEntity_IdAndAcademicSessionId(UUID studentId, UUID academicSessionId);
 
-	Optional<StudentEnrollmentEntity> findByStudentIdAndAcademicSessionId(UUID studentId, UUID academicSessionId);
+	Optional<StudentEnrollmentEntity> findByStudentEntity_IdAndAcademicSessionId(UUID studentId, UUID academicSessionId);
 
-	List<StudentEnrollmentEntity> findByStudentId(UUID studentId);
+	List<StudentEnrollmentEntity> findByStudentEntity_Id(UUID studentId);
 	
 	
 

@@ -20,6 +20,8 @@ public class TeacherFilterRequest extends BaseFilterRequest {
 	private String qualification;
 
 	private LocalDate joiningDate;
+	
+	private UUID teacherId;
 
 	public String getFirstName() {
 		return firstName;
@@ -77,9 +79,16 @@ public class TeacherFilterRequest extends BaseFilterRequest {
 		this.joiningDate = joiningDate;
 	}
 
-	public Object getAcademicSessionId() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'getAcademicSessionId'");
+	public UUID getTeacherId() {
+		return teacherId;
 	}
+
+	public void setTeacherId(UUID teacherId) {
+		this.teacherId = teacherId;
+	}
+
+	
+	
+	
 
 }

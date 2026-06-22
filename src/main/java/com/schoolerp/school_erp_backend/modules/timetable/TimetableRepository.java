@@ -11,10 +11,10 @@ import org.springframework.stereotype.Repository;
 public interface TimetableRepository
                 extends JpaRepository<TimetableEntity, UUID>, JpaSpecificationExecutor<TimetableEntity> {
 
-        List<TimetableEntity> findByAcademicSessionIdAndClassIdAndSectionIdAndDayOfWeekAndPeriod(
+        List<TimetableEntity> findByAcademicSessionIdAndClassEntity_IdAndSectionEntity_IdAndDayOfWeekAndPeriod(
                         UUID academicSessionId, UUID classId, UUID sectionId, String dayOfWeek, Integer period);
 
-        List<TimetableEntity> findByAcademicSessionIdAndTeacherIdAndDayOfWeekAndPeriod(
+        List<TimetableEntity> findByAcademicSessionIdAndTeacherEntity_IdAndDayOfWeekAndPeriod(
                         UUID academicSessionId, UUID teacherId, String dayOfWeek, Integer period);
 
         List<TimetableEntity> findByAcademicSessionIdAndRoomNoAndDayOfWeekAndPeriod(

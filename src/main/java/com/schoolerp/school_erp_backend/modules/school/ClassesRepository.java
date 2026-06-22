@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface ClassesRepository  extends JpaRepository<ClassesEntity, UUID>, JpaSpecificationExecutor<ClassesEntity>  {
 
     boolean existsBySchoolIdAndClassName(UUID schoolId, String className);
+    
+    
 }

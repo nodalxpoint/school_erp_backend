@@ -113,7 +113,7 @@ public class TimetableService {
         // 1. Class Conflict Check: A class & section cannot be scheduled for more than
         // one subject/teacher at the same day/period.
         List<TimetableEntity> classConflicts = timetableRepository
-                .findByAcademicSessionIdAndClassIdAndSectionIdAndDayOfWeekAndPeriod(
+                .findByAcademicSessionIdAndClassEntity_IdAndSectionEntity_IdAndDayOfWeekAndPeriod(
                         request.getAcademicSessionId(), request.getClassId(), request.getSectionId(),
                         request.getDayOfWeek(), request.getPeriod());
 
@@ -128,7 +128,7 @@ public class TimetableService {
         // 2. Teacher Conflict Check: A teacher cannot be scheduled to teach in two
         // classes at the same day/period.
         List<TimetableEntity> teacherConflicts = timetableRepository
-                .findByAcademicSessionIdAndTeacherIdAndDayOfWeekAndPeriod(
+                .findByAcademicSessionIdAndTeacherEntity_IdAndDayOfWeekAndPeriod(
                         request.getAcademicSessionId(), request.getTeacherId(), request.getDayOfWeek(),
                         request.getPeriod());
 
@@ -158,10 +158,23 @@ public class TimetableService {
 
     private void copyDtoToEntity(TimetableDto dto, TimetableEntity entity) {
         entity.setAcademicSessionId(dto.getAcademicSessionId());
-        entity.setClassId(dto.getClassId());
-        entity.setSectionId(dto.getSectionId());
-        entity.setSubjectId(dto.getSubjectId());
-        entity.setTeacherId(dto.getTeacherId());
+
+        ClassesEntity classEntity = classesRepository.findById(dto.getClassId())
+                .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
+
+        SectionEntity sectionEntity = sectionRepository.findById(dto.getSectionId())
+                .orElseThrow(() -> new ResourceNotFoundException("Section not found"));
+
+        SubjectEntity subjectEntity = subjectRepository.findById(dto.getSubjectId())
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+
+        TeacherEntity teacherEntity = teacherRepository.findById(dto.getTeacherId())
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+
+        entity.setClassEntity(classEntity);
+        entity.setSectionEntity(sectionEntity);
+        entity.setSubjectEntity(subjectEntity);
+        entity.setTeacherEntity(teacherEntity);
         entity.setPeriod(dto.getPeriod());
         entity.setDayOfWeek(dto.getDayOfWeek().trim());
         entity.setStartTime(dto.getStartTime());
@@ -188,10 +201,10 @@ public class TimetableService {
         TimetableDto dto = new TimetableDto();
         dto.setId(entity.getId());
         dto.setAcademicSessionId(entity.getAcademicSessionId());
-        dto.setClassId(entity.getClassId());
-        dto.setSectionId(entity.getSectionId());
-        dto.setSubjectId(entity.getSubjectId());
-        dto.setTeacherId(entity.getTeacherId());
+        dto.setClassId(entity.getClassEntity().getId());
+        dto.setSectionId(entity.getSectionEntity().getId());
+        dto.setSubjectId(entity.getSubjectEntity().getId());
+        dto.setTeacherId(entity.getTeacherEntity().getId());
         dto.setPeriod(entity.getPeriod());
         dto.setDayOfWeek(entity.getDayOfWeek());
         dto.setStartTime(entity.getStartTime());
@@ -207,9 +220,10 @@ public class TimetableService {
         // academicSessionRepository.findById(entity.getAcademicSessionId())
         // .ifPresent(session -> dto.setAcademicSessionName(session.getSessionName()));
 
-        subjectRepository.findById(entity.getSubjectId()).ifPresent(sub -> dto.setSubjectName(sub.getName()));
+        subjectRepository.findById(entity.getSubjectEntity().getId())
+                .ifPresent(sub -> dto.setSubjectName(sub.getName()));
 
-        teacherRepository.findById(entity.getTeacherId()).ifPresent(teacher -> {
+        teacherRepository.findById(entity.getTeacherEntity().getId()).ifPresent(teacher -> {
             if (teacher.getUser() != null) {
                 String firstName = teacher.getUser().getFirstName();
                 String lastName = teacher.getUser().getLastName();

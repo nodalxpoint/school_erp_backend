@@ -59,7 +59,7 @@ public class StudentSpecification {
 			Subquery<UUID> subquery = query.subquery(UUID.class);
 			Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
 
-			subquery.select(enrollment.get("studentId")).where(cb.equal(enrollment.get("classId"), classId));
+			subquery.select(enrollment.get("student").get("id")).where(cb.equal(enrollment.get("classEntity").get("id"), classId));
 
 			return root.get("id").in(subquery);
 		};

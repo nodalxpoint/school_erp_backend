@@ -26,19 +26,35 @@ public class TeacherTimeTableSpecification {
     }
 
     public static Specification<TeacherTimeTableEntity> teacherIdEqual(UUID teacherId) {
-        return (root, query, cb) -> FilterUtils.equal(cb, root, "teacherId", teacherId);
+        return (root, query, cb) -> {
+            if (teacherId == null)
+                return null;
+            return cb.equal(root.get("teacherEntity").get("id"), teacherId);
+        };
     }
 
     public static Specification<TeacherTimeTableEntity> classIdEqual(UUID classId) {
-        return (root, query, cb) -> FilterUtils.equal(cb, root, "classId", classId);
+        return (root, query, cb) -> {
+            if (classId == null)
+                return null;
+            return cb.equal(root.get("classEntity").get("id"), classId);
+        };
     }
 
     public static Specification<TeacherTimeTableEntity> sectionIdEqual(UUID sectionId) {
-        return (root, query, cb) -> FilterUtils.equal(cb, root, "sectionId", sectionId);
+        return (root, query, cb) -> {
+            if (sectionId == null)
+                return null;
+            return cb.equal(root.get("sectionEntity").get("id"), sectionId);
+        };
     }
 
     public static Specification<TeacherTimeTableEntity> subjectIdEqual(UUID subjectId) {
-        return (root, query, cb) -> FilterUtils.equal(cb, root, "subjectId", subjectId);
+        return (root, query, cb) -> {
+            if (subjectId == null)
+                return null;
+            return cb.equal(root.get("subjectEntity").get("id"), subjectId);
+        };
     }
 
     public static Specification<TeacherTimeTableEntity> dayOfWeekEqual(String dayOfWeek) {

@@ -6,6 +6,11 @@ import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
+import com.schoolerp.school_erp_backend.modules.subject.SubjectEntity;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
+
 @Entity
 @Table(name = "timetable_entries")
 public class TimetableEntity {
@@ -17,17 +22,21 @@ public class TimetableEntity {
     @Column(name = "academic_session_id", nullable = false)
     private UUID academicSessionId;
 
-    @Column(name = "class_id", nullable = false)
-    private UUID classId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    private ClassesEntity classEntity;
 
-    @Column(name = "section_id", nullable = false)
-    private UUID sectionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "section_id")
+    private SectionEntity sectionEntity;
 
-    @Column(name = "subject_id", nullable = false)
-    private UUID subjectId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id")
+    private SubjectEntity subjectEntity;
 
-    @Column(name = "teacher_id", nullable = false)
-    private UUID teacherId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id")
+    private TeacherEntity teacherEntity;
 
     @Column(name = "period", nullable = false)
     private Integer period;
@@ -63,36 +72,36 @@ public class TimetableEntity {
         this.academicSessionId = academicSessionId;
     }
 
-    public UUID getClassId() {
-        return classId;
+    public ClassesEntity getClassEntity() {
+        return classEntity;
     }
 
-    public void setClassId(UUID classId) {
-        this.classId = classId;
+    public void setClassEntity(ClassesEntity classEntity) {
+        this.classEntity = classEntity;
     }
 
-    public UUID getSectionId() {
-        return sectionId;
+    public SectionEntity getSectionEntity() {
+        return sectionEntity;
     }
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
+    public void setSectionEntity(SectionEntity sectionEntity) {
+        this.sectionEntity = sectionEntity;
     }
 
-    public UUID getSubjectId() {
-        return subjectId;
+    public SubjectEntity getSubjectEntity() {
+        return subjectEntity;
     }
 
-    public void setSubjectId(UUID subjectId) {
-        this.subjectId = subjectId;
+    public void setSubjectEntity(SubjectEntity subjectEntity) {
+        this.subjectEntity = subjectEntity;
     }
 
-    public UUID getTeacherId() {
-        return teacherId;
+    public TeacherEntity getTeacherEntity() {
+        return teacherEntity;
     }
 
-    public void setTeacherId(UUID teacherId) {
-        this.teacherId = teacherId;
+    public void setTeacherEntity(TeacherEntity teacherEntity) {
+        this.teacherEntity = teacherEntity;
     }
 
     public Integer getPeriod() {

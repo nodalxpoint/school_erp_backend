@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.common.HelperServices.AdmissionNoGenerator;
 import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
+import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
@@ -30,8 +31,10 @@ import com.schoolerp.school_erp_backend.modules.attendance.AttendanceSummaryDto;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
 
 import jakarta.transaction.Transactional;
@@ -175,10 +178,24 @@ public class StudentService {
 	private void createEnrollment(UUID studentId, CreateStudentDto request) {
 
 		StudentEnrollmentEntity enrollment = new StudentEnrollmentEntity();
-		enrollment.setStudentId(studentId);
-		enrollment.setClassId(UUID.fromString(request.getClassId()));
-		enrollment.setSectionId(UUID.fromString(request.getSectionId()));
+
+		StudentEntity student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+
+		enrollment.setStudentEntity(student);
+
+		ClassesEntity classEntity = classesRepository.findById(UUID.fromString(request.getClassId()))
+				.orElseThrow(() -> new ResourceNotFoundException("Class not found"));
+
+		enrollment.setClassEntity(classEntity);
+
+		SectionEntity sectionEntity = sectionRepository.findById(UUID.fromString(request.getSectionId()))
+				.orElseThrow(() -> new ResourceNotFoundException("Section not found"));
+
+		enrollment.setSectionEntity(sectionEntity);
+
 		enrollment.setAcademicSessionId(UUID.fromString(request.getAcademicSessionId()));
+
 		enrollment.setRollNo(request.getRollNo());
 		enrollment.setEnrollmentStatus("ACTIVE");
 
@@ -214,12 +231,21 @@ public class StudentService {
 	private void updateEnrollment(UUID studentId, CreateStudentDto request) {
 
 		Optional<StudentEnrollmentEntity> existing = studentEnrollmentRepository
-				.findByStudentIdAndAcademicSessionId(studentId, UUID.fromString(request.getAcademicSessionId()));
+				.findByStudentEntity_IdAndAcademicSessionId(studentId, UUID.fromString(request.getAcademicSessionId()));
 
 		if (existing.isPresent()) {
 			StudentEnrollmentEntity enrollment = existing.get();
-			enrollment.setClassId(UUID.fromString(request.getClassId()));
-			enrollment.setSectionId(UUID.fromString(request.getSectionId()));
+
+			ClassesEntity classEntity = classesRepository.findById(UUID.fromString(request.getClassId()))
+					.orElseThrow(() -> new ResourceNotFoundException("Class not found"));
+
+			enrollment.setClassEntity(classEntity);
+
+			SectionEntity sectionEntity = sectionRepository.findById(UUID.fromString(request.getSectionId()))
+					.orElseThrow(() -> new ResourceNotFoundException("Section not found"));
+
+			enrollment.setSectionEntity(sectionEntity);
+
 			enrollment.setRollNo(request.getRollNo());
 			studentEnrollmentRepository.save(enrollment);
 		} else {
@@ -245,25 +271,26 @@ public class StudentService {
 			StudentEnrollmentEntity enrollment = null;
 			if (activeSessionOpt.isPresent()) {
 				enrollment = studentEnrollmentRepository
-						.findByStudentIdAndAcademicSessionId(student.getId(), activeSessionOpt.get().getId())
+						.findByStudentEntity_IdAndAcademicSessionId(student.getId(), activeSessionOpt.get().getId())
 						.orElse(null);
 			}
 			if (enrollment == null) {
 				List<StudentEnrollmentEntity> enrollments = studentEnrollmentRepository
-						.findByStudentId(student.getId());
+						.findByStudentEntity_Id(student.getId());
 				if (!enrollments.isEmpty()) {
 					enrollment = enrollments.get(enrollments.size() - 1);
 				}
 			}
 
 			if (enrollment != null) {
-				dto.setClassId(enrollment.getClassId());
-				dto.setSectionId(enrollment.getSectionId());
+				dto.setClassId(enrollment.getClassEntity().getId());
+				dto.setSectionId(enrollment.getSectionEntity().getId());
 				dto.setAcademicSessionId(enrollment.getAcademicSessionId());
 				dto.setRollNo(enrollment.getRollNo());
 
-				classesRepository.findById(enrollment.getClassId()).ifPresent(c -> dto.setClassName(c.getClassName()));
-				sectionRepository.findById(enrollment.getSectionId())
+				classesRepository.findById(enrollment.getClassEntity().getId())
+						.ifPresent(c -> dto.setClassName(c.getClassName()));
+				sectionRepository.findById(enrollment.getSectionEntity().getId())
 						.ifPresent(s -> dto.setSectionName(s.getSectionName()));
 			}
 		}
