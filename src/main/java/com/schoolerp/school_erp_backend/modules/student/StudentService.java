@@ -86,8 +86,8 @@ public class StudentService {
 			List<UUID> studentIds = studentPage.getContent().stream().map(StudentEntity::getId)
 					.collect(Collectors.toList());
 
-			attendanceRepository.findByAttendanceDateAndStudentIdIn(request.getAttendanceDate(), studentIds)
-					.forEach(a -> attendanceMap.put(a.getStudentId(), a));
+			attendanceRepository.findByAttendanceDateAndStudent_IdIn(request.getAttendanceDate(), studentIds)
+					.forEach(a -> attendanceMap.put(a.getStudentEntity().getId(), a));
 		}
 
 		Page<StudentResponseDto> dtoPage = studentPage

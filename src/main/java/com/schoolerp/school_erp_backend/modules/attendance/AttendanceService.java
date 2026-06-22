@@ -25,6 +25,8 @@ import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
+import com.schoolerp.school_erp_backend.modules.student.StudentRepository;
 import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentEntity;
 import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentRepository;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherClassResponseDto;
@@ -38,6 +40,9 @@ import org.springframework.data.domain.Sort;
 
 @Service
 public class AttendanceService {
+
+	@Autowired
+	private StudentRepository studentRepository;
 
 	@Autowired
 	private AttendanceRepository attendanceRepository;
@@ -75,9 +80,9 @@ public class AttendanceService {
 
 		// Single bulk fetch for existing records
 		Map<UUID, AttendanceEntity> existingMap = attendanceRepository
-				.findByClassIdAndSectionIdAndAttendanceDate(classId, sectionId, date)
+				.findByClassEntity_IdAndSectionEntity_IdAndAttendanceDate(classId, sectionId, date)
 				.stream()
-				.collect(Collectors.toMap(AttendanceEntity::getStudentId, a -> a));
+				.collect(Collectors.toMap(a -> a.getStudentEntity().getId(), a -> a));
 
 		// Upsert loop — no DB call inside
 		List<AttendanceEntity> attendanceList = new ArrayList<>();
@@ -102,13 +107,32 @@ public class AttendanceService {
 
 	private AttendanceEntity buildNewEntity(UUID studentId, UUID classId,
 			UUID sectionId, UUID sessionId, LocalDate date) {
-		AttendanceEntity e = new AttendanceEntity();
-		e.setStudentId(studentId);
-		e.setClassId(classId);
-		e.setSectionId(sectionId);
-		e.setAcademicSessionId(sessionId);
-		e.setAttendanceDate(date);
-		return e;
+		AttendanceEntity attendanceEntity  = new AttendanceEntity();
+		
+				
+		StudentEntity student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));	
+
+
+		attendanceEntity.setStudentEntity(student);
+
+
+		ClassesEntity classEntity = classesRepository.findById(classId)
+				.orElseThrow(() -> new ResourceNotFoundException("Class not found with id: " + classId));
+
+		attendanceEntity.setClassEntity(classEntity);
+
+		SectionEntity sectionEntity = sectionRepository.findById(sectionId)
+
+				.orElseThrow(() -> new ResourceNotFoundException("Section not found with id: " + sectionId));
+
+		attendanceEntity.setSectionEntity(sectionEntity);
+
+
+
+		attendanceEntity.setAcademicSessionId(sessionId);
+		attendanceEntity.setAttendanceDate(date);
+		return attendanceEntity;
 	}
 
 	public void validateSubmitBulkAttendance(BulkAttendanceRequestDto requestDTO, UUID userId, String role) {
@@ -117,7 +141,7 @@ public class AttendanceService {
 
 		boolean isAdmin = roleEnum == UserRole.SCHOOL_ADMIN || roleEnum == UserRole.SUPER_ADMIN;
 
-		boolean attendanceAlreadyTaken = attendanceRepository.existsByClassIdAndSectionIdAndAttendanceDate(
+		boolean attendanceAlreadyTaken = attendanceRepository.existsByClassEntity_IdAndSectionEntity_IdAndAttendanceDate(
 				UUID.fromString(requestDTO.getClassId()), UUID.fromString(requestDTO.getSectionId()),
 				requestDTO.getAttendanceDate());
 
@@ -223,7 +247,7 @@ public class AttendanceService {
 
 		AttendanceResponseDto dto = new AttendanceResponseDto();
 		dto.setId(entity.getId());
-		dto.setStudentId(entity.getStudentId());
+		dto.setStudentId(entity.getStudentEntity().getId());
 		dto.setStatus(entity.getStatus());
 		dto.setRemarks(entity.getRemarks());
 		dto.setAttendanceDate(entity.getAttendanceDate());
@@ -253,7 +277,7 @@ public class AttendanceService {
 		SectionEntity sectionEntity = sectionRepository.findById(assignment.getSectionId())
 				.orElseThrow(() -> new ResourceNotFoundException("Section not found"));
 
-		boolean exists = attendanceRepository.existsByClassIdAndSectionIdAndAttendanceDate(assignment.getClassId(),
+		boolean exists = attendanceRepository.existsByClassEntity_IdAndSectionEntity_IdAndAttendanceDate(assignment.getClassId(),
 				assignment.getSectionId(), LocalDate.now());
 
 		dto.setTeacherId(teacher.getId());

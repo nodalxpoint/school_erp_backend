@@ -34,17 +34,26 @@ public class AttendanceSpecification {
 
 	public static Specification<AttendanceEntity> classIdEqual(UUID classId) {
 
-		return (root, query, cb) -> FilterUtils.equal(cb, root, "classId", classId);
+		return (root, query, cb) -> {
+		if (classId == null) return null;
+		return cb.equal(root.get("classEntity").get("id"), classId);	
+		};
 	}
 
 	public static Specification<AttendanceEntity> sectionIdEqual(UUID sectionId) {
 
-		return (root, query, cb) -> FilterUtils.equal(cb, root, "sectionId", sectionId);
+		return (root, query, cb) -> {
+			if (sectionId == null) return null;
+			return cb.equal(root.get("sectionEntity").get("id"), sectionId);
+		};
 	}
 
 	public static Specification<AttendanceEntity> studentIdEqual(UUID studentId) {
 
-		return (root, query, cb) -> FilterUtils.equal(cb, root, "studentId", studentId);
+		return (root, query, cb) -> {
+			if (studentId == null) return null;
+			return cb.equal(root.get("studentEntity").get("id"), studentId);
+		}; 
 	}
 
 	public static Specification<AttendanceEntity> academicSessionIdEqual(UUID academicSessionId) {

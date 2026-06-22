@@ -4,10 +4,17 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
+import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -19,17 +26,21 @@ public class AttendanceEntity {
 	@GeneratedValue
 	private UUID id;
 
-	@Column(name = "student_id", nullable = false)
-	private UUID studentId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "student_id", nullable = false)
+	private StudentEntity student;
+
 
 	@Column(name = "academic_session_id", nullable = false)
 	private UUID academicSessionId;
 
-	@Column(name = "class_id", nullable = false)
-	private UUID classId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "class_id", nullable = false)
+	private ClassesEntity classEntity;
 
-	@Column(name = "section_id", nullable = false)
-	private UUID sectionId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "section_id", nullable = false)
+	private SectionEntity sectionEntity;
 
 	@Column(name = "attendance_date", nullable = false)
 	private LocalDate attendanceDate;
@@ -59,36 +70,35 @@ public class AttendanceEntity {
 		this.id = id;
 	}
 
-	public UUID getStudentId() {
-		return studentId;
+	public StudentEntity getStudentEntity() {
+		return student;
 	}
 
-	public void setStudentId(UUID studentId) {
-		this.studentId = studentId;
+	public void setStudentEntity(StudentEntity student) {
+		this.student = student;
 	}
 
 	public UUID getAcademicSessionId() {
 		return academicSessionId;
-	}
-
+	}	
 	public void setAcademicSessionId(UUID academicSessionId) {
 		this.academicSessionId = academicSessionId;
 	}
 
-	public UUID getClassId() {
-		return classId;
+	public ClassesEntity getClassEntity() {
+		return classEntity;
 	}
 
-	public void setClassId(UUID classId) {
-		this.classId = classId;
+	public void setClassEntity(ClassesEntity classEntity) {
+		this.classEntity = classEntity;
 	}
 
-	public UUID getSectionId() {
-		return sectionId;
+	public SectionEntity getSectionEntity() {
+		return sectionEntity;
 	}
 
-	public void setSectionId(UUID sectionId) {
-		this.sectionId = sectionId;
+	public void setSectionEntity(SectionEntity sectionEntity) {
+		this.sectionEntity = sectionEntity;
 	}
 
 	public LocalDate getAttendanceDate() {
