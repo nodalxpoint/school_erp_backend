@@ -16,6 +16,6 @@ public interface TeacherTimetableRepo extends JpaRepository<TeacherTimeTableEnti
 		    FROM TeacherTimeTableEntity t
 		    WHERE t.teacherEntity.id = :teacherId
 		""")
-		List<TeacherTimeTableEntity> findUniqueClassSections(@Param("teacherId") UUID teacherId);
+		List<TeacherTimeTableEntity> findUniqueClassSectionsSubjectId(@Param("teacherId") UUID teacherId);
 
 }

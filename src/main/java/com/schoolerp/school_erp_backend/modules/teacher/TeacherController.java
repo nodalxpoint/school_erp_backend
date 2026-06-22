@@ -87,8 +87,7 @@ public class TeacherController {
 	}
 	
 	@PostMapping("/myClassesList")
-	public ResponseEntity<ApiResponse<List<TeacherClassSectionMapDto>>> teacherClassMap(
-			@AuthenticationPrincipal CustomUserDetails userDetails) {
+	public ResponseEntity<ApiResponse<List<TeacherClassSectionMapDto>>> teacherClassMap(@AuthenticationPrincipal CustomUserDetails userDetails) {
 		UUID userId = userDetails.getId();
 
 		List<TeacherClassSectionMapDto> response = teacherService.teacherClassMapList(userId);

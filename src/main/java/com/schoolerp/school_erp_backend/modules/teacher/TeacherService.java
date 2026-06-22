@@ -267,7 +267,7 @@ public class TeacherService {
 		
 		UUID teacherId = teacher.getId();
 		
-		List<TeacherTimeTableEntity> teacherMap = teacherTimetableRepo.findUniqueClassSections(teacherId);
+		List<TeacherTimeTableEntity> teacherMap = teacherTimetableRepo.findUniqueClassSectionsSubjectId(teacherId);
 		
 		List<TeacherClassSectionMapDto> teacherMapList = new ArrayList<>();
 		
@@ -279,6 +279,10 @@ public class TeacherService {
 			dto.setSectionId(entity.getSectionEntity().getId());
 			dto.setClassName(entity.getClassEntity().getClassName());
 			dto.setSectionName(entity.getSectionEntity().getSectionName());
+			dto.setSubjectId(entity.getSubjectEntity().getId());
+			dto.setSubjectName(entity.getSubjectEntity().getName());
+
+
 			teacherMapList.add(dto);
 
 		}

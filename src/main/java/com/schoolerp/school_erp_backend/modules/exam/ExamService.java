@@ -214,6 +214,8 @@ public class ExamService {
 	}
 
 	private void updateExamSubject(ExamSubjectDto request) {
+		
+		LOGGER.debug("Updating exam Subject with id :{}",request.getId());
 		ExamSubjectEntity entity = examSubjectRepository.findById(request.getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Exam subject setup not found"));
 
@@ -222,7 +224,7 @@ public class ExamService {
 		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExam_IdAndSubject_IdAndClassEntity_Id(
 				request.getExamId(),
 				request.getSubjectId(), request.getClassId());
-		if (existing.isPresent()) {
+		if (existing.isPresent()&& !existing.get().getId().equals(request.getId())) {
 			throw new ValidationException("Subject is already assigned to this exam");
 		}
 		

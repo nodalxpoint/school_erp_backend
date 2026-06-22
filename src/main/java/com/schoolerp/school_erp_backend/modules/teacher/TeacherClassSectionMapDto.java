@@ -11,6 +11,12 @@ public class TeacherClassSectionMapDto {
     private String className;
     
     private String sectionName;
+
+	private UUID subjectId;
+
+	private String subjectName;
+
+
     
 	public UUID getClassId() {	
 		return classId;
@@ -37,10 +43,21 @@ public class TeacherClassSectionMapDto {
 		this.sectionName = sectionName;
 	}
 	
-	
+	public UUID getSubjectId(){
+		return subjectId;
+	}
     
+	public void setSubjectId(UUID subjectId){
+		this.subjectId = subjectId;
+	}
     
 
-   
+	public String getSubjectName() {
+		return subjectName;
+	}
+	
+    public void setSubjectName(String subjectName) {
+		this.subjectName = subjectName;
+	}
 
 }
