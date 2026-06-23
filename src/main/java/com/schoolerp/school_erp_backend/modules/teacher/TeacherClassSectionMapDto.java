@@ -16,6 +16,18 @@ public class TeacherClassSectionMapDto {
 
 	private String subjectName;
 
+	public TeacherClassSectionMapDto() {
+	}
+
+	public TeacherClassSectionMapDto(UUID classId, UUID sectionId, String className, String sectionName,
+			UUID subjectId, String subjectName) {
+		this.classId = classId;
+		this.sectionId = sectionId;
+		this.className = className;
+		this.sectionName = sectionName;
+		this.subjectId = subjectId;
+		this.subjectName = subjectName;
+	}
 
     
 	public UUID getClassId() {	

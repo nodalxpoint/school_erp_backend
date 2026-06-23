@@ -101,23 +101,12 @@ public class ExamMarksService {
 
 
 	private void createExamMarks(ExamMarksDto request) {
+        validationHelperService.getSchool();
 
-	    SchoolEntity school = validationHelperService.getSchool();
-
-	    log.info("Creating exam marks for examSubjectId={}, examId={}, recordsSize={}",
-	            request.getExamSubjectId(),
-	            request.getExamId(),
-	            request.getRecords() != null ? request.getRecords().size() : 0
-	    );
 
 	    ExamSubjectEntity examSubject = validateExamMarksRequest(request);
 
-	    log.info("Resolved examSubjectId={}, examId={}, classId={}, maxMarks={}",
-	            examSubject.getId(),
-	            request.getExamId(),
-	            examSubject.getClassEntity().getId(),
-	            examSubject.getMaxMarks()
-	    );
+
 
 	    BigDecimal maxMarks = BigDecimal.valueOf(examSubject.getMaxMarks());
 
@@ -144,11 +133,6 @@ public class ExamMarksService {
 	                        request.getExamId()
 	                );
 
-	        log.info("Existing record for studentId={} exists={}",
-	                studId,
-	                existingOpt.isPresent()
-	        );
-
 	        StudentMarksEntity entity;
 
 	        if (existingOpt.isPresent()) {
@@ -168,9 +152,6 @@ public class ExamMarksService {
 
 	        studentMarksRepository.save(entity);
 
-	        log.info("Saved marks for studentId={}, marks={}",
-	                studId,
-	                studentMark.getMarksObtained());
 	    }
 	}
 

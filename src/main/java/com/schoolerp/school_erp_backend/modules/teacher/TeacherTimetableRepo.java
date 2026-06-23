@@ -12,10 +12,16 @@ import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableEntity
 public interface TeacherTimetableRepo extends JpaRepository<TeacherTimeTableEntity, UUID> {
 
 	@Query("""
-		    SELECT t
+		    SELECT DISTINCT new com.schoolerp.school_erp_backend.modules.teacher.TeacherClassSectionMapDto(
+		        t.classEntity.id,
+		        t.sectionEntity.id,
+		        t.classEntity.className,
+		        t.sectionEntity.sectionName,
+		        t.subjectEntity.id,
+		        t.subjectEntity.name)
 		    FROM TeacherTimeTableEntity t
 		    WHERE t.teacherEntity.id = :teacherId
 		""")
-		List<TeacherTimeTableEntity> findUniqueClassSectionsSubjectId(@Param("teacherId") UUID teacherId);
+		List<TeacherClassSectionMapDto> findUniqueClassSectionsSubjectId(@Param("teacherId") UUID teacherId);
 
 }

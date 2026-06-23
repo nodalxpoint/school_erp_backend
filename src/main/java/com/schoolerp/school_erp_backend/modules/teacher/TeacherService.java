@@ -1,6 +1,5 @@
 package com.schoolerp.school_erp_backend.modules.teacher;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,8 +26,6 @@ import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
-import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableEntity;
-
 import jakarta.transaction.Transactional;
 
 @Service
@@ -264,31 +261,9 @@ public class TeacherService {
 				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
 		
 
-		// UUID schoolId = validationHelperService.getSchool().getId();
-		
 		UUID teacherId = teacher.getId();
 		
-		List<TeacherTimeTableEntity> teacherMap = teacherTimetableRepo.findUniqueClassSectionsSubjectId(teacherId);
-		
-		List<TeacherClassSectionMapDto> teacherMapList = new ArrayList<>();
-		
-		for(TeacherTimeTableEntity entity :teacherMap) {
-			
-			TeacherClassSectionMapDto dto = new TeacherClassSectionMapDto();
-			
-			dto.setClassId(entity.getClassEntity().getId());
-			dto.setSectionId(entity.getSectionEntity().getId());
-			dto.setClassName(entity.getClassEntity().getClassName());
-			dto.setSectionName(entity.getSectionEntity().getSectionName());
-			dto.setSubjectId(entity.getSubjectEntity().getId());
-			dto.setSubjectName(entity.getSubjectEntity().getName());
-
-
-			teacherMapList.add(dto);
-		}
-		
-
-		return teacherMapList;
+		return teacherTimetableRepo.findUniqueClassSectionsSubjectId(teacherId);
 	}
 
 	private TeacherResponseDto mapToDto(TeacherEntity teacher) {
