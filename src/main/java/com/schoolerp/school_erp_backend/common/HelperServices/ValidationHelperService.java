@@ -130,6 +130,11 @@ public class ValidationHelperService {
 				.orElseThrow(() -> new ResourceNotFoundException("Academic Session not found"));
 	}
 
+	public void validateTeacherUserId(UUID userId) {
+		TeacherEntity teacher = teacherRepo.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+	}
+
 	public void validateExamSubjectRequest(ExamSubjectDto request, UUID excludeId) {
 		validateSubject(request.getSubjectId());
 

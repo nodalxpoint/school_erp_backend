@@ -1,10 +1,13 @@
 package com.schoolerp.school_erp_backend.modules.subject;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class CreateSubjectDto {
 
+    @JsonProperty("id")
     private String subjectId; // present = update, empty/null = create
 
     @NotBlank(message = "Subject name is required")

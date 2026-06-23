@@ -262,6 +262,7 @@ public class TeacherService {
 
 		TeacherEntity teacher = teacherRepo.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+		
 
 		// UUID schoolId = validationHelperService.getSchool().getId();
 		
@@ -284,7 +285,6 @@ public class TeacherService {
 
 
 			teacherMapList.add(dto);
-
 		}
 		
 
