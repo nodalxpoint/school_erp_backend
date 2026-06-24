@@ -34,5 +34,10 @@ public class ExamParamSpecification {
             return cb.like(cb.lower(root.get("examName")), "%" + search.toLowerCase().trim() + "%");
         };
     }
+    
+    protected static Specification<ExamEntity> isActiveEqualsY() {
+        return (root, query, cb) ->
+            cb.equal(root.get("isActive"), "Y");
+    }
 
 }

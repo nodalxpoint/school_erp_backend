@@ -10,6 +10,7 @@ public class ExamFilterRequest extends BaseFilterRequest {
     private UUID classId;
     private UUID subjectId;
     private UUID examId;
+    private String isActive;
 
     public UUID getExamId() {
         return examId;
@@ -49,6 +50,14 @@ public class ExamFilterRequest extends BaseFilterRequest {
 
     public void setSubjectId(UUID subjectId) {
         this.subjectId = subjectId;
+    }
+
+    public String getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
     }
 
 }

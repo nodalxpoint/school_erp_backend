@@ -13,6 +13,7 @@ public class ExamDto {
     private LocalDate startDate;
     private LocalDate endDate;
     private LocalDateTime createdAt;
+    private String isActive;
     private List<ExamSubjectDto> examSubjects;
 
     public UUID getExamId() {
@@ -69,6 +70,14 @@ public class ExamDto {
 
     public void setExamSubjects(List<ExamSubjectDto> examSubjects) {
         this.examSubjects = examSubjects;
+    }
+
+    public String getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
     }
 
 }

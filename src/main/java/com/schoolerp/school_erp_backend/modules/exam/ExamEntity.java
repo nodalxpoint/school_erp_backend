@@ -48,6 +48,9 @@ public class ExamEntity {
     @OneToMany(mappedBy = "exam", fetch = FetchType.LAZY)
     private List<ExamSubjectEntity> examSubjects;
 
+    @Column(name = "is_active")
+    private String  isActive;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
@@ -116,9 +119,23 @@ public class ExamEntity {
     public void setSubjectEntity(List<ExamSubjectEntity> examSubjects) {
         this.examSubjects = examSubjects;
     }
-    
+
+    public String getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
+    }
+
     public List<ExamSubjectEntity> getExamSubjects() {
         return examSubjects;
     }
+
+    public void setExamSubjects(List<ExamSubjectEntity> examSubjects) {
+        this.examSubjects = examSubjects;
+    }
+
+    
 
 }

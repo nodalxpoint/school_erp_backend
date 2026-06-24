@@ -20,7 +20,9 @@ public class ExamSpecification {
                 .with(examNameLike(request.getExamName()))
                 .with(classIdEqual(request.getClassId()))
                 .with(subjectIdEqual(request.getSubjectId()))
+                .with(isActiveEqual(request.getIsActive()))
                 .build();
+                
     }
 
     public static Specification<ExamEntity> schoolEqual(UUID schoolId) {
@@ -66,6 +68,13 @@ public class ExamSpecification {
         return (root, query, cb) -> {
             if (examId == null) return null;
             return cb.equal(root.get("id"), examId);
+        };
+    }
+
+    public static Specification<ExamEntity> isActiveEqual(String isActive) {
+        return (root, query, cb) -> {
+            if (isActive == null) return null;
+            return cb.equal(root.get("isActive"), isActive);
         };
     }
 }

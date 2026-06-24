@@ -1,9 +1,11 @@
 package com.schoolerp.school_erp_backend.modules.params;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -63,6 +65,7 @@ public class ParamService {
 			case "students" -> fetchStudents(request.getSearch(), pageable);
 			case "academic_sessions" -> fetchAcademicSessions(request.getSearch(), pageable);
 			case "exams" -> fetchExams(request.getSearch(), pageable);
+			case "examIsActive" -> fetchActiveExams( pageable);
 			default -> throw new IllegalArgumentException("Unknown type: " + request.getType());
 		};
 	}
@@ -124,5 +127,22 @@ public class ParamService {
 
 		return PagedResponse.fromPage(dtoPage, "Exams fetched successfully");
 	}
+	
+	
+	
+	
+	private PagedResponse<ResponseDropdownOption> fetchActiveExams(Pageable pageable) {
+		
+		// Cleaner call signature
+		Page<ExamEntity> page = examRepository.findAll(ExamParamSpecification.isActiveEqualsY(), pageable);
+
+		Page<ResponseDropdownOption> dtoPage = page
+				.map(e -> new ResponseDropdownOption(e.getId().toString(), e.getExamName()));
+
+		return PagedResponse.fromPage(dtoPage, "Active Exam fetched successfully");
+	}
+
+	
+
 
 }

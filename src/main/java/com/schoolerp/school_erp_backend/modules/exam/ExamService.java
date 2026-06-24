@@ -68,8 +68,8 @@ public class ExamService {
 			page = examRepository.findAll(ExamSpecification.filter(request, school.getId()), pageable);
 		}
 
-		List<ExamDto> dtoList = page.getContent().stream().map(entity -> mapToExamDto(entity,includeSubjects,request))
-		.collect(Collectors.toList());
+		List<ExamDto> dtoList = page.getContent().stream().map(entity -> mapToExamDto(entity, includeSubjects, request))
+				.collect(Collectors.toList());
 
 		Page<ExamDto> dtoPage = new PageImpl<>(dtoList, page.getPageable(), page.getTotalElements());
 		return PagedResponse.fromPage(dtoPage, "Exams fetched successfully");
@@ -88,6 +88,8 @@ public class ExamService {
 	}
 
 	private void createExam(ExamDto request) {
+		
+		
 		SchoolEntity school = validationHelperService.getSchool();
 		validationHelperService.validateExamRequest(request, school.getId(), null);
 
@@ -102,6 +104,7 @@ public class ExamService {
 	}
 
 	private void updateExam(ExamDto request) {
+		
 		ExamEntity entity = examRepository.findById(request.getExamId())
 				.orElseThrow(() -> new ResourceNotFoundException("Exam not found"));
 
@@ -112,56 +115,55 @@ public class ExamService {
 		entity.setExamName(request.getExamName().trim());
 		entity.setStartDate(request.getStartDate());
 		entity.setEndDate(request.getEndDate());
+		
+		if(request.getIsActive() != null) {
+			
+			
+			examRepository.deactivateAllActiveExams();
+			entity.setIsActive(request.getIsActive());
+			
+			
+		}
+
+		
 
 		examRepository.save(entity);
 	}
 
-	private ExamDto mapToExamDto(
-	        ExamEntity entity,
-	        boolean includeSubjects,
-	        ExamFilterRequest request) {
+	private ExamDto mapToExamDto(ExamEntity entity, boolean includeSubjects, ExamFilterRequest request) {
 
-	    ExamDto dto = new ExamDto();
+		ExamDto dto = new ExamDto();
 
-	    dto.setExamId(entity.getId());
-	    dto.setAcademicSessionId(entity.getAcademicSessionId());
-	    dto.setExamName(entity.getExamName());
-	    dto.setStartDate(entity.getStartDate());
-	    dto.setEndDate(entity.getEndDate());
-	    dto.setCreatedAt(entity.getCreatedAt());
+		dto.setExamId(entity.getId());
+		dto.setAcademicSessionId(entity.getAcademicSessionId());
+		dto.setExamName(entity.getExamName());
+		dto.setStartDate(entity.getStartDate());
+		dto.setEndDate(entity.getEndDate());
+		dto.setCreatedAt(entity.getCreatedAt());
+		dto.setIsActive(entity.getIsActive());
 
-	    if (includeSubjects) {
+		if (includeSubjects) {
 
-	        List<ExamSubjectEntity> filteredSubjects =
-	                entity.getExamSubjects()
-	                      .stream()
+			List<ExamSubjectEntity> filteredSubjects = entity.getExamSubjects().stream()
 
-	                      .filter(es ->
-	                              request.getClassId() == null ||
-	                              es.getClassEntity()
-	                                .getId()
-	                                .equals(request.getClassId()))
+					.filter(es -> request.getClassId() == null
+							|| es.getClassEntity().getId().equals(request.getClassId()))
 
-	                      .filter(es ->
-	                              request.getSubjectId() == null ||
-	                              es.getSubject()
-	                                .getId()
-	                                .equals(request.getSubjectId()))
+					.filter(es -> request.getSubjectId() == null
+							|| es.getSubject().getId().equals(request.getSubjectId()))
 
-	                      .toList();
+					.toList();
 
-	        dto.setExamSubjects(mapSubjects(filteredSubjects));
-	    }
+			dto.setExamSubjects(mapSubjects(filteredSubjects));
+		}
 
-	    return dto;
+		return dto;
 	}
 
 	private List<ExamSubjectDto> mapSubjects(List<ExamSubjectEntity> examSubjects) {
 		if (examSubjects == null)
 			return null;
-		return examSubjects.stream()
-				.map(this::mapToExamSubjectDto)
-				.collect(Collectors.toList());
+		return examSubjects.stream().map(this::mapToExamSubjectDto).collect(Collectors.toList());
 	}
 
 	private ExamSubjectDto mapToExamSubjectDto(ExamSubjectEntity entity) {
@@ -202,8 +204,7 @@ public class ExamService {
 
 		// Unique check for exam + subject + class combination
 		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExam_IdAndSubject_IdAndClassEntity_Id(
-				request.getExamId(),
-				request.getSubjectId(), request.getClassId());
+				request.getExamId(), request.getSubjectId(), request.getClassId());
 		if (existing.isPresent()) {
 			throw new ValidationException("Subject is already assigned to this exam");
 		}
@@ -214,20 +215,18 @@ public class ExamService {
 	}
 
 	private void updateExamSubject(ExamSubjectDto request) {
-		
-		LOGGER.debug("Updating exam Subject with id :{}",request.getId());
+
+		LOGGER.debug("Updating exam Subject with id :{}", request.getId());
 		ExamSubjectEntity entity = examSubjectRepository.findById(request.getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Exam subject setup not found"));
 
 		validationHelperService.validateExamSubjectRequest(request, request.getId());
-		
+
 		Optional<ExamSubjectEntity> existing = examSubjectRepository.findByExam_IdAndSubject_IdAndClassEntity_Id(
-				request.getExamId(),
-				request.getSubjectId(), request.getClassId());
-		if (existing.isPresent()&& !existing.get().getId().equals(request.getId())) {
+				request.getExamId(), request.getSubjectId(), request.getClassId());
+		if (existing.isPresent() && !existing.get().getId().equals(request.getId())) {
 			throw new ValidationException("Subject is already assigned to this exam");
 		}
-		
 
 		ExamEntity exam = examRepository.findById(request.getExamId())
 				.orElseThrow(() -> new ResourceNotFoundException("Exam not found"));

@@ -1,6 +1,5 @@
 package com.schoolerp.school_erp_backend.modules.teacher;
 
-import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -9,9 +8,6 @@ import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 
 import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
-
 public class TeacherSpecification {
 
     private TeacherSpecification() {
