@@ -24,19 +24,19 @@ public class SubjectController {
     @Autowired
     private SubjectService subjectService;
 
+    @PostMapping("/list")
+    public ResponseEntity<PagedResponse<SubjectResponseDto>> filter(@RequestBody SubjectFilterRequest request) {
+        LOGGER.debug("filter subjects called");
+        PagedResponse<SubjectResponseDto> response = subjectService.filterSubjects(request);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/addOrUpdate")
     public ResponseEntity<ApiResponse<String>> addOrUpdate(@Valid @RequestBody CreateSubjectDto request) {
         LOGGER.debug("addOrUpdate subject called");
         subjectService.addOrUpdateSubject(request);
         ApiResponse<String> response = ApiResponse.success("Subject saved successfully", null);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PostMapping("/list")
-    public ResponseEntity<PagedResponse<SubjectResponseDto>> filter(@RequestBody SubjectFilterRequest request) {
-        LOGGER.debug("filter subjects called");
-        PagedResponse<SubjectResponseDto> response = subjectService.filterSubjects(request);
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/assign")

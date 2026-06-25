@@ -23,6 +23,13 @@ public class StudentResponseDto {
     private UUID academicSessionId;
     private String rollNo;
     
+    private String fatherName;
+    private String motherName;
+
+    private String guardianName;
+    
+    private String emergencyContact;
+    
     private AttendanceSummaryDto attendance;
 
     public StudentResponseDto() {
@@ -139,6 +146,38 @@ public class StudentResponseDto {
 	public void setAttendance(AttendanceSummaryDto attendance) {
 		this.attendance = attendance;
 	}
+
+	public String getFatherName() {
+		return fatherName;
+	}
+
+	public void setFatherName(String fatherName) {
+		this.fatherName = fatherName;
+	}
+
+	public String getMotherName() {
+		return motherName;
+	}
+
+	public void setMotherName(String motherName) {
+		this.motherName = motherName;
+	}
+
+	public String getGuardianName() {
+		return guardianName;
+	}
+
+	public void setGuardianName(String guardianName) {
+		this.guardianName = guardianName;
+	}
+	
+	public String getEmergencyContact() {
+        return emergencyContact;
+    }
+
+    public void setEmergencyContact(String emergencyContact) {
+        this.emergencyContact = emergencyContact;
+    }
     
     
 

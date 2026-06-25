@@ -114,16 +114,22 @@ public class StudentService {
 
 		SchoolEntity school = validationHelperService.getSchool();
 
-		// 1. create parent user account
-		User parentUser = createParentUser(request, school);
+		ParentEntity parent;
 
-		// 2. create parent
-		ParentEntity parent = createParent(request, parentUser, school);
+		if (request.getParentId() != null) {
 
-		// 3. generate admission no
+			parent = parentRepository.findById(request.getParentId())
+					.orElseThrow(() -> new ResourceNotFoundException(
+							"Parent not found with id: " + request.getParentId()));
+
+		} else {
+
+			User parentUser = createParentUser(request, school);
+			parent = createParent(request, parentUser, school);
+		}
+
 		String admissionNo = admissionNoGenerator.generate();
 
-		// 4. create student
 		StudentEntity student = new StudentEntity();
 		student.setSchool(school);
 		student.setAdmissionNo(admissionNo);

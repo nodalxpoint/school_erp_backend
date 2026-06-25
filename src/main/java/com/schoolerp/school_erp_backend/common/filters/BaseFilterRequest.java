@@ -1,15 +1,14 @@
 package com.schoolerp.school_erp_backend.common.filters;
 
-
 public class BaseFilterRequest {
 
-    private Integer page = 0;
+	private Integer page = 0;
 
-    private Integer size = 10;
+	private Integer size = 10;
 
-    private String sortBy = "createdAt";
+	private String sortBy = "createdAt";
 
-    private String sortDirection = "desc";
+	private String sortDirection = "desc";
 
 	public Integer getPage() {
 		return page;
@@ -42,6 +41,5 @@ public class BaseFilterRequest {
 	public void setSortDirection(String sortDirection) {
 		this.sortDirection = sortDirection;
 	}
-    
-    
+
 }

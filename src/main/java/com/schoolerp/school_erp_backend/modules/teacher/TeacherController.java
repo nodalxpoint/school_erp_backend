@@ -85,9 +85,12 @@ public class TeacherController {
 		return ResponseEntity.ok(ApiResponse.success("Class fetched successfully", response));
 
 	}
-	
+
+	// Is used to retrieve all the classes, sections, and subjects assigned
+	// to the currently logged-in teacher based on their timetable.
 	@PostMapping("/myClassesList")
-	public ResponseEntity<ApiResponse<List<TeacherClassSectionMapDto>>> teacherClassMap(@AuthenticationPrincipal CustomUserDetails userDetails) {
+	public ResponseEntity<ApiResponse<List<TeacherClassSectionMapDto>>> teacherClassMap(
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
 		UUID userId = userDetails.getId();
 
 		List<TeacherClassSectionMapDto> response = teacherService.teacherClassMapList(userId);
@@ -96,8 +99,5 @@ public class TeacherController {
 		return ResponseEntity.ok(ApiResponse.success("Teacher Class Map fetched successfully", response));
 
 	}
-	
-	
-	
-	
+
 }

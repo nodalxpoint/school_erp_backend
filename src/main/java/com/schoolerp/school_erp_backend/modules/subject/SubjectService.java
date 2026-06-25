@@ -57,6 +57,25 @@ public class SubjectService {
     @Autowired
     private AcademicSessionRepository academicSessionRepository;
 
+    public PagedResponse<SubjectResponseDto> filterSubjects(SubjectFilterRequest request) {
+        SchoolEntity school = validationHelperService.getSchool();
+
+        Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        Page<SubjectEntity> page = subjectRepository.findAll(SubjectSpecification.filter(request, school.getId()),
+                pageable);
+
+        List<SubjectResponseDto> dtoList = new ArrayList<>();
+
+        for (SubjectEntity subject : page.getContent()) {
+            dtoList.add(mapToDto(subject));
+        }
+        Page<SubjectResponseDto> dtoPage = new PageImpl<>(dtoList, page.getPageable(), page.getTotalElements());
+
+        return PagedResponse.fromPage(dtoPage, "Subjects fetched successfully");
+    }
+
     @Transactional
     public void addOrUpdateSubject(CreateSubjectDto request) {
         if (request.getSubjectId() != null && !request.getSubjectId().trim().isEmpty()) {
@@ -109,25 +128,6 @@ public class SubjectService {
             entity.setCode(null);
         }
         subjectRepository.save(entity);
-    }
-
-    public PagedResponse<SubjectResponseDto> filterSubjects(SubjectFilterRequest request) {
-        SchoolEntity school = validationHelperService.getSchool();
-
-        Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
-
-        Page<SubjectEntity> page = subjectRepository.findAll(SubjectSpecification.filter(request, school.getId()),
-                pageable);
-
-        List<SubjectResponseDto> dtoList = new ArrayList<>();
-
-        for (SubjectEntity subject : page.getContent()) {
-            dtoList.add(mapToDto(subject));
-        }
-        Page<SubjectResponseDto> dtoPage = new PageImpl<>(dtoList, page.getPageable(), page.getTotalElements());
-
-        return PagedResponse.fromPage(dtoPage, "Subjects fetched successfully");
     }
 
     private SubjectResponseDto mapToDto(SubjectEntity entity) {

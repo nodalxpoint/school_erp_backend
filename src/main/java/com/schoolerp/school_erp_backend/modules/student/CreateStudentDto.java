@@ -1,10 +1,12 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class CreateStudentDto {
 
 	private String studentId; // present = update, empty = create
+	private UUID parentId;
 
 	// student info
 	private String firstName;
@@ -173,5 +175,13 @@ public class CreateStudentDto {
 
 	public void setParentPassword(String parentPassword) {
 		this.parentPassword = parentPassword;
+	}
+
+	public UUID getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(UUID parentId) {
+		this.parentId = parentId;
 	}
 }

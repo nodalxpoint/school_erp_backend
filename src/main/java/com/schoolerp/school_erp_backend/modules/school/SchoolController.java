@@ -15,8 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
-import com.schoolerp.school_erp_backend.modules.student.StudentFilterRequest;
-import com.schoolerp.school_erp_backend.modules.student.StudentResponseDto;
 
 import jakarta.validation.Valid;
 
