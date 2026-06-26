@@ -8,6 +8,8 @@ import org.springframework.data.jpa.domain.Specification;
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
 
+import jakarta.persistence.criteria.Predicate;
+
 public class AttendanceSpecification {
 
 	private AttendanceSpecification() {
@@ -28,6 +30,7 @@ public class AttendanceSpecification {
 				.with(attendanceDateEqual(request.getAttendanceDate()))
 
 				.with(statusEqual(request.getStatus()))
+				.with(attendanceMonthYearEqual(request.getMonth(), request.getYear()))
 
 				.build();
 	}
@@ -52,7 +55,7 @@ public class AttendanceSpecification {
 
 		return (root, query, cb) -> {
 			if (studentId == null) return null;
-			return cb.equal(root.get("studentEntity").get("id"), studentId);
+			return cb.equal(root.get("student").get("id"), studentId);
 		}; 
 	}
 
@@ -73,5 +76,30 @@ public class AttendanceSpecification {
 	public static Specification<AttendanceEntity> statusEqual(String status) {
 
 		return (root, query, cb) -> FilterUtils.equal(cb, root, "status", status);
+	}
+	
+	public static Specification<AttendanceEntity> attendanceMonthYearEqual(Integer month, Integer year) {
+	    return (root, query, cb) -> {
+	        if (month == null && year == null) return null;
+
+	        Predicate predicate = cb.conjunction();
+
+	        if (month != null) {
+	            predicate = cb.and(predicate,
+	                cb.equal(
+	                    cb.function("date_part", Integer.class, 
+	                        cb.literal("month"), root.get("attendanceDate")), 
+	                    month));
+	        }
+	        if (year != null) {
+	            predicate = cb.and(predicate,
+	                cb.equal(
+	                    cb.function("date_part", Integer.class, 
+	                        cb.literal("year"), root.get("attendanceDate")), 
+	                    year));
+	        }
+
+	        return predicate;
+	    };
 	}
 }

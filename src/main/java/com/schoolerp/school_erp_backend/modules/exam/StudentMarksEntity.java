@@ -48,6 +48,15 @@ public class StudentMarksEntity {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "is_finalized", nullable = false)
+    private Boolean finalized = false;
+
+    @Column(name = "finalized_at")
+    private LocalDateTime finalizedAt;
+
+    @Column(name = "finalized_by")
+    private UUID finalizedBy;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
@@ -115,5 +124,29 @@ public class StudentMarksEntity {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getFinalized() {
+        return finalized;
+    }
+
+    public void setFinalized(Boolean finalized) {
+        this.finalized = finalized;
+    }
+
+    public LocalDateTime getFinalizedAt() {
+        return finalizedAt;
+    }
+
+    public void setFinalizedAt(LocalDateTime finalizedAt) {
+        this.finalizedAt = finalizedAt;
+    }
+
+    public UUID getFinalizedBy() {
+        return finalizedBy;
+    }
+
+    public void setFinalizedBy(UUID finalizedBy) {
+        this.finalizedBy = finalizedBy;
     }
 }

@@ -25,6 +25,8 @@ import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.student.ParentEntity;
+import com.schoolerp.school_erp_backend.modules.student.ParentResponseDto;
 import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
 import com.schoolerp.school_erp_backend.modules.student.StudentRepository;
 import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentEntity;
@@ -35,6 +37,7 @@ import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
 
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
@@ -171,14 +174,32 @@ public class AttendanceService {
 	// GET attendance for a day
 	public PagedResponse<AttendanceResponseDto> filterAttendance(AttendanceFilterRequest request) {
 
-		Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+		Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), "attendanceDate");
 
 		Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
 		Page<AttendanceEntity> attendancePage = attendanceRepository.findAll(AttendanceSpecification.filter(request),
 				pageable);
 
-		Page<AttendanceResponseDto> dtoPage = attendancePage.map(this::mapToDto);
+//		Page<AttendanceResponseDto> dtoPage = attendancePage.map(this::mapToDto);
+		
+		 List<AttendanceResponseDto> dtoList = new ArrayList<>();
+		 
+		int i = 0;
+		for (AttendanceEntity attendance : attendancePage.getContent()) {
+			
+			AttendanceEntity element = attendancePage.getContent().get(i);
+			
+			LOGGER.debug("attendance date comming from db: {}", element.getAttendanceDate());
+			LOGGER.debug("status comming from db: {}", element.getStatus());
+			
+			
+			
+			dtoList.add(mapToDto(attendance));
+			
+        }
+		
+		Page<AttendanceResponseDto> dtoPage = new PageImpl<>(dtoList, attendancePage.getPageable(), attendancePage.getTotalElements());
 
 		return PagedResponse.fromPage(dtoPage, "Attendance fetched successfully");
 	}

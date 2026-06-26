@@ -6,6 +6,7 @@ import com.schoolerp.school_erp_backend.common.filters.BaseFilterRequest;
 
 public class ExamMarksFilterRequest extends BaseFilterRequest {
 
+	private UUID id;
     private UUID examId;
     private UUID studentId;
     private UUID examSubjectId;
@@ -13,7 +14,20 @@ public class ExamMarksFilterRequest extends BaseFilterRequest {
     private UUID sectionId;
     private UUID academicSessionId;
 
-    public void setExamId(UUID examId) {
+    
+    
+    
+    
+    
+    public UUID getId() {
+		return id;
+	}
+
+	public void setId(UUID id) {
+		this.id = id;
+	}
+
+	public void setExamId(UUID examId) {
         this.examId = examId;
     }
 

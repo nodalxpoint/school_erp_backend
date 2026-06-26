@@ -25,11 +25,15 @@ public class ParentSpecification {
     }
 
     public static Specification<ParentEntity> nameLike(String name) {
-        return (root, query, criteriaBuilder) -> {
-            if (name == null || name.trim().isEmpty()) {
+        return (root, query, cb) -> {
+            if (name == null || name.trim().isEmpty())
                 return null;
-            }
-            return criteriaBuilder.like(root.get("name"), "%" + name.trim() + "%    ");
+
+            String keyword = "%" + name.trim().toLowerCase() + "%";
+
+            return cb.like(
+                    cb.lower(root.get("fatherName")),
+                    keyword);
         };
     }
 

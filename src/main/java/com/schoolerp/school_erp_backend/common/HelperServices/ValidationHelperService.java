@@ -2,8 +2,10 @@ package com.schoolerp.school_erp_backend.common.HelperServices;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
@@ -25,8 +27,6 @@ import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentRe
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
 import com.schoolerp.school_erp_backend.modules.timetable.TeacherTImeTableRepository;
-import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableEntity;
-import com.schoolerp.school_erp_backend.modules.timetable.TimetableDto;
 
 @Component
 public class ValidationHelperService {
@@ -185,9 +185,13 @@ public class ValidationHelperService {
 		}
 	}
 
-	public void validateExamSubject(UUID examSubjectId) {
-		examsubjectRepository.findById(examSubjectId)
-				.orElseThrow(() -> new ResourceNotFoundException("Exam Subject not found"));
+
+	public boolean isAdmin() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		return auth != null &&
+				auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(CommonConstants.SCHOOL_ADMIN) ||
+						a.getAuthority().equals(CommonConstants.SUPER_ADMIN));
 	}
 
 }

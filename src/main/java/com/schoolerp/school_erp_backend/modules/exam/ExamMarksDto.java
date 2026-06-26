@@ -18,8 +18,16 @@ public class ExamMarksDto {
     private UUID examId;
     
     private UUID academicSessionId;
+    
+    private String subjectName;
+    private String examName;
+ 
+    
+    
 
-    public UUID getId() {
+
+
+	public UUID getId() {
         return id;
     }
 
@@ -57,6 +65,22 @@ public class ExamMarksDto {
 
 	public void setRecords(List<StudentMarkDto> records) {
 		this.records = records;
+	}
+
+	public String getSubjectName() {
+		return subjectName;
+	}
+
+	public void setSubjectName(String subjectName) {
+		this.subjectName = subjectName;
+	}
+
+	public String getExamName() {
+		return examName;
+	}
+
+	public void setExamName(String examName) {
+		this.examName = examName;
 	}
 
 	

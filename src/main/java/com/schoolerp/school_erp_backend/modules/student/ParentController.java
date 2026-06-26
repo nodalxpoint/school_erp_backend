@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.common.security.CustomUserDetails;
-import com.schoolerp.school_erp_backend.modules.teacher.TeacherClassSectionMapDto;
 
 @RestController
 @RequestMapping("/api/parent")
@@ -27,12 +26,13 @@ public class ParentController {
     private ParentService parentService;
 
     @PostMapping("/list")
-    public ApiResponse<PagedResponse<ParentResponseDto>> filterParents(@RequestBody ParentFilterRequest request) {
+    public ResponseEntity<ApiResponse<PagedResponse<ParentResponseDto>>> filterParents(
+            @RequestBody ParentFilterRequest request) {
         LOGGER.info("Received request in /list | request={}", request);
 
         PagedResponse<ParentResponseDto> response = parentService.filterParents(request);
 
-        return ApiResponse.success("filtered parent successfully", response);
+        return ResponseEntity.ok(ApiResponse.success("filtered parent successfully", response));
     }
 
     @PostMapping("/myChildren")

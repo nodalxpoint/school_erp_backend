@@ -13,6 +13,8 @@ public class AttendanceFilterRequest extends BaseFilterRequest {
 	private UUID academicSessionId;
 	private LocalDate attendanceDate;
 	private String status;
+	private Integer month;
+	private Integer year;
 
 	public UUID getClassId() {
 		return classId;
@@ -61,4 +63,22 @@ public class AttendanceFilterRequest extends BaseFilterRequest {
 	public void setStatus(String status) {
 		this.status = status;
 	}
+
+	public Integer getMonth() {
+		return month;
+	}
+
+	public void setMonth(Integer month) {
+		this.month = month;
+	}
+
+	public Integer getYear() {
+		return year;
+	}
+
+	public void setYear(Integer year) {
+		this.year = year;
+	}
+	
+	
 }

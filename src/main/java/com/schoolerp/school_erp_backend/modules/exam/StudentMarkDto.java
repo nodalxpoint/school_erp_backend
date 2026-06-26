@@ -11,6 +11,29 @@ public class StudentMarkDto {
 	private BigDecimal marksObtained;
 	
 	private String remarks;
+	
+	private String studentName;
+	
+	   private String className;
+	    private String sectionName;
+	
+	
+
+	public String getClassName() {
+			return className;
+		}
+
+		public void setClassName(String className) {
+			this.className = className;
+		}
+
+		public String getSectionName() {
+			return sectionName;
+		}
+
+		public void setSectionName(String sectinName) {
+			this.sectionName = sectinName;
+		}
 
 	public UUID getStudentId() {
 		return studentId;
@@ -34,6 +57,14 @@ public class StudentMarkDto {
 
 	public void setRemarks(String remarks) {
 		this.remarks = remarks;
+	}
+
+	public String getStudentName() {
+		return studentName;
+	}
+
+	public void setStudentName(String studentName) {
+		this.studentName = studentName;
 	}
 	
 	
