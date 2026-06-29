@@ -3,10 +3,17 @@ package com.schoolerp.school_erp_backend.modules.subject;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
+import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -18,17 +25,21 @@ public class SubjectTeacherAssignmentEntity {
     @GeneratedValue
     private UUID id;
 
-    @Column(name = "teacher_id", nullable = false)
-    private UUID teacherId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id", nullable = false)  // ✅
+    private TeacherEntity teacher;
 
-    @Column(name = "subject_id", nullable = false)
-    private UUID subjectId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id", nullable = false)
+    private SubjectEntity subject;
 
-    @Column(name = "class_id", nullable = false)
-    private UUID classId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id", nullable = false)
+    private ClassesEntity classes;
 
-    @Column(name = "section_id", nullable = false)
-    private UUID sectionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "section_id", nullable = false)  // ✅
+    private SectionEntity section;
 
     @Column(name = "academic_session_id", nullable = false)
     private UUID academicSessionId;
@@ -41,59 +52,64 @@ public class SubjectTeacherAssignmentEntity {
         this.createdAt = LocalDateTime.now();
     }
 
-    public UUID getId() {
-        return id;
-    }
+	public UUID getId() {
+		return id;
+	}
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+	public void setId(UUID id) {
+		this.id = id;
+	}
 
-    public UUID getTeacherId() {
-        return teacherId;
-    }
+	public TeacherEntity getTeacher() {
+		return teacher;
+	}
 
-    public void setTeacherId(UUID teacherId) {
-        this.teacherId = teacherId;
-    }
+	public void setTeacher(TeacherEntity teacher) {
+		this.teacher = teacher;
+	}
 
-    public UUID getSubjectId() {
-        return subjectId;
-    }
+	public SubjectEntity getSubject() {
+		return subject;
+	}
 
-    public void setSubjectId(UUID subjectId) {
-        this.subjectId = subjectId;
-    }
+	public void setSubject(SubjectEntity subject) {
+		this.subject = subject;
+	}
 
-    public UUID getClassId() {
-        return classId;
-    }
+	public ClassesEntity getClasses() {
+		return classes;
+	}
 
-    public void setClassId(UUID classId) {
-        this.classId = classId;
-    }
+	public void setClasses(ClassesEntity classes) {
+		this.classes = classes;
+	}
 
-    public UUID getSectionId() {
-        return sectionId;
-    }
+	public SectionEntity getSection() {
+		return section;
+	}
 
-    public void setSectionId(UUID sectionId) {
-        this.sectionId = sectionId;
-    }
+	public void setSection(SectionEntity section) {
+		this.section = section;
+	}
 
-    public UUID getAcademicSessionId() {
-        return academicSessionId;
-    }
+	public UUID getAcademicSessionId() {
+		return academicSessionId;
+	}
 
-    public void setAcademicSessionId(UUID academicSessionId) {
-        this.academicSessionId = academicSessionId;
-    }
+	public void setAcademicSessionId(UUID academicSessionId) {
+		this.academicSessionId = academicSessionId;
+	}
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+    
+    
+    
+	
 }

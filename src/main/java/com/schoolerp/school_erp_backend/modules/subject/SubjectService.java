@@ -19,6 +19,7 @@ import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperSe
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+import com.schoolerp.school_erp_backend.common.security.CustomUserDetails;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
@@ -140,14 +141,27 @@ public class SubjectService {
     }
 
     public PagedResponse<SubjectTeacherAssignmentResponseDto> filterSubjectTeacherAssignments(
-            SubjectTeacherAssignmentFilterRequest request) {
+            SubjectTeacherAssignmentFilterRequest request,CustomUserDetails userDetails) {
+    	
+    	
+    	UUID teacherId = request.getTeacherId();
+
+    	LOGGER.debug(" teacherId: {}", teacherId);
+
+    	if (teacherId == null) {
+    	    teacherId = teacherRepository.findByUserId(userDetails.getId())
+    	            .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"))
+    	            .getId();
+    	}
+    	LOGGER.debug(" teacherId: {}", teacherId);
 
         Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Page<SubjectTeacherAssignmentEntity> page = assignmentRepository
-                .findAll(SubjectTeacherAssignmentSpecification.filter(request), pageable);
+                .findAll(SubjectTeacherAssignmentSpecification.filter(request,teacherId), pageable);
 
+       
         Page<SubjectTeacherAssignmentResponseDto> dtoPage = page
                 .map(assignment -> mapToSubjectTeacherAssignmentDto(assignment));
 
@@ -160,52 +174,39 @@ public class SubjectService {
         SubjectTeacherAssignmentResponseDto dto = new SubjectTeacherAssignmentResponseDto();
 
         dto.setId(assignment.getId());
-        dto.setClassId(assignment.getClassId());
-        dto.setSectionId(assignment.getSectionId());
-        dto.setTeacherId(assignment.getTeacherId());
-        dto.setSubjectId(assignment.getSubjectId());
+        dto.setClassId(assignment.getClasses().getId());       
+        dto.setSectionId(assignment.getSection().getId());     
+        dto.setTeacherId(assignment.getTeacher().getId());     
+        dto.setSubjectId(assignment.getSubject().getId());     
         dto.setAcademicSessionId(assignment.getAcademicSessionId());
         dto.setCreatedAt(assignment.getCreatedAt());
-
-        // -------- CLASS --------
-        ClassesEntity classEntity = classesRepository.findById(assignment.getClassId()).orElse(null);
+        
+        ClassesEntity classEntity = assignment.getClasses();
         if (classEntity != null) {
             dto.setClassName(classEntity.getClassName());
-        }
-
-        // -------- SECTION --------
-        SectionEntity sectionEntity = sectionRepository.findById(assignment.getSectionId()).orElse(null);
+        }      
+        SectionEntity sectionEntity = assignment.getSection();
         if (sectionEntity != null) {
             dto.setSectionName(sectionEntity.getSectionName());
-        }
-
-        // -------- SUBJECT --------
-        SubjectEntity subject = subjectRepository.findById(assignment.getSubjectId()).orElse(null);
+        }      
+        SubjectEntity subject = assignment.getSubject();
         if (subject != null) {
             dto.setSubjectName(subject.getName());
         }
-
-        // -------- ACADEMIC SESSION --------
-        AcademicSessionEntity session = academicSessionRepository.findById(assignment.getAcademicSessionId())
+        AcademicSessionEntity session = academicSessionRepository
+                .findById(assignment.getAcademicSessionId())
                 .orElse(null);
         if (session != null) {
             dto.setAcademicSessionName(session.getSessionName());
         }
-
-        // -------- TEACHER --------
-        TeacherEntity teacher = teacherRepository.findById(assignment.getTeacherId()).orElse(null);
+        
+        TeacherEntity teacher = assignment.getTeacher();
         if (teacher != null && teacher.getUser() != null) {
-
             String firstName = teacher.getUser().getFirstName();
             String lastName = teacher.getUser().getLastName();
-
-            if (lastName != null) {
-                dto.setTeacherName(firstName + " " + lastName);
-            } else {
-                dto.setTeacherName(firstName);
-            }
+            dto.setTeacherName(lastName != null ? firstName + " " + lastName : firstName);
         }
-
+        
         return dto;
     }
 
@@ -227,21 +228,33 @@ public class SubjectService {
         validationHelperService.validateAcademicSession(academicSessionId);
 
         Optional<SubjectTeacherAssignmentEntity> existing = assignmentRepository
-                .findBySubjectIdAndClassIdAndSectionIdAndAcademicSessionId(subjectId, classId, sectionId,
+                .findBySubject_IdAndClasses_IdAndSection_IdAndAcademicSessionId(subjectId, classId, sectionId,
                         academicSessionId);
 
         if (existing.isPresent()) {
             LOGGER.debug("Updating existing subject teacher assignment");
             SubjectTeacherAssignmentEntity entity = existing.get();
-            entity.setTeacherId(teacherId);
+            TeacherEntity teacher = teacherRepository.findById(teacherId)
+                    .orElseThrow(() -> new RuntimeException("Teacher not found"));
+            entity.setTeacher(teacher);
             assignmentRepository.save(entity);
         } else {
             LOGGER.debug("Creating new subject teacher assignment");
+            TeacherEntity teacher = teacherRepository.findById(teacherId)
+                    .orElseThrow(() -> new RuntimeException("Teacher not found"));
+            SubjectEntity subject = subjectRepository.findById(subjectId)
+                    .orElseThrow(() -> new RuntimeException("Subject not found"));
+            ClassesEntity classes = classesRepository.findById(classId)
+                    .orElseThrow(() -> new RuntimeException("Class not found"));
+            SectionEntity section = sectionRepository.findById(sectionId)
+                    .orElseThrow(() -> new RuntimeException("Section not found"));
+            
+            
             SubjectTeacherAssignmentEntity entity = new SubjectTeacherAssignmentEntity();
-            entity.setTeacherId(teacherId);
-            entity.setSubjectId(subjectId);
-            entity.setClassId(classId);
-            entity.setSectionId(sectionId);
+            entity.setTeacher(teacher);
+            entity.setSubject(subject);
+            entity.setClasses(classes);
+            entity.setSection(section);
             entity.setAcademicSessionId(academicSessionId);
             assignmentRepository.save(entity);
         }

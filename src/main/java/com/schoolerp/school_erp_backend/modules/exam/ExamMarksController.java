@@ -33,7 +33,8 @@ public class ExamMarksController {
 	}
 
 	@PostMapping("/addOrUpdate")
-	public ResponseEntity<Void> addOrUpdateExamMarks(@RequestBody ExamMarksDto request ,@AuthenticationPrincipal CustomUserDetails userDetails) {
+	public ResponseEntity<Void> addOrUpdateExamMarks(@RequestBody ExamMarksDto request
+		,@AuthenticationPrincipal CustomUserDetails userDetails) {
         UUID userId = userDetails.getId();
 
 		LOGGER.debug("addOrUpdateExamMarks endpoint called");

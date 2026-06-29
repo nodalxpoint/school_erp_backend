@@ -10,9 +10,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SubjectTeacherAssignmentRepository extends JpaRepository<SubjectTeacherAssignmentEntity, UUID>, JpaSpecificationExecutor<SubjectTeacherAssignmentEntity> {
 
-    Optional<SubjectTeacherAssignmentEntity> findBySubjectIdAndClassIdAndSectionIdAndAcademicSessionId(
+    Optional<SubjectTeacherAssignmentEntity> findBySubject_IdAndClasses_IdAndSection_IdAndAcademicSessionId(
             UUID subjectId, UUID classId, UUID sectionId, UUID academicSessionId);
 
-    boolean existsBySubjectIdAndClassIdAndSectionIdAndAcademicSessionId(
+    boolean existsBySubject_IdAndClasses_IdAndSection_IdAndAcademicSessionId(
             UUID subjectId, UUID classId, UUID sectionId, UUID academicSessionId);
 }
