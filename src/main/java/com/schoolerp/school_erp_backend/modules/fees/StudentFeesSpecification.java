@@ -6,6 +6,10 @@ import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.modules.student.StudentEnrollmentEntity;
+
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 public class StudentFeesSpecification {
 
@@ -23,6 +27,8 @@ public class StudentFeesSpecification {
                 .with(paymentStatusEqual(request.getPaymentStatus()))
                 .with(dueDateFrom(request.getDueDateFrom()))
                 .with(dueDateTo(request.getDueDateTo()))
+                .with(classEqual(request.getClassId()))
+                .with(sectionEqual(request.getSectionId()))
                 .build();
     }
 
@@ -73,10 +79,16 @@ public class StudentFeesSpecification {
 
     public static Specification<StudentFeeEntity> paymentStatusEqual(String paymentStatus) {
         return (root, query, criteriaBuilder) -> {
-            if (paymentStatus == null) {
+            if (paymentStatus == null || paymentStatus.isBlank()) {
                 return null;
             }
-            return criteriaBuilder.equal(root.get("paymentStatus"), paymentStatus);
+            PaymentStatus status;
+            try {
+                status = PaymentStatus.valueOf(paymentStatus.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return null; // unknown status — ignore filter
+            }
+            return criteriaBuilder.equal(root.get("paymentStatus"), status);
         };
     }
 
@@ -95,6 +107,36 @@ public class StudentFeesSpecification {
                 return null;
             }
             return criteriaBuilder.lessThanOrEqualTo(root.get("dueDate"), to);
+        };
+    }
+
+    public static Specification<StudentFeeEntity> classEqual(UUID classId) {
+        return (root, query, criteriaBuilder) -> {
+            if (classId == null) {
+                return null;
+            }
+            Subquery<UUID> subquery = query.subquery(UUID.class);
+            Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
+
+            subquery.select(enrollment.get("studentEntity").get("id"))
+                    .where(criteriaBuilder.equal(enrollment.get("classEntity").get("id"), classId));
+
+            return root.get("student").get("id").in(subquery);
+        };
+    }
+
+    public static Specification<StudentFeeEntity> sectionEqual(UUID sectionId) {
+        return (root, query, criteriaBuilder) -> {
+            if (sectionId == null) {
+                return null;
+            }
+            Subquery<UUID> subquery = query.subquery(UUID.class);
+            Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
+
+            subquery.select(enrollment.get("studentEntity").get("id"))
+                    .where(criteriaBuilder.equal(enrollment.get("sectionEntity").get("id"), sectionId));
+
+            return root.get("student").get("id").in(subquery);
         };
     }
 

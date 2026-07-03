@@ -7,6 +7,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface StudentFeeRepository extends JpaRepository<StudentFeeEntity, UUID>, JpaSpecificationExecutor<StudentFeeEntity> {
+public interface StudentFeeRepository
+        extends JpaRepository<StudentFeeEntity, UUID>, JpaSpecificationExecutor<StudentFeeEntity> {
+
+    boolean existsByStudent_IdAndFeeStructure_IdAndFeeMonthAndFeeYear(
+            UUID studentId, UUID feeStructureId, Integer feeMonth, Integer feeYear);
 
 }

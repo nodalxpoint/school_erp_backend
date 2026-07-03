@@ -110,15 +110,12 @@ public class AttendanceService {
 
 	private AttendanceEntity buildNewEntity(UUID studentId, UUID classId,
 			UUID sectionId, UUID sessionId, LocalDate date) {
-		AttendanceEntity attendanceEntity  = new AttendanceEntity();
-		
-				
-		StudentEntity student = studentRepository.findById(studentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));	
+		AttendanceEntity attendanceEntity = new AttendanceEntity();
 
+		StudentEntity student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
 
 		attendanceEntity.setStudentEntity(student);
-
 
 		ClassesEntity classEntity = classesRepository.findById(classId)
 				.orElseThrow(() -> new ResourceNotFoundException("Class not found with id: " + classId));
@@ -131,8 +128,6 @@ public class AttendanceService {
 
 		attendanceEntity.setSectionEntity(sectionEntity);
 
-
-
 		attendanceEntity.setAcademicSessionId(sessionId);
 		attendanceEntity.setAttendanceDate(date);
 		return attendanceEntity;
@@ -144,9 +139,10 @@ public class AttendanceService {
 
 		boolean isAdmin = roleEnum == UserRole.SCHOOL_ADMIN || roleEnum == UserRole.SUPER_ADMIN;
 
-		boolean attendanceAlreadyTaken = attendanceRepository.existsByClassEntity_IdAndSectionEntity_IdAndAttendanceDate(
-				UUID.fromString(requestDTO.getClassId()), UUID.fromString(requestDTO.getSectionId()),
-				requestDTO.getAttendanceDate());
+		boolean attendanceAlreadyTaken = attendanceRepository
+				.existsByClassEntity_IdAndSectionEntity_IdAndAttendanceDate(
+						UUID.fromString(requestDTO.getClassId()), UUID.fromString(requestDTO.getSectionId()),
+						requestDTO.getAttendanceDate());
 
 		if (!isAdmin && attendanceAlreadyTaken) {
 			throw new ValidationException(
@@ -181,25 +177,24 @@ public class AttendanceService {
 		Page<AttendanceEntity> attendancePage = attendanceRepository.findAll(AttendanceSpecification.filter(request),
 				pageable);
 
-//		Page<AttendanceResponseDto> dtoPage = attendancePage.map(this::mapToDto);
-		
-		 List<AttendanceResponseDto> dtoList = new ArrayList<>();
-		 
+		// Page<AttendanceResponseDto> dtoPage = attendancePage.map(this::mapToDto);
+
+		List<AttendanceResponseDto> dtoList = new ArrayList<>();
+
 		int i = 0;
 		for (AttendanceEntity attendance : attendancePage.getContent()) {
-			
+
 			AttendanceEntity element = attendancePage.getContent().get(i);
-			
+
 			LOGGER.debug("attendance date comming from db: {}", element.getAttendanceDate());
 			LOGGER.debug("status comming from db: {}", element.getStatus());
-			
-			
-			
+
 			dtoList.add(mapToDto(attendance));
-			
-        }
-		
-		Page<AttendanceResponseDto> dtoPage = new PageImpl<>(dtoList, attendancePage.getPageable(), attendancePage.getTotalElements());
+
+		}
+
+		Page<AttendanceResponseDto> dtoPage = new PageImpl<>(dtoList, attendancePage.getPageable(),
+				attendancePage.getTotalElements());
 
 		return PagedResponse.fromPage(dtoPage, "Attendance fetched successfully");
 	}
@@ -298,7 +293,8 @@ public class AttendanceService {
 		SectionEntity sectionEntity = sectionRepository.findById(assignment.getSectionId())
 				.orElseThrow(() -> new ResourceNotFoundException("Section not found"));
 
-		boolean exists = attendanceRepository.existsByClassEntity_IdAndSectionEntity_IdAndAttendanceDate(assignment.getClassId(),
+		boolean exists = attendanceRepository.existsByClassEntity_IdAndSectionEntity_IdAndAttendanceDate(
+				assignment.getClassId(),
 				assignment.getSectionId(), LocalDate.now());
 
 		dto.setTeacherId(teacher.getId());
@@ -312,5 +308,5 @@ public class AttendanceService {
 
 		return dto;
 	}
-	
+
 }

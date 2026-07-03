@@ -11,6 +11,8 @@ import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,16 +20,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "student_fees")
+@Table(name = "student_fees", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_student_fee_structure_month_year", columnNames = { "student_id",
+                "fee_structure_id", "fee_month", "fee_year" })
+})
 public class StudentFeeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id", nullable = false)
     private SchoolEntity school;
@@ -40,6 +47,9 @@ public class StudentFeeEntity {
     @JoinColumn(name = "academic_session_id", nullable = false)
     private AcademicSessionEntity academicSession;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fee_structure_id")
+    private FeeStructureEntity feeStructure;
 
     @Column(name = "fee_month", nullable = false)
     private Integer feeMonth;
@@ -47,14 +57,20 @@ public class StudentFeeEntity {
     @Column(name = "fee_year", nullable = false)
     private Integer feeYear;
 
+    @Column(name = "paid_amount", precision = 10, scale = 2)
+    private BigDecimal paidAmount;
+
+    // Fee structure ka amount snapshot (record banate waqt fix ho jaata hai)
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
+
 
     @Column(name = "due_date")
     private LocalDate dueDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", length = 20)
-    private String paymentStatus = "PENDING";
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
@@ -65,12 +81,20 @@ public class StudentFeeEntity {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
         if (this.paymentStatus == null) {
-            this.paymentStatus = "PENDING";
+            this.paymentStatus = PaymentStatus.PENDING;
         }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     // ─── Getters & Setters ────────────────────────────────────────────────────
@@ -99,8 +123,6 @@ public class StudentFeeEntity {
         this.academicSession = academicSession;
     }
 
-  
-
     public Integer getFeeMonth() {
         return feeMonth;
     }
@@ -117,14 +139,6 @@ public class StudentFeeEntity {
         this.feeYear = feeYear;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
     public LocalDate getDueDate() {
         return dueDate;
     }
@@ -133,12 +147,28 @@ public class StudentFeeEntity {
         this.dueDate = dueDate;
     }
 
-    public String getPaymentStatus() {
+    public PaymentStatus getPaymentStatus() {
         return paymentStatus;
     }
 
-    public void setPaymentStatus(String paymentStatus) {
+    public void setPaymentStatus(PaymentStatus paymentStatus) {
         this.paymentStatus = paymentStatus;
+    }
+
+    public BigDecimal getPaidAmount() {
+        return paidAmount;
+    }
+
+    public void setPaidAmount(BigDecimal paidAmount) {
+        this.paidAmount = paidAmount;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 
     public LocalDateTime getPaidAt() {
@@ -165,16 +195,28 @@ public class StudentFeeEntity {
         this.createdAt = createdAt;
     }
 
-	public SchoolEntity getSchool() {
-		return school;
-	}
+    public SchoolEntity getSchool() {
+        return school;
+    }
 
-	public void setSchool(SchoolEntity school) {
-		this.school = school;
-	}
+    public void setSchool(SchoolEntity school) {
+        this.school = school;
+    }
 
-	
-    
-    
-    
+    public FeeStructureEntity getFeeStructure() {
+        return feeStructure;
+    }
+
+    public void setFeeStructure(FeeStructureEntity feeStructure) {
+        this.feeStructure = feeStructure;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
 }

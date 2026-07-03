@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import jakarta.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,11 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/api/studentFees")
 public class StudentFeeController {
 
-    private final StudentFeesService studentFeesService;
-
-    public StudentFeeController(StudentFeesService studentFeesService) {
-        this.studentFeesService = studentFeesService;
-    }
+    @Autowired
+    private StudentFeesService studentFeesService;
 
     @PostMapping("/addOrUpdate")
     public ResponseEntity<ApiResponse<String>> addOrUpdateFee(@Valid @RequestBody StudentFeeDto request) {

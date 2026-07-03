@@ -1,7 +1,5 @@
 package com.schoolerp.school_erp_backend.modules.auth;
 
-
-
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -13,50 +11,50 @@ import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 @Table(name = "users")
 public class User {
 
-    @Id
-    @GeneratedValue
-    private UUID id;
-    
-    @Column(name = "first_name", nullable = false, length = 100)
-    private String firstName;
+	@Id
+	@GeneratedValue
+	private UUID id;
 
-    @Column(name = "last_name", length = 100)
-    private String lastName;
+	@Column(name = "first_name", nullable = false, length = 100)
+	private String firstName;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+	@Column(name = "last_name", length = 100)
+	private String lastName;
 
-    @Column(name = "password_hash",nullable = false)
-    private String password;
+	@Column(nullable = false, unique = true)
+	private String email;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role;	
-    
-    @ManyToOne
-    @JoinColumn(name = "school_id", nullable = false)
-    private SchoolEntity school;
+	@Column(name = "password_hash", nullable = false)
+	private String password;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private UserRole role;
+
+	@ManyToOne
+	@JoinColumn(name = "school_id", nullable = false)
+	private SchoolEntity school;
 
 	@Column(nullable = false)
-    private Boolean isActive = true;
+	private Boolean isActive = true;
 
-    private LocalDateTime createdAt;
+	private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
-    
-    @Column(name = "phone",unique = true)
-    private String phoneNumber;
+	private LocalDateTime updatedAt;
 
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
+	@Column(name = "phone", unique = true)
+	private String phoneNumber;
 
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+	@PrePersist
+	public void prePersist() {
+		this.createdAt = LocalDateTime.now();
+		this.updatedAt = LocalDateTime.now();
+	}
+
+	@PreUpdate
+	public void preUpdate() {
+		this.updatedAt = LocalDateTime.now();
+	}
 
 	public UUID getId() {
 		return id;
@@ -113,7 +111,7 @@ public class User {
 	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-	
+
 	public SchoolEntity getSchool() {
 		return school;
 	}
@@ -137,7 +135,6 @@ public class User {
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
-	
 
 	public String getPhoneNumber() {
 		return phoneNumber;
@@ -152,5 +149,5 @@ public class User {
 		return "User [id=" + id + ", email=" + email + ", password=" + password + ", role=" + role + ", isActive="
 				+ isActive + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + "]";
 	}
-	    
+
 }

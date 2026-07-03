@@ -27,6 +27,7 @@ import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.auth.UserRole;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
 
@@ -141,27 +142,25 @@ public class SubjectService {
     }
 
     public PagedResponse<SubjectTeacherAssignmentResponseDto> filterSubjectTeacherAssignments(
-            SubjectTeacherAssignmentFilterRequest request,CustomUserDetails userDetails) {
-    	
-    	
-    	UUID teacherId = request.getTeacherId();
+            SubjectTeacherAssignmentFilterRequest request, CustomUserDetails userDetails) {
 
-    	LOGGER.debug(" teacherId: {}", teacherId);
+        UUID teacherId = request.getTeacherId();
 
-    	if (teacherId == null) {
-    	    teacherId = teacherRepository.findByUserId(userDetails.getId())
-    	            .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"))
-    	            .getId();
-    	}
-    	LOGGER.debug(" teacherId: {}", teacherId);
+        LOGGER.debug(" teacherId from request: {}", teacherId);
+
+        if (userDetails.getRole().equals(UserRole.TEACHER.name())) {
+            teacherId = teacherRepository.findByUserId(userDetails.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"))
+                    .getId();
+        }
+        LOGGER.debug(" resolved teacherId: {}", teacherId);
 
         Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Page<SubjectTeacherAssignmentEntity> page = assignmentRepository
-                .findAll(SubjectTeacherAssignmentSpecification.filter(request,teacherId), pageable);
+                .findAll(SubjectTeacherAssignmentSpecification.filter(request, teacherId), pageable);
 
-       
         Page<SubjectTeacherAssignmentResponseDto> dtoPage = page
                 .map(assignment -> mapToSubjectTeacherAssignmentDto(assignment));
 
@@ -174,21 +173,21 @@ public class SubjectService {
         SubjectTeacherAssignmentResponseDto dto = new SubjectTeacherAssignmentResponseDto();
 
         dto.setId(assignment.getId());
-        dto.setClassId(assignment.getClasses().getId());       
-        dto.setSectionId(assignment.getSection().getId());     
-        dto.setTeacherId(assignment.getTeacher().getId());     
-        dto.setSubjectId(assignment.getSubject().getId());     
+        dto.setClassId(assignment.getClasses().getId());
+        dto.setSectionId(assignment.getSection().getId());
+        dto.setTeacherId(assignment.getTeacher().getId());
+        dto.setSubjectId(assignment.getSubject().getId());
         dto.setAcademicSessionId(assignment.getAcademicSessionId());
         dto.setCreatedAt(assignment.getCreatedAt());
-        
+
         ClassesEntity classEntity = assignment.getClasses();
         if (classEntity != null) {
             dto.setClassName(classEntity.getClassName());
-        }      
+        }
         SectionEntity sectionEntity = assignment.getSection();
         if (sectionEntity != null) {
             dto.setSectionName(sectionEntity.getSectionName());
-        }      
+        }
         SubjectEntity subject = assignment.getSubject();
         if (subject != null) {
             dto.setSubjectName(subject.getName());
@@ -199,14 +198,14 @@ public class SubjectService {
         if (session != null) {
             dto.setAcademicSessionName(session.getSessionName());
         }
-        
+
         TeacherEntity teacher = assignment.getTeacher();
         if (teacher != null && teacher.getUser() != null) {
             String firstName = teacher.getUser().getFirstName();
             String lastName = teacher.getUser().getLastName();
             dto.setTeacherName(lastName != null ? firstName + " " + lastName : firstName);
         }
-        
+
         return dto;
     }
 
@@ -248,8 +247,7 @@ public class SubjectService {
                     .orElseThrow(() -> new RuntimeException("Class not found"));
             SectionEntity section = sectionRepository.findById(sectionId)
                     .orElseThrow(() -> new RuntimeException("Section not found"));
-            
-            
+
             SubjectTeacherAssignmentEntity entity = new SubjectTeacherAssignmentEntity();
             entity.setTeacher(teacher);
             entity.setSubject(subject);

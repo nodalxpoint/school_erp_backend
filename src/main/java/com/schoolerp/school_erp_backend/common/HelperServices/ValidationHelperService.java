@@ -185,7 +185,6 @@ public class ValidationHelperService {
 		}
 	}
 
-
 	public boolean isAdmin() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 

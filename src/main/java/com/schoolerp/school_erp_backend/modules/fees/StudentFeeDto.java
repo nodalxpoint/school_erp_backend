@@ -5,8 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
-
 public class StudentFeeDto {
 
 	private UUID id;
@@ -19,23 +17,33 @@ public class StudentFeeDto {
 
 	private UUID academicSessionId;
 
-	private AcademicSessionEntity academicSession;
+	private UUID feeStructureId;
+
+	private String feeStructureName;
 
 	private Integer feeMonth;
 
 	private Integer feeYear;
 
-	private BigDecimal amount;
+	private BigDecimal paidAmount;
+
+	private BigDecimal totalAmount; // Fee structure se aata hai (kitni fee lagni thi)
 
 	private LocalDate dueDate;
 
-	private String paymentStatus; // "PENDING", "PAID", "PARTIAL"
+	private PaymentStatus paymentStatus; // PENDING, PAID, PARTIAL, WAIVED
 
 	private LocalDateTime paidAt;
 
 	private String remarks;
 
 	private LocalDateTime createdAt;
+
+	private LocalDateTime updatedAt;
+
+	private String classId;
+
+	private String sectionId;
 
 	public UUID getId() {
 		return id;
@@ -77,14 +85,6 @@ public class StudentFeeDto {
 		this.academicSessionId = academicSessionId;
 	}
 
-	public AcademicSessionEntity getAcademicSession() {
-		return academicSession;
-	}
-
-	public void setAcademicSession(AcademicSessionEntity academicSession) {
-		this.academicSession = academicSession;
-	}
-
 	public Integer getFeeMonth() {
 		return feeMonth;
 	}
@@ -101,12 +101,20 @@ public class StudentFeeDto {
 		this.feeYear = feeYear;
 	}
 
-	public BigDecimal getAmount() {
-		return amount;
+	public BigDecimal getPaidAmount() {
+		return paidAmount;
 	}
 
-	public void setAmount(BigDecimal amount) {
-		this.amount = amount;
+	public void setPaidAmount(BigDecimal paidAmount) {
+		this.paidAmount = paidAmount;
+	}
+
+	public BigDecimal getTotalAmount() {
+		return totalAmount;
+	}
+
+	public void setTotalAmount(BigDecimal totalAmount) {
+		this.totalAmount = totalAmount;
 	}
 
 	public LocalDate getDueDate() {
@@ -117,11 +125,11 @@ public class StudentFeeDto {
 		this.dueDate = dueDate;
 	}
 
-	public String getPaymentStatus() {
+	public PaymentStatus getPaymentStatus() {
 		return paymentStatus;
 	}
 
-	public void setPaymentStatus(String paymentStatus) {
+	public void setPaymentStatus(PaymentStatus paymentStatus) {
 		this.paymentStatus = paymentStatus;
 	}
 
@@ -147,6 +155,46 @@ public class StudentFeeDto {
 
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	public UUID getFeeStructureId() {
+		return feeStructureId;
+	}
+
+	public void setFeeStructureId(UUID feeStructureId) {
+		this.feeStructureId = feeStructureId;
+	}
+
+	public String getFeeStructureName() {
+		return feeStructureName;
+	}
+
+	public void setFeeStructureName(String feeStructureName) {
+		this.feeStructureName = feeStructureName;
+	}
+
+	public String getClassId() {
+		return classId;
+	}
+
+	public void setClassId(String classId) {
+		this.classId = classId;
+	}
+
+	public String getSectionId() {
+		return sectionId;
+	}
+
+	public void setSectionId(String sectionId) {
+		this.sectionId = sectionId;
 	}
 
 }

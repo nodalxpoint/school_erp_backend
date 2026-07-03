@@ -23,6 +23,26 @@ public class StudentFeesFilterRequest extends BaseFilterRequest {
 
 	private Integer feeYear;
 
+	private UUID classId;
+
+	private UUID sectionId;
+
+	public UUID getClassId() {
+		return classId;
+	}
+
+	public void setClassId(UUID classId) {
+		this.classId = classId;
+	}
+
+	public UUID getSectionId() {
+		return sectionId;
+	}
+
+	public void setSectionId(UUID sectionId) {
+		this.sectionId = sectionId;
+	}
+
 	public UUID getStudentId() {
 		return studentId;
 	}

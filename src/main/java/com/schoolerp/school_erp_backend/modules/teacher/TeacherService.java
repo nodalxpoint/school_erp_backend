@@ -60,7 +60,7 @@ public class TeacherService {
 
 		Page<TeacherResponseDto> dtoPage = studentPage.map(teacher -> mapToDto(teacher));
 
-		return PagedResponse.fromPage(dtoPage, "Students fetched successfully");
+		return PagedResponse.fromPage(dtoPage, "Teachers fetched successfully");
 	}
 
 	public PagedResponse<ClassTeacherAssignmentResponseDto> filterClassTeacherAssignments(
@@ -254,15 +254,14 @@ public class TeacherService {
 		teacherRepo.save(teacher);
 
 	}
-	
+
 	public List<TeacherClassSectionMapDto> teacherClassMapList(UUID userId) {
 
 		TeacherEntity teacher = teacherRepo.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
-		
 
 		UUID teacherId = teacher.getId();
-		
+
 		return teacherTimetableRepo.findUniqueClassSectionsSubjectId(teacherId);
 	}
 
@@ -279,7 +278,8 @@ public class TeacherService {
 			dto.setFirstName(teacher.getUser().getFirstName());
 			dto.setLastName(teacher.getUser().getLastName());
 			dto.setEmail(teacher.getUser().getEmail());
-			dto.setPassword(teacher.getUser().getPassword());
+			// sending password ask to zoahib
+			// dto.setPassword(teacher.getUser().getPassword());
 		}
 
 		return dto;

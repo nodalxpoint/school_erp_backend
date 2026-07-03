@@ -46,18 +46,6 @@ public class AttendanceController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
-	// {
-	// "classId": "0d24d053-6cff-44ff-b9fe-7858f1561803",
-	// "sectionId": "1a2b3c4d-0000-0000-0000-000000000001",
-	// "academicSessionId": "5e6f7a8b-0000-0000-0000-000000000002",
-	// "attendanceDate": "2026-05-20",
-	// "records": [
-	// { "studentId": "aaa-...", "status": "PRESENT", "remarks": "" },
-	// { "studentId": "bbb-...", "status": "ABSENT", "remarks": "sick" },
-	// { "studentId": "ccc-...", "status": "LATE", "remarks": "10 min late" }
-	// ]
-	// }
-
 	// GET attendance for a day
 	@PostMapping("/list")
 	public ResponseEntity<PagedResponse<AttendanceResponseDto>> filterAttendance(

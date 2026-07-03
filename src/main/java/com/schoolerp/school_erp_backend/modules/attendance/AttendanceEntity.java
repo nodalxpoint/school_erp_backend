@@ -30,7 +30,6 @@ public class AttendanceEntity {
 	@JoinColumn(name = "student_id", nullable = false)
 	private StudentEntity student;
 
-
 	@Column(name = "academic_session_id", nullable = false)
 	private UUID academicSessionId;
 
@@ -56,6 +55,8 @@ public class AttendanceEntity {
 	@Column(name = "created_at")
 	private LocalDateTime createdAt;
 
+	private UUID submittedBy;
+
 	@PrePersist
 	public void prePersist() {
 		this.createdAt = LocalDateTime.now();
@@ -80,7 +81,8 @@ public class AttendanceEntity {
 
 	public UUID getAcademicSessionId() {
 		return academicSessionId;
-	}	
+	}
+
 	public void setAcademicSessionId(UUID academicSessionId) {
 		this.academicSessionId = academicSessionId;
 	}
@@ -139,5 +141,13 @@ public class AttendanceEntity {
 
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public UUID getSubmittedBy() {
+		return submittedBy;
+	}
+
+	public void setSubmittedBy(UUID submittedBy) {
+		this.submittedBy = submittedBy;
 	}
 }
