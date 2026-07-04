@@ -19,7 +19,6 @@ public class StudentFeesSpecification {
 
     public static Specification<StudentFeeEntity> filter(StudentFeesFilterRequest request) {
         return new SpecificationBuilder<StudentFeeEntity>()
-                .with(schoolEqual(request.getSchoolId()))
                 .with(studentEqual(request.getStudentId()))
                 .with(academicSessionEqual(request.getAcademicSessionId()))
                 .with(feeMonthEqual(request.getFeeMonth()))

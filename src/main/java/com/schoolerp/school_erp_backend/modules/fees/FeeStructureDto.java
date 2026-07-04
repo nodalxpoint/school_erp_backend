@@ -16,6 +16,7 @@ public class FeeStructureDto {
     private Frequency frequency;
     private LocalDate dueDate;
     private LocalDateTime createdAt;
+    private UUID academicSessionId;
 
     public UUID getId() {
         return id;
@@ -87,5 +88,13 @@ public class FeeStructureDto {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public UUID getAcademicSessionId() {
+        return academicSessionId;
+    }
+
+    public void setAcademicSessionId(UUID academicSessionId) {
+        this.academicSessionId = academicSessionId;
     }
 }

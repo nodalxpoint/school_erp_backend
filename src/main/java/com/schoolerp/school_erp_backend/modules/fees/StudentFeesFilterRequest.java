@@ -11,7 +11,7 @@ public class StudentFeesFilterRequest extends BaseFilterRequest {
 
 	private UUID academicSessionId;
 
-	private UUID schoolId;
+
 
 	private String paymentStatus;
 
@@ -59,13 +59,7 @@ public class StudentFeesFilterRequest extends BaseFilterRequest {
 		this.academicSessionId = academicSessionId;
 	}
 
-	public UUID getSchoolId() {
-		return schoolId;
-	}
 
-	public void setSchoolId(UUID schoolId) {
-		this.schoolId = schoolId;
-	}
 
 	public String getPaymentStatus() {
 		return paymentStatus;

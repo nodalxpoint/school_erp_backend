@@ -118,9 +118,8 @@ public class StudentService {
 
 		if (request.getParentId() != null) {
 
-			parent = parentRepository.findById(request.getParentId())
-					.orElseThrow(() -> new ResourceNotFoundException(
-							"Parent not found with id: " + request.getParentId()));
+			parent = parentRepository.findById(request.getParentId()).orElseThrow(
+					() -> new ResourceNotFoundException("Parent not found with id: " + request.getParentId()));
 
 		} else {
 
@@ -293,11 +292,14 @@ public class StudentService {
 				dto.setSectionId(enrollment.getSectionEntity().getId());
 				dto.setAcademicSessionId(enrollment.getAcademicSessionId());
 				dto.setRollNo(enrollment.getRollNo());
+				dto.setClassName(enrollment.getClassEntity().getClassName());
+				dto.setSectionName(enrollment.getSectionEntity().getSectionName());
+				dto.setFatherName(enrollment.getStudentEntity().getParent().getFatherName());
+				dto.setMotherName(enrollment.getStudentEntity().getParent().getMotherName());
+				dto.setGuardianName(enrollment.getStudentEntity().getParent().getUser().getFirstName() + " "
+						+ enrollment.getStudentEntity().getParent().getUser().getLastName());
+				dto.setEmergencyContact(enrollment.getStudentEntity().getParent().getEmergencyContact());
 
-				classesRepository.findById(enrollment.getClassEntity().getId())
-						.ifPresent(c -> dto.setClassName(c.getClassName()));
-				sectionRepository.findById(enrollment.getSectionEntity().getId())
-						.ifPresent(s -> dto.setSectionName(s.getSectionName()));
 			}
 		}
 		if (attendance != null) {

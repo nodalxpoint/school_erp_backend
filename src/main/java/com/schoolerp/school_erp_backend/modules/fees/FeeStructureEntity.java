@@ -53,6 +53,9 @@ public class FeeStructureEntity {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "academic_session_id")
+    private UUID academicSessionId;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
@@ -123,5 +126,13 @@ public class FeeStructureEntity {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public UUID getAcademicSessionId() {
+        return academicSessionId;
+    }
+
+    public void setAcademicSessionId(UUID academicSessionId) {
+        this.academicSessionId = academicSessionId;
     }
 }

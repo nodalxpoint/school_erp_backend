@@ -28,7 +28,7 @@ public class StudentFeeController {
     @PostMapping("/list")
     public ResponseEntity<ApiResponse<PagedResponse<StudentFeeDto>>> filterStudentFees(
             @Valid @RequestBody StudentFeesFilterRequest request) {
-        PagedResponse<StudentFeeDto> response = studentFeesService.filterFees(request);
+        PagedResponse<StudentFeeDto> response = studentFeesService.filterFeessss(request);
         return ResponseEntity.ok(ApiResponse.success("Filtered student fees successfully", response));
     }
 

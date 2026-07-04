@@ -74,6 +74,7 @@ public class FeeStructureService {
         dto.setFrequency(entity.getFrequency());
         dto.setDueDate(entity.getDueDate());
         dto.setCreatedAt(entity.getCreatedAt());
+        dto.setAcademicSessionId(entity.getAcademicSessionId());
         return dto;
     }
 
@@ -106,6 +107,7 @@ public class FeeStructureService {
         entity.setAmount(request.getAmount());
         entity.setFrequency(request.getFrequency() != null ? request.getFrequency() : Frequency.MONTHLY);
         entity.setDueDate(request.getDueDate());
+        entity.setAcademicSessionId(request.getAcademicSessionId());
 
         feeStructureRepository.save(entity);
         LOGGER.info("Fee structure created for schoolId={}, feeName={}", school.getId(), request.getFeeName());
@@ -131,6 +133,10 @@ public class FeeStructureService {
             ClassesEntity classes = classesRepository.findById(request.getClassId())
                     .orElseThrow(() -> new ResourceNotFoundException("Class not found"));
             entity.setClasses(classes);
+        }
+
+        if (request.getAcademicSessionId() != null) {
+            entity.setAcademicSessionId(request.getAcademicSessionId());
         }
 
         feeStructureRepository.save(entity);
