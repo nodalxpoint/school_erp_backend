@@ -14,4 +14,5 @@ public interface FeeStructureRepository
 
     Optional<FeeStructureEntity> findFirstByClasses_Id(UUID classId);
 
+    Optional<FeeStructureEntity> findBySchool_IdAndClasses_Id(UUID schoolId, UUID classId);
 }

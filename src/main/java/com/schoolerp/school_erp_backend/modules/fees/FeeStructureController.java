@@ -1,5 +1,6 @@
 package com.schoolerp.school_erp_backend.modules.fees;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,11 +16,10 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/feeStructures")
 public class FeeStructureController {
 
-    private final FeeStructureService feeStructureService;
+    @Autowired
+    private  FeeStructureService feeStructureService;
 
-    public FeeStructureController(FeeStructureService feeStructureService) {
-        this.feeStructureService = feeStructureService;
-    }
+    
 
     @PostMapping("/addOrUpdate")
     public ResponseEntity<ApiResponse<String>> addOrUpdateFeeStructure(@Valid @RequestBody FeeStructureDto request) {

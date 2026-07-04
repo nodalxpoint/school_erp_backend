@@ -2,6 +2,7 @@ package com.schoolerp.school_erp_backend.modules.fees;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
+import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
@@ -77,18 +79,19 @@ public class FeeStructureService {
 
     @Transactional
     public void addOrUpdateFeeStructure(FeeStructureDto request) {
+        SchoolEntity school = validationHelperService.getSchool();
+        validateUniqueness(request, school.getId());
+
         if (request.getId() != null) {
             LOGGER.debug("Updating existing fee structure: {}", request.getId());
             updateFeeStructure(request);
         } else {
             LOGGER.debug("Creating new fee structure");
-            createFeeStructure(request);
+            createFeeStructure(request, school);
         }
     }
 
-    private void createFeeStructure(FeeStructureDto request) {
-
-        SchoolEntity school = validationHelperService.getSchool();
+    private void createFeeStructure(FeeStructureDto request, SchoolEntity school) {
 
         FeeStructureEntity entity = new FeeStructureEntity();
         entity.setSchool(school);
@@ -132,5 +135,26 @@ public class FeeStructureService {
 
         feeStructureRepository.save(entity);
         LOGGER.info("Fee structure updated: id={}", request.getId());
+    }
+
+    private void validateUniqueness(FeeStructureDto request, UUID schoolId) {
+
+        if (request.getClassId() == null) {
+            throw new ValidationException("Class is required");
+        }
+
+        Optional<FeeStructureEntity> existing = feeStructureRepository.findBySchool_IdAndClasses_Id(
+                schoolId,
+                request.getClassId());
+
+        if (existing.isPresent()) {
+
+            if (request.getId() == null ||
+                    !existing.get().getId().equals(request.getId())) {
+
+                throw new ValidationException(
+                        "Fee structure already exists for this class.");
+            }
+        }
     }
 }
