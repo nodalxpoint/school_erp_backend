@@ -2,11 +2,17 @@ package com.schoolerp.school_erp_backend.modules.fees;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.YearMonth;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -452,6 +458,118 @@ public class StudentFeesService {
 		dto.setSchoolId(student.getSchool() != null ? student.getSchool().getId() : null);
 
 		return dto;
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Monthly Fee Status API — student ki poori session ki fees ka breakdown
+	// Input : studentId + academicSessionId
+	// Output: har month (session start → end) ka PAID / PENDING status
+	// ─────────────────────────────────────────────────────────────────────────
+	public StudentFeeMonthlyStatusResponse getMonthlyFeeStatus(UUID studentId, UUID academicSessionId) {
+
+		// 1. Student validate karo
+		StudentEntity student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Student not found: " + studentId));
+
+		// 2. Academic session validate karo
+		AcademicSessionEntity session = academicSessionRepository.findById(academicSessionId)
+				.orElseThrow(() -> new ResourceNotFoundException("Academic session not found: " + academicSessionId));
+
+		// 3. Student ki enrollment dhundo isi session me
+		StudentEnrollmentEntity enrollment = studentEnrollmentRepository
+				.findByStudentEntity_IdAndAcademicSessionId(studentId, academicSessionId)
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"Student enrollment not found for this academic session"));
+
+		UUID classId = enrollment.getClassEntity() != null ? enrollment.getClassEntity().getId() : null;
+
+		// 4. Fee structure for student's class
+		BigDecimal monthlyFeeAmount = BigDecimal.ZERO;
+		if (classId != null) {
+			List<FeeStructureEntity> feeStructures = feeStructureRepository
+					.findByClasses_IdAndAcademicSessionId(classId, academicSessionId);
+			if (feeStructures == null || feeStructures.isEmpty()) {
+				feeStructures = feeStructureRepository.findByClasses_Id(classId);
+			}
+			if (feeStructures != null) {
+				for (FeeStructureEntity fs : feeStructures) {
+					monthlyFeeAmount = monthlyFeeAmount.add(fs.getAmount());
+				}
+			}
+		}
+
+		// 5. Is student ki sab paid fees ek baar mein load karo (N+1 se bachne ke liye)
+		List<StudentFeeEntity> paidFees = studentFeeRepository
+				.findByStudent_IdAndAcademicSession_Id(studentId, academicSessionId);
+
+		// month+year → entity ka map bana do quick lookup ke liye
+		Map<String, StudentFeeEntity> paidMap = paidFees.stream()
+				.collect(Collectors.toMap(
+						f -> f.getFeeMonth() + "-" + f.getFeeYear(),
+						f -> f,
+						(a, b) -> a // duplicate hone par pehla rakho
+				));
+
+		// 6. Session ke har month ke liye iterate karo
+		LocalDate start = session.getStartDate();
+		LocalDate end = session.getEndDate();
+
+		YearMonth ymStart = YearMonth.of(start.getYear(), start.getMonth());
+		YearMonth ymEnd = YearMonth.of(end.getYear(), end.getMonth());
+
+		List<StudentFeeMonthlyStatusResponse.MonthFeeDetail> monthDetails = new ArrayList<>();
+
+		YearMonth current = ymStart;
+		while (!current.isAfter(ymEnd)) {
+			int month = current.getMonthValue();
+			int year = current.getYear();
+			String key = month + "-" + year;
+
+			StudentFeeMonthlyStatusResponse.MonthFeeDetail detail = new StudentFeeMonthlyStatusResponse.MonthFeeDetail();
+			detail.setFeeMonth(month);
+			detail.setFeeYear(year);
+			detail.setMonthName(Month.of(month).getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " " + year);
+			detail.setTotalAmount(monthlyFeeAmount);
+
+			if (paidMap.containsKey(key)) {
+				// PAID
+				StudentFeeEntity feeEntity = paidMap.get(key);
+				detail.setStatus(PaymentStatus.PAID);
+				detail.setPaidAmount(feeEntity.getPaidAmount() != null ? feeEntity.getPaidAmount() : monthlyFeeAmount);
+				detail.setPaidAt(feeEntity.getPaidAt());
+				detail.setFeeRecordId(feeEntity.getId());
+			} else {
+				// PENDING
+				detail.setStatus(PaymentStatus.PENDING);
+				detail.setPaidAmount(BigDecimal.ZERO);
+			}
+
+			monthDetails.add(detail);
+			current = current.plusMonths(1);
+		}
+
+		// 7. Response assemble karo
+		StudentFeeMonthlyStatusResponse response = new StudentFeeMonthlyStatusResponse();
+		response.setStudentId(studentId);
+		response.setStudentName(
+				student.getFirstName() + " " + (student.getLastName() != null ? student.getLastName() : ""));
+		response.setAcademicSessionId(academicSessionId);
+		response.setSessionName(session.getSessionName());
+		response.setClassId(classId);
+		response.setClassName(
+				enrollment.getClassEntity() != null ? enrollment.getClassEntity().getClassName() : null);
+		response.setMonthlyFeeAmount(monthlyFeeAmount);
+		
+		
+		monthDetails = monthDetails.stream()
+		        .sorted(Comparator.comparing(StudentFeeMonthlyStatusResponse.MonthFeeDetail::getFeeMonth))
+		        .toList();
+		
+		
+		
+		response.setMonths(monthDetails);
+
+		return response;
 	}
 
 }
