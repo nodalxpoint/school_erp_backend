@@ -1,6 +1,8 @@
 package com.schoolerp.school_erp_backend.modules.fees;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -238,15 +240,37 @@ public class StudentFeesService {
 
 		// Student month year filter
 		if (request.getStudentId() != null) {
-
-			List<FeeStructureEntity> feeStructures = feeStructureRepository
-					.findByClasses_IdAndAcademicSessionId(classId, academicSessionId);
-
 			StudentEntity student = studentRepository.findById(request.getStudentId())
 					.orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
+			UUID studentClassId = classId;
+			UUID studentSectionId = sectionId;
+
+			if (studentClassId == null) {
+				Optional<StudentEnrollmentEntity> enrollmentOpt = studentEnrollmentRepository
+						.findByStudentEntity_IdAndAcademicSessionId(student.getId(), finalAcademicSessionId);
+				if (enrollmentOpt.isPresent()) {
+					StudentEnrollmentEntity enrollment = enrollmentOpt.get();
+					if (enrollment.getClassEntity() != null) {
+						studentClassId = enrollment.getClassEntity().getId();
+					}
+					if (enrollment.getSectionEntity() != null) {
+						studentSectionId = enrollment.getSectionEntity().getId();
+					}
+				}
+			}
+
+			List<FeeStructureEntity> feeStructures = null;
+			if (studentClassId != null) {
+				feeStructures = feeStructureRepository.findByClasses_IdAndAcademicSessionId(studentClassId,
+						finalAcademicSessionId);
+				if (feeStructures == null || feeStructures.isEmpty()) {
+					feeStructures = feeStructureRepository.findByClasses_Id(studentClassId);
+				}
+			}
+
 			StudentFeeDto dto = mapStudentToFeeDto(student, request.getFeeMonth(), request.getFeeYear(),
-					finalAcademicSessionId, feeStructures);
+					finalAcademicSessionId, feeStructures, studentClassId, studentSectionId);
 
 			List<StudentFeeDto> list = List.of(dto);
 
@@ -297,13 +321,13 @@ public class StudentFeesService {
 	}
 
 	public StudentFeeDto mapStudentToFeeDto(StudentEntity student, Integer feeMonth, Integer feeYear,
-			UUID academicSessionId, List<FeeStructureEntity> feeStructures) {
+			UUID academicSessionId, List<FeeStructureEntity> feeStructures, UUID classId, UUID sectionId) {
 
 		StudentFeeDto dto = new StudentFeeDto();
 
-// =====================
-// Student Info
-// =====================
+		// =====================
+		// Student Info
+		// =====================
 		dto.setStudentId(student.getId());
 		dto.setStudentName(student.getFirstName() + " " + (student.getLastName() != null ? student.getLastName() : ""));
 
@@ -311,16 +335,24 @@ public class StudentFeesService {
 		dto.setFeeMonth(feeMonth);
 		dto.setFeeYear(feeYear);
 
-// =====================
-// STATUS
-// =====================
+		dto.setSchoolId(student.getSchool() != null ? student.getSchool().getId() : null);
+		if (classId != null) {
+			dto.setClassId(classId.toString());
+		}
+		if (sectionId != null) {
+			dto.setSectionId(sectionId.toString());
+		}
+
+		// =====================
+		// STATUS
+		// =====================
 		PaymentStatus status = getStudentFeeStatus(student.getId(), feeMonth, feeYear, academicSessionId);
 
 		dto.setPaymentStatus(status);
 
-// =====================
-// FEE STRUCTURE (IMPORTANT FIX)
-// =====================
+		// =====================
+		// FEE STRUCTURE (IMPORTANT FIX)
+		// =====================
 		BigDecimal totalAmount = BigDecimal.ZERO;
 
 		if (feeStructures != null && !feeStructures.isEmpty()) {
@@ -339,9 +371,9 @@ public class StudentFeesService {
 
 		dto.setTotalAmount(totalAmount);
 
-// =====================
-// PAYMENT SPECIFIC LOGIC
-// =====================
+		// =====================
+		// PAYMENT SPECIFIC LOGIC
+		// =====================
 		if (status == PaymentStatus.PAID) {
 
 			Optional<StudentFeeEntity> feeOpt = studentFeeRepository
@@ -350,6 +382,7 @@ public class StudentFeesService {
 			if (feeOpt.isPresent()) {
 				StudentFeeEntity fee = feeOpt.get();
 
+				dto.setId(fee.getId());
 				dto.setPaidAmount(fee.getPaidAmount());
 				dto.setDueDate(fee.getDueDate());
 				dto.setFeeStructureId(fee.getFeeStructure().getId());
@@ -360,7 +393,7 @@ public class StudentFeesService {
 			}
 
 		} else {
-// PENDING defaults
+			// PENDING defaults
 			dto.setPaidAmount(BigDecimal.ZERO);
 		}
 
@@ -381,20 +414,27 @@ public class StudentFeesService {
 		// =========================
 		// 1. Get Fee Structure
 		// =========================
-		List<FeeStructureEntity> feeStructures = feeStructureRepository.findByClasses_IdAndAcademicSessionId(classId,
-				academicSessionId);
+		List<FeeStructureEntity> feeStructures = null;
+		if (classId != null) {
+			feeStructures = feeStructureRepository.findByClasses_IdAndAcademicSessionId(classId, academicSessionId);
+			if (feeStructures == null || feeStructures.isEmpty()) {
+				feeStructures = feeStructureRepository.findByClasses_Id(classId);
+			}
+		}
 
 		BigDecimal totalAmount = BigDecimal.ZERO;
 
-		for (FeeStructureEntity fs : feeStructures) {
+		if (feeStructures != null && !feeStructures.isEmpty()) {
+			for (FeeStructureEntity fs : feeStructures) {
 
-			dto.setFeeStructureId(fs.getId()); // optional: you may skip or pick one
-			dto.setFeeStructureName(fs.getFeeName());
+				dto.setFeeStructureId(fs.getId()); // optional: you may skip or pick one
+				dto.setFeeStructureName(fs.getFeeName());
 
-			totalAmount = totalAmount.add(fs.getAmount());
+				totalAmount = totalAmount.add(fs.getAmount());
 
-			if (dto.getDueDate() == null) {
-				dto.setDueDate(fs.getDueDate());
+				if (dto.getDueDate() == null) {
+					dto.setDueDate(fs.getDueDate());
+				}
 			}
 		}
 
@@ -406,9 +446,10 @@ public class StudentFeesService {
 		dto.setFeeMonth(feeMonth);
 		dto.setFeeYear(feeYear);
 
-		dto.setClassId(classId.toString());
-		dto.setSectionId(sectionId.toString());
+		dto.setClassId(classId != null ? classId.toString() : null);
+		dto.setSectionId(sectionId != null ? sectionId.toString() : null);
 		dto.setAcademicSessionId(academicSessionId);
+		dto.setSchoolId(student.getSchool() != null ? student.getSchool().getId() : null);
 
 		return dto;
 	}

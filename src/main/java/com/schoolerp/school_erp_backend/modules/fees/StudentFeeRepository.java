@@ -22,6 +22,10 @@ public interface StudentFeeRepository
 	List<StudentFeeEntity> findByStudentIdInAndFeeMonthAndFeeYear(List<UUID> studentIds, Integer feeMonth,
 			Integer feeYear);
 
+	List<StudentFeeEntity> findByStudent_IdAndAcademicSession_Id(UUID studentId, UUID academicSessionId);
+
+	List<StudentFeeEntity> findByStudent_IdInAndAcademicSession_Id(List<UUID> studentIds, UUID academicSessionId);
+
 	@Query("""
 		    SELECT sf
 		    FROM StudentFeeEntity sf
