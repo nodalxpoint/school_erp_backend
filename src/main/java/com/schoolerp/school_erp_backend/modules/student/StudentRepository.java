@@ -1,5 +1,6 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -36,5 +37,24 @@ public interface StudentRepository extends JpaRepository<StudentEntity, UUID>, J
 		        @Param("feeYear") Integer feeYear,
 		        Pageable pageable
 		);
+
+	/**
+	 * Search students by name (first name or last name contains the query),
+	 * scoped to the school of the current user.
+	 */
+	@Query("""
+		    SELECT s FROM StudentEntity s
+		    WHERE s.school.id = :schoolId
+		      AND s.isDeleted = false
+		      AND (
+		            LOWER(s.firstName) LIKE LOWER(CONCAT('%', :name, '%'))
+		         OR LOWER(s.lastName)  LIKE LOWER(CONCAT('%', :name, '%'))
+		         OR LOWER(CONCAT(s.firstName, ' ', COALESCE(s.lastName, ''))) LIKE LOWER(CONCAT('%', :name, '%'))
+		      )
+		""")
+	List<StudentEntity> findByNameContaining(
+	        @Param("schoolId") UUID schoolId,
+	        @Param("name") String name
+	);
 
 }
