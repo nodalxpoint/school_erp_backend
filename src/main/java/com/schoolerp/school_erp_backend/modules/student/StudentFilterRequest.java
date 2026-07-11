@@ -16,11 +16,12 @@ public class StudentFilterRequest extends BaseFilterRequest {
 	private UUID classId;
 
 	private UUID sectionId;
-	
+
 	private LocalDate attendanceDate;
-	
+
 	private String attendanceStatus;
-	
+
+	private String gender;
 
 	public String getFirstName() {
 		return firstName;
@@ -77,7 +78,13 @@ public class StudentFilterRequest extends BaseFilterRequest {
 	public void setAttendanceStatus(String attendanceStatus) {
 		this.attendanceStatus = attendanceStatus;
 	}
-	
-	
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
 
 }

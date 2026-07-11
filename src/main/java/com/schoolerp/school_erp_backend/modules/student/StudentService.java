@@ -299,7 +299,8 @@ public class StudentService {
 				dto.setGuardianName(enrollment.getStudentEntity().getParent().getUser().getFirstName() + " "
 						+ enrollment.getStudentEntity().getParent().getUser().getLastName());
 				dto.setEmergencyContact(enrollment.getStudentEntity().getParent().getEmergencyContact());
-
+				dto.setParentEmail(enrollment.getStudentEntity().getParent().getUser().getEmail());
+				dto.setParentPhone(enrollment.getStudentEntity().getParent().getUser().getPhoneNumber());
 			}
 		}
 		if (attendance != null) {

@@ -159,6 +159,8 @@ public class ParentService {
         dto.setGuardianName(
                 entity.getParent().getUser().getFirstName() + " " + entity.getParent().getUser().getLastName());
         dto.setEmergencyContact(entity.getParent().getEmergencyContact());
+        dto.setParentEmail(entity.getParent().getUser().getEmail());
+        dto.setParentPhone(entity.getParent().getUser().getPhoneNumber());
 
         // Enrollment details
         StudentEnrollmentEntity enrollment = null;

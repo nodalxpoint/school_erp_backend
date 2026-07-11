@@ -30,6 +30,9 @@ public class StudentSpecification {
 				.with(classIdEqual(request.getClassId()))
 
 				.with(sectionIdEqual(request.getSectionId()))
+
+				.with(genderEqual(request.getGender()))
+
 				.with(attendanceStatusEqual(request.getAttendanceDate(), request.getAttendanceStatus()))
 
 				.build();
@@ -96,6 +99,15 @@ public class StudentSpecification {
 					cb.equal(attendance.get("status"), status));
 
 			return root.get("id").in(subquery);
+		};
+	}
+
+	public static Specification<StudentEntity> genderEqual(String gender) {
+		return (root, query, cb) -> {
+			if (gender == null || gender.isBlank()) {
+				return null;
+			}
+			return cb.equal(cb.lower(root.get("gender")), gender.toLowerCase());
 		};
 	}
 

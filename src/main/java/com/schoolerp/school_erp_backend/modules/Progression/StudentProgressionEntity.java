@@ -51,7 +51,7 @@ public class StudentProgressionEntity {
     @JoinColumn(name = "section_id", nullable = false)
     private SectionEntity sectionEntity;
 
-    @Enumerated(EnumType.STRING)
+    // @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 10)
     private String status;
 

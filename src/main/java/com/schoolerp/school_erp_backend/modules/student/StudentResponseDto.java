@@ -30,6 +30,9 @@ public class StudentResponseDto {
     
     private String emergencyContact;
     
+    private String parentEmail;
+    private String parentPhone;
+    
     private AttendanceSummaryDto attendance;
 
     public StudentResponseDto() {
@@ -170,7 +173,6 @@ public class StudentResponseDto {
 	public void setGuardianName(String guardianName) {
 		this.guardianName = guardianName;
 	}
-	
 	public String getEmergencyContact() {
         return emergencyContact;
     }
@@ -178,7 +180,20 @@ public class StudentResponseDto {
     public void setEmergencyContact(String emergencyContact) {
         this.emergencyContact = emergencyContact;
     }
-    
-    
 
+    public String getParentEmail() {
+        return parentEmail;
+    }
+
+    public void setParentEmail(String parentEmail) {
+        this.parentEmail = parentEmail;
+    }
+
+    public String getParentPhone() {
+        return parentPhone;
+    }
+
+    public void setParentPhone(String parentPhone) {
+        this.parentPhone = parentPhone;
+    }
 }
