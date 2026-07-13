@@ -21,6 +21,7 @@ public class StudentResponseDto {
     private UUID sectionId;
     private String sectionName;
     private UUID academicSessionId;
+    private String academicSessionName;
     private String rollNo;
     
     private String fatherName;
@@ -196,4 +197,12 @@ public class StudentResponseDto {
     public void setParentPhone(String parentPhone) {
         this.parentPhone = parentPhone;
     }
+
+	public String getAcademicSessionName() {
+		return academicSessionName;
+	}
+
+	public void setAcademicSessionName(String academicSessionName) {
+		this.academicSessionName = academicSessionName;
+	}
 }

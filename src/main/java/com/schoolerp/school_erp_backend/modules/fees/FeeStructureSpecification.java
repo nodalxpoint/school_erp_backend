@@ -24,8 +24,13 @@ public class FeeStructureSpecification {
                 .with(feeNameLike(request.getFeeName()))
                 .with(frequencyEqual(request.getFrequency()))
                 .with(studentEqual(request.getStudentId()))
+                .with(academicSessionEqual(request.getAcademicSessionId()))
                 .with(searchLike(request.getSearch()))
                 .build();
+    }
+
+    public static Specification<FeeStructureEntity> academicSessionEqual(UUID academicSessionId) {
+        return (root, query, cb) -> FilterUtils.equal(cb, root, "academicSessionId", academicSessionId);
     }
 
     public static Specification<FeeStructureEntity> schoolEqual(UUID schoolId) {

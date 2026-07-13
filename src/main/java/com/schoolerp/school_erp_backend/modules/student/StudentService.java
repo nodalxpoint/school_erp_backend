@@ -91,7 +91,7 @@ public class StudentService {
 		}
 
 		Page<StudentResponseDto> dtoPage = studentPage
-				.map(student -> mapToDto(student, attendanceMap.get(student.getId())));
+				.map(student -> mapToDto(student, attendanceMap.get(student.getId()), request.getAcademicSessionId()));
 
 		return PagedResponse.fromPage(dtoPage, "Students fetched successfully");
 	}
@@ -258,7 +258,7 @@ public class StudentService {
 		}
 	}
 
-	private StudentResponseDto mapToDto(StudentEntity student, AttendanceEntity attendance) {
+	private StudentResponseDto mapToDto(StudentEntity student, AttendanceEntity attendance, UUID academicSessionId) {
 
 		StudentResponseDto dto = new StudentResponseDto();
 		dto.setId(student.getId());
@@ -272,12 +272,18 @@ public class StudentService {
 		// Enrollment Details
 		UUID schoolId = student.getSchool() != null ? student.getSchool().getId() : null;
 		if (schoolId != null) {
-			Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository.findActiveSessionBySchoolId();
 			StudentEnrollmentEntity enrollment = null;
-			if (activeSessionOpt.isPresent()) {
+			if (academicSessionId != null) {
 				enrollment = studentEnrollmentRepository
-						.findByStudentEntity_IdAndAcademicSessionId(student.getId(), activeSessionOpt.get().getId())
+						.findByStudentEntity_IdAndAcademicSessionId(student.getId(), academicSessionId)
 						.orElse(null);
+			} else {
+				Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository.findActiveSessionBySchoolId();
+				if (activeSessionOpt.isPresent()) {
+					enrollment = studentEnrollmentRepository
+							.findByStudentEntity_IdAndAcademicSessionId(student.getId(), activeSessionOpt.get().getId())
+							.orElse(null);
+				}
 			}
 			if (enrollment == null) {
 				List<StudentEnrollmentEntity> enrollments = studentEnrollmentRepository
@@ -291,6 +297,9 @@ public class StudentService {
 				dto.setClassId(enrollment.getClassEntity().getId());
 				dto.setSectionId(enrollment.getSectionEntity().getId());
 				dto.setAcademicSessionId(enrollment.getAcademicSessionId());
+				String sessionName = academicSessionRepository.findById(enrollment.getAcademicSessionId())
+						.map(AcademicSessionEntity::getSessionName).orElse(null);
+				dto.setAcademicSessionName(sessionName);
 				dto.setRollNo(enrollment.getRollNo());
 				dto.setClassName(enrollment.getClassEntity().getClassName());
 				dto.setSectionName(enrollment.getSectionEntity().getSectionName());

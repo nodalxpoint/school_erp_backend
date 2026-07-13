@@ -7,6 +7,8 @@ import com.schoolerp.school_erp_backend.common.filters.BaseFilterRequest;
 
 public class StudentFilterRequest extends BaseFilterRequest {
 
+	private UUID id;
+
 	private String firstName;
 
 	private String lastName;
@@ -22,6 +24,8 @@ public class StudentFilterRequest extends BaseFilterRequest {
 	private String attendanceStatus;
 
 	private String gender;
+
+	private UUID academicSessionId;
 
 	public String getFirstName() {
 		return firstName;
@@ -87,4 +91,19 @@ public class StudentFilterRequest extends BaseFilterRequest {
 		this.gender = gender;
 	}
 
+	public UUID getId() {
+		return id;
+	}
+
+	public void setId(UUID id) {
+		this.id = id;
+	}
+
+	public UUID getAcademicSessionId() {
+		return academicSessionId;
+	}
+
+	public void setAcademicSessionId(UUID academicSessionId) {
+		this.academicSessionId = academicSessionId;
+	}
 }

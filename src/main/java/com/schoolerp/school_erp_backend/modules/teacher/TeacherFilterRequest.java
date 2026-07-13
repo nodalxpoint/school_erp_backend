@@ -20,8 +20,18 @@ public class TeacherFilterRequest extends BaseFilterRequest {
 	private String qualification;
 
 	private LocalDate joiningDate;
-	
+
 	private UUID teacherId;
+
+	private UUID academicSessionId;
+
+	public UUID getAcademicSessionId() {
+		return academicSessionId;
+	}
+
+	public void setAcademicSessionId(UUID academicSessionId) {
+		this.academicSessionId = academicSessionId;
+	}
 
 	public String getFirstName() {
 		return firstName;
@@ -86,9 +96,5 @@ public class TeacherFilterRequest extends BaseFilterRequest {
 	public void setTeacherId(UUID teacherId) {
 		this.teacherId = teacherId;
 	}
-
-	
-	
-	
 
 }
