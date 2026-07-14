@@ -27,31 +27,29 @@ public interface StudentFeeRepository
 	List<StudentFeeEntity> findByStudent_IdInAndAcademicSession_Id(List<UUID> studentIds, UUID academicSessionId);
 
 	@Query("""
-		    SELECT sf
-		    FROM StudentFeeEntity sf
-		    WHERE sf.student.id IN (
-		        SELECT se.studentEntity.id
-		        FROM StudentEnrollmentEntity se
-		        WHERE se.classEntity.id = :classId
-		          AND se.sectionEntity.id = :sectionId
-		          AND se.academicSessionId = :academicSessionId
-		    )
-		    AND sf.feeMonth = :feeMonth
-		    AND sf.feeYear = :feeYear
-		""")
-		Page<StudentFeeEntity> findPaidStudents(
-		        @Param("classId") UUID classId,
-		        @Param("sectionId") UUID sectionId,
-		        @Param("academicSessionId") UUID academicSessionId,
-		        @Param("feeMonth") Integer feeMonth,
-		        @Param("feeYear") Integer feeYear,
-		        Pageable pageable
-		);
-	
-	 Optional<StudentFeeEntity> findByStudent_IdAndFeeMonthAndFeeYear(
-	            UUID studentId,
-	            Integer feeMonth,
-	            Integer feeYear
-	    );
+			    SELECT sf
+			    FROM StudentFeeEntity sf
+			    WHERE sf.student.id IN (
+			        SELECT se.studentEntity.id
+			        FROM StudentEnrollmentEntity se
+			        WHERE se.classEntity.id = :classId
+			          AND se.sectionEntity.id = :sectionId
+			          AND se.academicSessionId = :academicSessionId
+			    )
+			    AND sf.feeMonth = :feeMonth
+			    AND sf.feeYear = :feeYear
+			""")
+	Page<StudentFeeEntity> findPaidStudents(
+			@Param("classId") UUID classId,
+			@Param("sectionId") UUID sectionId,
+			@Param("academicSessionId") UUID academicSessionId,
+			@Param("feeMonth") Integer feeMonth,
+			@Param("feeYear") Integer feeYear,
+			Pageable pageable);
+
+	Optional<StudentFeeEntity> findByStudent_IdAndFeeMonthAndFeeYear(
+			UUID studentId,
+			Integer feeMonth,
+			Integer feeYear);
 
 }

@@ -5,35 +5,34 @@ import java.util.List;
 import java.util.UUID;
 
 public class StudentMarkDto {
-	
+
 	private UUID studentId;
-	
+
 	private BigDecimal marksObtained;
-	
+
 	private String remarks;
-	
+
 	private String studentName;
-	
-	   private String className;
-	    private String sectionName;
-	
-	
+
+	private String className;
+
+	private String sectionName;
 
 	public String getClassName() {
-			return className;
-		}
+		return className;
+	}
 
-		public void setClassName(String className) {
-			this.className = className;
-		}
+	public void setClassName(String className) {
+		this.className = className;
+	}
 
-		public String getSectionName() {
-			return sectionName;
-		}
+	public String getSectionName() {
+		return sectionName;
+	}
 
-		public void setSectionName(String sectinName) {
-			this.sectionName = sectinName;
-		}
+	public void setSectionName(String sectinName) {
+		this.sectionName = sectinName;
+	}
 
 	public UUID getStudentId() {
 		return studentId;
@@ -66,9 +65,5 @@ public class StudentMarkDto {
 	public void setStudentName(String studentName) {
 		this.studentName = studentName;
 	}
-	
-	
-	
-	
 
 }
