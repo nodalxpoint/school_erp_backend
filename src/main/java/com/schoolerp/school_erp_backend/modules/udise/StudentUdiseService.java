@@ -229,4 +229,13 @@ public class StudentUdiseService {
 
         return dto;
     }
+
+    public StudentUdiseResponseDto getUdiseByStudentAndSession(UUID studentId, UUID academicSessionId) {
+        if (studentId == null || academicSessionId == null) {
+            return null;
+        }
+        return studentUdiseRepository.findByStudentIdAndAcademicSessionId(studentId, academicSessionId)
+                .map(this::mapToResponseDto)
+                .orElse(null);
+    }
 }

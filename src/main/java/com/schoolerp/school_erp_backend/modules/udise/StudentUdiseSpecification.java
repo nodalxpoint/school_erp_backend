@@ -23,7 +23,12 @@ public class StudentUdiseSpecification {
     }
 
     public static Specification<StudentUdiseEntity> studentIdEqual(UUID studentId) {
-        return (root, query, cb) -> FilterUtils.equal(cb, root, "student.id", studentId);
+        return (root, query, cb) -> {
+            if (studentId == null) {
+                return null;
+            }
+            return cb.equal(root.get("student").get("id"), studentId);
+        };
     }
 
     public static Specification<StudentUdiseEntity> academicSessionIdEqual(UUID academicSessionId) {
@@ -36,7 +41,12 @@ public class StudentUdiseSpecification {
     }
 
     public static Specification<StudentUdiseEntity> schoolIdEqual(UUID schoolId) {
-        return (root, query, cb) -> FilterUtils.equal(cb, root, "school.id", schoolId);
+        return (root, query, cb) -> {
+            if (schoolId == null) {
+                return null;
+            }
+            return cb.equal(root.get("school").get("id"), schoolId);
+        };
     }
 
     public static Specification<StudentUdiseEntity> udiseStatusEqual(String status) {

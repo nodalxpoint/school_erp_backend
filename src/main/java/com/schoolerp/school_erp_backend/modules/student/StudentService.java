@@ -1,5 +1,6 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.udise.StudentUdiseService;
 
 import jakarta.transaction.Transactional;
 
@@ -72,6 +74,9 @@ public class StudentService {
 	@Autowired
 	private ValidationHelperService validationHelperService;
 
+	@Autowired
+	private StudentUdiseService studentUdiseService;
+
 	public PagedResponse<StudentResponseDto> filterStudents(StudentFilterRequest request) {
 
 		Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
@@ -83,8 +88,11 @@ public class StudentService {
 		Map<UUID, AttendanceEntity> attendanceMap = new HashMap<>();
 		if (request.getAttendanceDate() != null && studentPage.hasContent()) {
 
-			List<UUID> studentIds = studentPage.getContent().stream().map(StudentEntity::getId)
-					.collect(Collectors.toList());
+			List<UUID> studentIds = new ArrayList<>();
+
+			for (StudentEntity student : studentPage.getContent()) {
+				studentIds.add(student.getId());
+			}
 
 			attendanceRepository.findByAttendanceDateAndStudent_IdIn(request.getAttendanceDate(), studentIds)
 					.forEach(a -> attendanceMap.put(a.getStudentEntity().getId(), a));
@@ -278,7 +286,8 @@ public class StudentService {
 						.findByStudentEntity_IdAndAcademicSessionId(student.getId(), academicSessionId)
 						.orElse(null);
 			} else {
-				Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository.findActiveSessionBySchoolId();
+				Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository
+						.findActiveSessionBySchoolId();
 				if (activeSessionOpt.isPresent()) {
 					enrollment = studentEnrollmentRepository
 							.findByStudentEntity_IdAndAcademicSessionId(student.getId(), activeSessionOpt.get().getId())
@@ -310,6 +319,8 @@ public class StudentService {
 				dto.setEmergencyContact(enrollment.getStudentEntity().getParent().getEmergencyContact());
 				dto.setParentEmail(enrollment.getStudentEntity().getParent().getUser().getEmail());
 				dto.setParentPhone(enrollment.getStudentEntity().getParent().getUser().getPhoneNumber());
+				dto.setUdise(studentUdiseService.getUdiseByStudentAndSession(student.getId(),
+						enrollment.getAcademicSessionId()));
 			}
 		}
 		if (attendance != null) {
