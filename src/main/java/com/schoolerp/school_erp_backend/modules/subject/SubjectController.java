@@ -1,11 +1,15 @@
 package com.schoolerp.school_erp_backend.modules.subject;
 
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,7 +60,23 @@ public class SubjectController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         LOGGER.debug("filterAssignedSubjects called");
         PagedResponse<SubjectTeacherAssignmentResponseDto> response = subjectService
-                .filterSubjectTeacherAssignments(request,userDetails);
+                .filterSubjectTeacherAssignments(request, userDetails);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteSubject(@PathVariable UUID id) {
+        LOGGER.debug("deleteSubject endpoint called for id: {}", id);
+        subjectService.deleteSubject(id);
+        ApiResponse<String> response = ApiResponse.success("Subject deleted successfully", null);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/restore/{id}")
+    public ResponseEntity<ApiResponse<String>> restoreSubject(@PathVariable UUID id) {
+        LOGGER.debug("restoreSubject endpoint called for id: {}", id);
+        subjectService.restoreSubject(id);
+        ApiResponse<String> response = ApiResponse.success("Subject restored successfully", null);
         return ResponseEntity.ok(response);
     }
 

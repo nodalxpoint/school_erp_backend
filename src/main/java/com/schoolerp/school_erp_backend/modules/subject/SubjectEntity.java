@@ -35,9 +35,15 @@ public class SubjectEntity {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+        if (this.isDeleted == null) {
+            this.isDeleted = false;
+        }
     }
 
     public UUID getId() {
@@ -78,5 +84,13 @@ public class SubjectEntity {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 }

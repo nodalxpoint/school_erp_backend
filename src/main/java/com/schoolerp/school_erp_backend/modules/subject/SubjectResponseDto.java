@@ -9,6 +9,7 @@ public class SubjectResponseDto {
     private String name;
     private String code;
     private LocalDateTime createdAt;
+    private Boolean isDeleted;
 
     public UUID getId() {
         return id;
@@ -40,5 +41,13 @@ public class SubjectResponseDto {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 }

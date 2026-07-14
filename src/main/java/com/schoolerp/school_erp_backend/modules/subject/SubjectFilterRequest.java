@@ -6,6 +6,15 @@ public class SubjectFilterRequest extends BaseFilterRequest {
 
     private String name;
     private String code;
+    private Boolean includeDeleted = false;
+
+    public Boolean getIncludeDeleted() {
+        return includeDeleted;
+    }
+
+    public void setIncludeDeleted(Boolean includeDeleted) {
+        this.includeDeleted = includeDeleted;
+    }
 
     public String getName() {
         return name;

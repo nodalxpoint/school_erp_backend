@@ -13,11 +13,16 @@ public class SubjectSpecification {
     }
 
     public static Specification<SubjectEntity> filter(SubjectFilterRequest request, UUID schoolId) {
-        return new SpecificationBuilder<SubjectEntity>()
+        SpecificationBuilder<SubjectEntity> builder = new SpecificationBuilder<SubjectEntity>()
                 .with(schoolEqual(schoolId))
                 .with(nameLike(request.getName()))
-                .with(codeLike(request.getCode()))
-                .build();
+                .with(codeLike(request.getCode()));
+
+        if (request.getIncludeDeleted() == null || !request.getIncludeDeleted()) {
+            builder.with(isNotDeleted());
+        }
+
+        return builder.build();
     }
 
     public static Specification<SubjectEntity> schoolEqual(UUID schoolId) {
@@ -30,5 +35,11 @@ public class SubjectSpecification {
 
     public static Specification<SubjectEntity> codeLike(String code) {
         return (root, query, cb) -> FilterUtils.likeIgnoreCase(cb, root, "code", code);
+    }
+
+    public static Specification<SubjectEntity> isNotDeleted() {
+        return (root, query, cb) -> cb.or(
+                cb.equal(root.get("isDeleted"), false),
+                cb.isNull(root.get("isDeleted")));
     }
 }

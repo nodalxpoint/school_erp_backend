@@ -93,7 +93,7 @@ public class SubjectService {
         SchoolEntity school = validationHelperService.getSchool();
         String subjectName = request.getSubjectName().trim();
 
-        boolean alreadyExists = subjectRepository.existsByNameAndSchoolId(subjectName, school.getId());
+        boolean alreadyExists = subjectRepository.existsByNameAndSchoolIdAndIsDeletedFalse(subjectName, school.getId());
         if (alreadyExists) {
             LOGGER.error("Subject '{}' already exists for school {}", subjectName, school.getId());
             throw new ValidationException("Subject '" + subjectName + "' already exists");
@@ -117,7 +117,7 @@ public class SubjectService {
         SchoolEntity school = validationHelperService.getSchool();
         String subjectName = request.getSubjectName().trim();
 
-        boolean alreadyExists = subjectRepository.existsByNameAndSchoolIdAndIdNot(subjectName, school.getId(),
+        boolean alreadyExists = subjectRepository.existsByNameAndSchoolIdAndIdNotAndIsDeletedFalse(subjectName, school.getId(),
                 subjectId);
         if (alreadyExists) {
             throw new ValidationException("Subject '" + subjectName + "' already exists for this school");
@@ -138,6 +138,7 @@ public class SubjectService {
         dto.setName(entity.getName());
         dto.setCode(entity.getCode());
         dto.setCreatedAt(entity.getCreatedAt());
+        dto.setIsDeleted(entity.getIsDeleted());
         return dto;
     }
 
@@ -256,6 +257,29 @@ public class SubjectService {
             entity.setAcademicSessionId(academicSessionId);
             assignmentRepository.save(entity);
         }
+    }
+
+    @Transactional
+    public void deleteSubject(UUID subjectId) {
+        SubjectEntity entity = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        entity.setIsDeleted(true);
+        subjectRepository.save(entity);
+    }
+
+    @Transactional
+    public void restoreSubject(UUID subjectId) {
+        SubjectEntity entity = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+
+        boolean alreadyExists = subjectRepository.existsByNameAndSchoolIdAndIsDeletedFalse(entity.getName(),
+                entity.getSchool().getId());
+        if (alreadyExists) {
+            throw new ValidationException("Cannot restore. A subject named '" + entity.getName() + "' already exists.");
+        }
+
+        entity.setIsDeleted(false);
+        subjectRepository.save(entity);
     }
 
 }
