@@ -12,4 +12,6 @@ public interface TeacherRepository extends JpaRepository<TeacherEntity, UUID>, J
 	Optional<TeacherEntity> findByUserId(UUID userId);
 
 	Optional<TeacherEntity> findByUser(User user);
+
+	long count();
 }

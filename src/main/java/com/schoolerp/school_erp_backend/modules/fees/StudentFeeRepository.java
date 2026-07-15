@@ -1,5 +1,6 @@
 package com.schoolerp.school_erp_backend.modules.fees;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -51,5 +52,15 @@ public interface StudentFeeRepository
 			UUID studentId,
 			Integer feeMonth,
 			Integer feeYear);
+
+	@Query("""
+			SELECT COALESCE(SUM(sf.paidAmount), 0)
+			FROM StudentFeeEntity sf
+			WHERE sf.academicSession.id = :academicSessionId
+			""")
+	BigDecimal sumPaidAmountByAcademicSessionId(
+			@Param("academicSessionId") UUID academicSessionId);
+	
+	Page<StudentFeeEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
 }

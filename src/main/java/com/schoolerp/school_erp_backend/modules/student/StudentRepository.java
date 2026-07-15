@@ -55,4 +55,6 @@ public interface StudentRepository extends JpaRepository<StudentEntity, UUID>, J
 			@Param("schoolId") UUID schoolId,
 			@Param("name") String name);
 
+	long countByIsDeletedFalse();
+
 }

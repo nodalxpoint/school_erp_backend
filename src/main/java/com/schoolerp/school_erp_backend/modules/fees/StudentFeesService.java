@@ -226,6 +226,34 @@ public class StudentFeesService {
 		UUID academicSessionId = request.getAcademicSessionId();
 		Integer feeMonth = request.getFeeMonth();
 		Integer feeYear = request.getFeeYear();
+		
+		boolean noFilters =
+		        request.getStudentId() == null &&
+		        request.getClassId() == null &&
+		        request.getSectionId() == null &&
+		        request.getPaymentStatus() == null &&
+		        request.getFeeMonth() == null &&
+		        request.getFeeYear() == null;
+		
+		if (noFilters) {
+
+		    Pageable latestPageable = PageRequest.of(
+		            request.getPage(),
+		            request.getSize(),
+		            Sort.by(Sort.Direction.DESC, "createdAt"));
+
+		    Page<StudentFeeEntity> latestPage =
+		            studentFeeRepository.findAllByOrderByCreatedAtDesc(latestPageable);
+
+		    List<StudentFeeDto> dtoList = latestPage.getContent()
+		            .stream()
+		            .map(this::mapToDto)
+		            .toList();
+
+		    return PagedResponse.fromPage(
+		            new PageImpl<>(dtoList, latestPageable, latestPage.getTotalElements()),
+		            "Latest fee records fetched successfully");
+		}
 
 		// =========================
 		// Academic Session Handling
@@ -562,7 +590,8 @@ public class StudentFeesService {
 		
 		
 		monthDetails = monthDetails.stream()
-		        .sorted(Comparator.comparing(StudentFeeMonthlyStatusResponse.MonthFeeDetail::getFeeMonth))
+		        .sorted(Comparator.comparing(StudentFeeMonthlyStatusResponse.MonthFeeDetail::getFeeYear)
+		                .thenComparing(StudentFeeMonthlyStatusResponse.MonthFeeDetail::getFeeMonth))
 		        .toList();
 		
 		

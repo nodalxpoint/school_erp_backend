@@ -28,4 +28,8 @@ public interface AttendanceRepository
 
 	List<AttendanceEntity> findByAttendanceDateAndStudent_IdIn(
 			LocalDate attendanceDate, List<UUID> studentIds);
+
+	@org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM AttendanceEntity a WHERE a.status = :status AND a.attendanceDate = :attendanceDate")
+	long countPresentStudentsByAndDate(@org.springframework.data.repository.query.Param("status") String status,
+			@org.springframework.data.repository.query.Param("attendanceDate") java.time.LocalDate attendanceDate);
 }

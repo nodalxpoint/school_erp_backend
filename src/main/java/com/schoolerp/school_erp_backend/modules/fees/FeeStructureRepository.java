@@ -20,6 +20,7 @@ public interface FeeStructureRepository
             UUID classId,
             UUID academicSessionId
     );
-    
-   
+
+    Optional<FeeStructureEntity> findBySchool_IdAndClasses_IdAndAcademicSessionId(UUID schoolId, UUID classId, UUID academicSessionId);
+
 }

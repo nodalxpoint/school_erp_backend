@@ -23,9 +23,12 @@ import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 
 @Service
 public class FeeStructureService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FeeStructureService.class);
 
     @Autowired
     private FeeStructureRepository feeStructureRepository;
@@ -36,7 +39,8 @@ public class FeeStructureService {
     @Autowired
     private ValidationHelperService validationHelperService;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FeeStructureService.class);
+    @Autowired
+    private AcademicSessionRepository academicSessionRepository;
 
     public PagedResponse<FeeStructureDto> filterFeeStructures(FeestructureFilterRequest request) {
 
@@ -44,9 +48,24 @@ public class FeeStructureService {
 
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
+        LOGGER.info("Filter Request: {}", request.toString());
+
         Page<FeeStructureEntity> entityPage = feeStructureRepository.findAll(FeeStructureSpecification.filter(request),
                 pageable);
 
+        LOGGER.info("Total Elements Found: {}", entityPage.getTotalElements());
+        LOGGER.info("Page Size Returned: {}", entityPage.getContent().size());
+
+        for (FeeStructureEntity entity : entityPage.getContent()) {
+            LOGGER.info(
+                    "FeeStructure -> id={}, classId={}, className={}, academicSessionId={}, feeName={}, amount={}",
+                    entity.getId(),
+                    entity.getClasses() != null ? entity.getClasses().getId() : null,
+                    entity.getClasses() != null ? entity.getClasses().getClassName() : null,
+                    entity.getAcademicSessionId() != null ? entity.getAcademicSessionId() : null,
+                    entity.getFeeName(),
+                    entity.getAmount());
+        }
         List<FeeStructureDto> dtoList = new ArrayList<>();
 
         for (FeeStructureEntity entity : entityPage.getContent()) {
@@ -107,7 +126,15 @@ public class FeeStructureService {
         entity.setAmount(request.getAmount());
         entity.setFrequency(request.getFrequency() != null ? request.getFrequency() : Frequency.MONTHLY);
         entity.setDueDate(request.getDueDate());
-        entity.setAcademicSessionId(request.getAcademicSessionId());
+
+        UUID academicSessionId = request.getAcademicSessionId();
+        if (academicSessionId == null) {
+            Optional<AcademicSessionEntity> activeSession = academicSessionRepository.findActiveSessionBySchoolId();
+            if (activeSession.isPresent()) {
+                academicSessionId = activeSession.get().getId();
+            }
+        }
+        entity.setAcademicSessionId(academicSessionId);
 
         feeStructureRepository.save(entity);
         LOGGER.info("Fee structure created for schoolId={}, feeName={}", school.getId(), request.getFeeName());
@@ -137,6 +164,11 @@ public class FeeStructureService {
 
         if (request.getAcademicSessionId() != null) {
             entity.setAcademicSessionId(request.getAcademicSessionId());
+        } else if (entity.getAcademicSessionId() == null) {
+            Optional<AcademicSessionEntity> activeSession = academicSessionRepository.findActiveSessionBySchoolId();
+            if (activeSession.isPresent()) {
+                entity.setAcademicSessionId(activeSession.get().getId());
+            }
         }
 
         feeStructureRepository.save(entity);
@@ -149,17 +181,28 @@ public class FeeStructureService {
             throw new ValidationException("Class is required");
         }
 
-        Optional<FeeStructureEntity> existing = feeStructureRepository.findBySchool_IdAndClasses_Id(
-                schoolId,
-                request.getClassId());
+        UUID academicSessionId = request.getAcademicSessionId();
+        if (academicSessionId == null) {
+            Optional<AcademicSessionEntity> activeSession = academicSessionRepository.findActiveSessionBySchoolId();
+            if (activeSession.isPresent()) {
+                academicSessionId = activeSession.get().getId();
+            }
+        }
 
-        if (existing.isPresent()) {
+        if (academicSessionId != null) {
+            Optional<FeeStructureEntity> existing = feeStructureRepository.findBySchool_IdAndClasses_IdAndAcademicSessionId(
+                    schoolId,
+                    request.getClassId(),
+                    academicSessionId);
 
-            if (request.getId() == null ||
-                    !existing.get().getId().equals(request.getId())) {
+            if (existing.isPresent()) {
 
-                throw new ValidationException(
-                        "Fee structure already exists for this class.");
+                if (request.getId() == null ||
+                        !existing.get().getId().equals(request.getId())) {
+
+                    throw new ValidationException(
+                            "Fee structure already exists for this class.");
+                }
             }
         }
     }
