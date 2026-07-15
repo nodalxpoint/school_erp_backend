@@ -182,4 +182,33 @@ public class SuperAdminService {
 
         userRepository.save(admin);
     }
+
+    @Transactional
+    public void deleteSchoolAdminOrAccountant(UUID targetUserId, UUID superAdminUserId) {
+        // Resolve Super Admin and their associated School
+        User superAdmin = userRepository.findById(superAdminUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Super admin not found with ID: " + superAdminUserId));
+
+        SchoolEntity school = superAdmin.getSchool();
+        if (school == null) {
+            throw new ValidationException("Super admin is not associated with any school");
+        }
+
+        // Resolve target user
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + targetUserId));
+
+        // Validate target user belongs to the same school as the super admin
+        if (targetUser.getSchool() == null || !school.getId().equals(targetUser.getSchool().getId())) {
+            throw new ValidationException("User does not belong to the same school");
+        }
+
+        // Validate target user role is either SCHOOL_ADMIN or ACCOUNTANT
+        if (targetUser.getRole() != UserRole.SCHOOL_ADMIN && targetUser.getRole() != UserRole.ACCOUNTANT) {
+            throw new ValidationException("Only school admin or accountant accounts can be deleted.");
+        }
+
+        LOGGER.info("Deleting school admin/accountant: {}", targetUserId);
+        userRepository.delete(targetUser);
+    }
 }
