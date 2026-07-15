@@ -189,7 +189,9 @@ public class ValidationHelperService {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		return auth != null &&
-				auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(CommonConstants.SCHOOL_ADMIN) ||
+				auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + CommonConstants.SCHOOL_ADMIN) ||
+						a.getAuthority().equals("ROLE_" + CommonConstants.SUPER_ADMIN) ||
+						a.getAuthority().equals(CommonConstants.SCHOOL_ADMIN) ||
 						a.getAuthority().equals(CommonConstants.SUPER_ADMIN));
 	}
 

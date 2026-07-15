@@ -18,6 +18,36 @@ public class StudentMarkDto {
 
 	private String sectionName;
 
+	private String admissionNo;
+
+	private String rollNo;
+
+	private BigDecimal maxMarks;
+
+	public String getAdmissionNo() {
+		return admissionNo;
+	}
+
+	public void setAdmissionNo(String admissionNo) {
+		this.admissionNo = admissionNo;
+	}
+
+	public String getRollNo() {
+		return rollNo;
+	}
+
+	public void setRollNo(String rollNo) {
+		this.rollNo = rollNo;
+	}
+
+	public BigDecimal getMaxMarks() {
+		return maxMarks;
+	}
+
+	public void setMaxMarks(BigDecimal maxMarks) {
+		this.maxMarks = maxMarks;
+	}
+
 	public String getClassName() {
 		return className;
 	}
