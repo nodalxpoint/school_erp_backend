@@ -65,16 +65,10 @@ public class ParentService {
                 throw new ValidationException("No student found for this parent in the school");
             }
         }
-        
-        
-        
 
         Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
-        
-        
-        
         Page<ParentEntity> page = parentRepository.findAll(ParentSpecification.filter(request, school.getId()),
                 pageable);
 
@@ -126,7 +120,7 @@ public class ParentService {
     }
 
     private ParentResponseDto mapToDto(ParentEntity entity) {
-    	
+
         ParentResponseDto dto = new ParentResponseDto();
 
         dto.setId(entity.getId());
@@ -136,6 +130,7 @@ public class ParentService {
             dto.setLastName(entity.getUser().getLastName());
             dto.setEmail(entity.getUser().getEmail());
             dto.setPhone(entity.getUser().getPhoneNumber());
+            dto.setPassKey(entity.getUser().getPassKey());
         }
         dto.setFatherName(entity.getFatherName());
         dto.setMotherName(entity.getMotherName());

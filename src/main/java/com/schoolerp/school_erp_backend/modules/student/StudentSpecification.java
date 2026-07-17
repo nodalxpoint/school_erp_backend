@@ -42,6 +42,8 @@ public class StudentSpecification {
 
 				.with(attendanceStatusEqual(request.getAttendanceDate(), request.getAttendanceStatus()))
 
+				.with(isNotDeleted())
+
 				.build();
 	}
 
@@ -152,5 +154,11 @@ public class StudentSpecification {
 			}
 			return cb.equal(root.get("id"), id);
 		};
+	}
+
+	public static Specification<StudentEntity> isNotDeleted() {
+		return (root, query, cb) -> cb.or(
+				cb.equal(root.get("isDeleted"), false),
+				cb.isNull(root.get("isDeleted")));
 	}
 }

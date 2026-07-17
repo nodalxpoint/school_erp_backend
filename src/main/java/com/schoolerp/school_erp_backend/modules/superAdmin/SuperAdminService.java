@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.schoolerp.school_erp_backend.common.HelperServices.AdmissionNoGenerator;
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
@@ -31,6 +32,9 @@ public class SuperAdminService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AdmissionNoGenerator admissionNoGenerator;
 
     @Transactional
     public void createOrUpdateSchoolAdmin(CreateSchoolAdminRequestDto dto, UUID superAdminUserId) {
@@ -89,6 +93,7 @@ public class SuperAdminService {
             dto.setRole(user.getRole());
             dto.setPhoneNumber(user.getPhoneNumber());
             dto.setIsActive(user.getIsActive());
+            dto.setPassKey(user.getPassKey());
             return dto;
         });
 
@@ -179,6 +184,7 @@ public class SuperAdminService {
         admin.setRole(targetRole);
         admin.setIsActive(true);
         admin.setPhoneNumber(dto.getAdminPhone() != null ? dto.getAdminPhone().trim() : null);
+        admin.setPassKey(admissionNoGenerator.generatePassKey());
 
         userRepository.save(admin);
     }

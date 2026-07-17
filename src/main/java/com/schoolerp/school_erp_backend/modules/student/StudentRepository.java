@@ -22,6 +22,7 @@ public interface StudentRepository extends JpaRepository<StudentEntity, UUID>, J
 			    WHERE se.classEntity.id = :classId
 			      AND se.sectionEntity.id = :sectionId
 			      AND se.academicSessionId = :academicSessionId
+			      AND se.studentEntity.isDeleted = false
 			      AND NOT EXISTS (
 			            SELECT 1
 			            FROM StudentFeeEntity sf

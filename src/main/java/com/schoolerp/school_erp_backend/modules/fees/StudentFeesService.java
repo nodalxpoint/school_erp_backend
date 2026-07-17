@@ -149,7 +149,7 @@ public class StudentFeesService {
 		StudentEnrollmentEntity enrollment = studentEnrollmentRepository
 				.findByStudentEntity_IdAndAcademicSessionId(student.getId(), academicSession.getId())
 				.orElseThrow(() -> new ResourceNotFoundException(
-						"Enrollment not found for student in this academic session"));
+						"Enrollment not found for student in this academic session"));		
 
 		// Step 2: Enrollment se class nikalo
 		if (enrollment.getClassEntity() == null) {
@@ -194,6 +194,7 @@ public class StudentFeesService {
 		LOGGER.info("Student fee created (PAID) for studentId={}, classId={}, feeStructureId={}, month={}, year={}",
 				request.getStudentId(), classId, feeStructure.getId(), request.getFeeMonth(), request.getFeeYear());
 	}
+
 
 	public void updateStudentFee(StudentFeeDto request) {
 		StudentFeeEntity entity = studentFeeRepository.findById(request.getId())

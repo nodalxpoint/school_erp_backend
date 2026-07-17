@@ -39,6 +39,8 @@ public class StudentResponseDto {
 
     private StudentUdiseResponseDto udise;
 
+    private String passKey;
+
     public StudentResponseDto() {
     }
 
@@ -216,5 +218,13 @@ public class StudentResponseDto {
 
     public void setUdise(StudentUdiseResponseDto udise) {
         this.udise = udise;
+    }
+
+    public String getPassKey() {
+        return passKey;
+    }
+
+    public void setPassKey(String passKey) {
+        this.passKey = passKey;
     }
 }

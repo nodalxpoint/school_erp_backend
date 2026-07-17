@@ -19,4 +19,6 @@ public interface ClassTeacherAssignmentRepository extends JpaRepository<ClassTea
 	Optional<ClassTeacherAssignmentEntity> findByTeacherIdAndAcademicSessionId(
 			UUID teacherId,
 			UUID academicSessionId);
+
+	java.util.List<ClassTeacherAssignmentEntity> findByTeacherId(UUID teacherId);
 }

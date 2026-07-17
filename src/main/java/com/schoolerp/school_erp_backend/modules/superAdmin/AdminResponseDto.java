@@ -12,6 +12,15 @@ public class AdminResponseDto {
     private UserRole role;
     private String phoneNumber;
     private Boolean isActive;
+    private String passKey;
+
+    public String getPassKey() {
+        return passKey;
+    }
+
+    public void setPassKey(String passKey) {
+        this.passKey = passKey;
+    }
 
     public UUID getId() {
         return id;

@@ -13,7 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.schoolerp.school_erp_backend.common.HelperServices.AdmissionNoGenerator;
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
+import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
@@ -24,8 +26,14 @@ import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
+import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.subject.SubjectTeacherAssignmentEntity;
+import com.schoolerp.school_erp_backend.modules.subject.SubjectTeacherAssignmentRepository;
+import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableEntity;
+import com.schoolerp.school_erp_backend.modules.timetable.TimetableEntity;
+import com.schoolerp.school_erp_backend.modules.timetable.TimetableRepository;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -42,6 +50,8 @@ public class TeacherService {
 	@Autowired
 	private ClassTeacherAssignmentRepository classTeacherAssignmentRepository;
 	@Autowired
+	private SubjectTeacherAssignmentRepository subjectTeacherAssignmentRepository;
+	@Autowired
 	private ClassesRepository classesRepository;
 	@Autowired
 	private SectionRepository sectionRepository;
@@ -49,6 +59,11 @@ public class TeacherService {
 	private AcademicSessionRepository academicSessionRepository;
 	@Autowired
 	private TeacherTimetableRepo teacherTimetableRepo;
+	@Autowired
+	private TimetableRepository timetableRepository;
+
+	@Autowired
+	private AdmissionNoGenerator admissionNoGenerator;
 
 	public PagedResponse<TeacherResponseDto> filterTeachers(TeacherFilterRequest request) {
 
@@ -228,8 +243,10 @@ public class TeacherService {
 		teacher.setEmployeeCode(request.getEmployeeCode());
 		teacher.setQualification(request.getQualification());
 		teacher.setJoiningDate(request.getJoiningDate());
+		user.setPassKey(admissionNoGenerator.generatePassKey());
 
 		teacherRepo.save(teacher);
+		userRepo.save(user);
 	}
 
 	public void updateTeacher(CreateTeacherDto request) {
@@ -278,11 +295,82 @@ public class TeacherService {
 			dto.setFirstName(teacher.getUser().getFirstName());
 			dto.setLastName(teacher.getUser().getLastName());
 			dto.setEmail(teacher.getUser().getEmail());
+			dto.setPassKey(teacher.getUser().getPassKey());
 			// sending password ask to zoahib
 			// dto.setPassword(teacher.getUser().getPassword());
 		}
 
 		return dto;
+	}
+
+	@Transactional
+	public void deleteTeacher(UUID teacherId, UUID loggedInUserId) {
+		// Resolve logged-in user
+		User loggedInUser = userRepo.findById(loggedInUserId)
+				.orElseThrow(
+						() -> new ResourceNotFoundException("Logged-in user not found with ID: " + loggedInUserId));
+
+		// Check role of logged-in user: only SUPER_ADMIN or SCHOOL_ADMIN can delete
+		if (loggedInUser.getRole() != UserRole.SUPER_ADMIN && loggedInUser.getRole() != UserRole.SCHOOL_ADMIN) {
+			throw new ValidationException("Only school admin or super admin can delete a teacher.");
+		}
+
+		SchoolEntity school = loggedInUser.getSchool();
+		if (school == null) {
+			throw new ValidationException("Logged-in user is not associated with any school");
+		}
+
+		// Resolve target teacher
+		TeacherEntity targetTeacher = teacherRepo.findById(teacherId)
+				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found with ID: " + teacherId));
+
+		// Validate target teacher belongs to the same school as the logged-in user
+		if (targetTeacher.getSchool() == null || !school.getId().equals(targetTeacher.getSchool().getId())) {
+			throw new ValidationException("Teacher does not belong to the same school");
+		}
+
+		// Resolve associated User
+		User targetUser = targetTeacher.getUser();
+
+		deleteTeacherReferences(teacherId);
+
+		LOGGER.info("Deleting teacher entity: {}", teacherId);
+		teacherRepo.delete(targetTeacher);
+
+		// Delete associated User entity
+		if (targetUser != null) {
+			LOGGER.info("Deleting teacher user entity: {}", targetUser.getId());
+			userRepo.delete(targetUser);
+		}
+	}
+
+	private void deleteTeacherReferences(UUID teacherId) {
+
+		// Delete class teacher assignments for this teacher
+		List<ClassTeacherAssignmentEntity> classAssignments = classTeacherAssignmentRepository
+				.findByTeacherId(teacherId);
+		if (classAssignments != null && !classAssignments.isEmpty()) {
+			classTeacherAssignmentRepository.deleteAll(classAssignments);
+		}
+
+		// Delete subject teacher assignments for this teacher
+		List<SubjectTeacherAssignmentEntity> subjectAssignments = subjectTeacherAssignmentRepository
+				.findByTeacher_Id(teacherId);
+		if (subjectAssignments != null && !subjectAssignments.isEmpty()) {
+			subjectTeacherAssignmentRepository.deleteAll(subjectAssignments);
+		}
+
+		// Delete teacher timetable entries for this teacher
+		List<TeacherTimeTableEntity> teacherTimetables = teacherTimetableRepo.findByTeacherEntity_Id(teacherId);
+		if (teacherTimetables != null && !teacherTimetables.isEmpty()) {
+			teacherTimetableRepo.deleteAll(teacherTimetables);
+		}
+
+		// Delete class timetable entries for this teacher
+		List<TimetableEntity> timetables = timetableRepository.findByTeacherEntity_Id(teacherId);
+		if (timetables != null && !timetables.isEmpty()) {
+			timetableRepository.deleteAll(timetables);
+		}
 	}
 
 }

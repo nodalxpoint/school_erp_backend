@@ -19,4 +19,6 @@ public interface TimetableRepository
 
         List<TimetableEntity> findByAcademicSessionIdAndRoomNoAndDayOfWeekAndPeriod(
                         UUID academicSessionId, String roomNo, String dayOfWeek, Integer period);
+
+        List<TimetableEntity> findByTeacherEntity_Id(UUID teacherId);
 }

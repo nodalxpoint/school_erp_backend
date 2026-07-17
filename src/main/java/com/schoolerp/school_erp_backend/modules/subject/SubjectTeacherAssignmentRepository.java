@@ -15,4 +15,6 @@ public interface SubjectTeacherAssignmentRepository extends JpaRepository<Subjec
 
     boolean existsBySubject_IdAndClasses_IdAndSection_IdAndAcademicSessionId(
             UUID subjectId, UUID classId, UUID sectionId, UUID academicSessionId);
+
+    java.util.List<SubjectTeacherAssignmentEntity> findByTeacher_Id(UUID teacherId);
 }
