@@ -21,4 +21,6 @@ public interface StudentMarksRepository
 
     List<StudentMarksEntity> findByStudentIdAndExamSubjectExamAcademicSessionId(UUID studentId, UUID academicSessionId);
 
+    List<StudentMarksEntity> findByStudentId(UUID studentId);
+
 }

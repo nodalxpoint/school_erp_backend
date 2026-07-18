@@ -29,6 +29,10 @@ import com.schoolerp.school_erp_backend.modules.attendance.AttendanceEntity;
 import com.schoolerp.school_erp_backend.modules.attendance.AttendanceRepository;
 import com.schoolerp.school_erp_backend.modules.attendance.AttendanceSummaryDto;
 import com.schoolerp.school_erp_backend.modules.auth.User;
+import com.schoolerp.school_erp_backend.modules.exam.StudentMarksEntity;
+import com.schoolerp.school_erp_backend.modules.exam.StudentMarksRepository;
+import com.schoolerp.school_erp_backend.modules.fees.StudentFeeEntity;
+import com.schoolerp.school_erp_backend.modules.fees.StudentFeeRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
@@ -41,6 +45,10 @@ import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentEn
 import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableEntity;
 import com.schoolerp.school_erp_backend.modules.timetable.TimetableEntity;
 import com.schoolerp.school_erp_backend.modules.udise.StudentUdiseService;
+import com.schoolerp.school_erp_backend.modules.Progression.StudentProgressionEntity;
+import com.schoolerp.school_erp_backend.modules.Progression.StudentProgressionRepository;
+import com.schoolerp.school_erp_backend.modules.udise.StudentUdiseEntity;
+import com.schoolerp.school_erp_backend.modules.udise.StudentUdiseRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -75,10 +83,22 @@ public class StudentService {
 	private AttendanceRepository attendanceRepository;
 
 	@Autowired
+	private StudentFeeRepository studentFeeRepository;
+
+	@Autowired
+	private StudentMarksRepository studentMarksRepository;
+
+	@Autowired
 	private ValidationHelperService validationHelperService;
 
 	@Autowired
 	private StudentUdiseService studentUdiseService;
+
+	@Autowired
+	private StudentProgressionRepository studentProgressionRepository;
+
+	@Autowired
+	private StudentUdiseRepository studentUdiseRepository;
 
 	public PagedResponse<StudentResponseDto> filterStudents(StudentFilterRequest request) {
 
@@ -375,20 +395,55 @@ public class StudentService {
 			throw new ValidationException("Student is already deleted");
 		}
 
-		student.setIsDeleted(true);
-		student.setStatus("DELETED");
-		studentRepository.save(student);
-
-		// Soft delete associated enrollment records
-		List<StudentEnrollmentEntity> enrollments = studentEnrollmentRepository.findByStudentEntity_Id(studentId);
-		if (enrollments != null && !enrollments.isEmpty()) {
-			for (StudentEnrollmentEntity enrollment : enrollments) {
-				enrollment.setEnrollmentStatus("DELETED");
-			}
-			studentEnrollmentRepository.saveAll(enrollments);
+		List<AttendanceEntity> attendances = attendanceRepository.findByStudent_Id(studentId);
+		if (attendances != null && !attendances.isEmpty()) {
+			attendanceRepository.deleteAll(attendances);
 		}
 
-		LOGGER.info("Student with ID: {} and their enrollments soft-deleted successfully", studentId);
+		List<StudentFeeEntity> fees = studentFeeRepository.findByStudent_Id(studentId);
+		if (fees != null && !fees.isEmpty()) {
+			studentFeeRepository.deleteAll(fees);
+		}
+
+		List<StudentMarksEntity> marks = studentMarksRepository.findByStudentId(studentId);
+		if (marks != null && !marks.isEmpty()) {
+			studentMarksRepository.deleteAll(marks);
+		}
+
+		List<StudentEnrollmentEntity> enrollments = studentEnrollmentRepository.findByStudentEntity_Id(studentId);
+		if (enrollments != null && !enrollments.isEmpty()) {
+			studentEnrollmentRepository.deleteAll(enrollments);
+		}
+
+		List<StudentProgressionEntity> progressions = studentProgressionRepository.findByStudent_Id(studentId);
+		if (progressions != null && !progressions.isEmpty()) {
+			studentProgressionRepository.deleteAll(progressions);
+		}
+
+		List<StudentUdiseEntity> udiseDetails = studentUdiseRepository.findByStudent_Id(studentId);
+		if (udiseDetails != null && !udiseDetails.isEmpty()) {
+			studentUdiseRepository.deleteAll(udiseDetails);
+		}
+
+		ParentEntity parent = student.getParent();
+		studentRepository.delete(student);
+
+		if (parent != null) {
+			UUID parentId = parent.getId();
+			UUID schoolId = school.getId();
+			boolean hasSiblingInSameSchool = studentRepository.existsByParent_IdAndSchool_IdAndIdNotAndIsDeletedFalse(
+					parentId, schoolId, studentId);
+
+			if (!hasSiblingInSameSchool) {
+				User parentUser = parent.getUser();
+				parentRepository.delete(parent);
+				if (parentUser != null) {
+					userRepository.delete(parentUser);
+				}
+			}
+		}
+
+		LOGGER.info("Student with ID: {} hard-deleted successfully", studentId);
 	}
 
 }

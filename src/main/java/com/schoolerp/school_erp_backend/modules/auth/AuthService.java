@@ -15,6 +15,8 @@ import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SchoolRepository;
 import com.schoolerp.school_erp_backend.modules.student.StudentRepository;
 import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
+import com.schoolerp.school_erp_backend.modules.student.ParentEntity;
+import com.schoolerp.school_erp_backend.modules.student.ParentRepository;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
 import com.schoolerp.school_erp_backend.common.HelperServices.AdmissionNoGenerator;
@@ -39,6 +41,9 @@ public class AuthService {
 
 	@Autowired
 	private TeacherRepository teacherRepository;
+
+	@Autowired
+	private ParentRepository parentRepository;
 
 	public LoginResponseDto login(LoginRequestDto requestDto) {
 
@@ -160,5 +165,46 @@ public class AuthService {
 		}
 
 		return user;
+	}
+
+	@Transactional(readOnly = true)
+	public UserProfileResponseDto getUserProfile(UUID userId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+
+		UserProfileResponseDto profile = new UserProfileResponseDto();
+		profile.setId(user.getId());
+		profile.setFirstName(user.getFirstName());
+		profile.setLastName(user.getLastName());
+		profile.setEmail(user.getEmail());
+		profile.setPhoneNumber(user.getPhoneNumber());
+		profile.setRole(user.getRole().name());
+
+		if (user.getSchool() != null) {
+			profile.setSchoolId(user.getSchool().getId());
+			profile.setSchoolName(user.getSchool().getSchoolName());
+		}
+
+		if (user.getRole() == UserRole.TEACHER) {
+			teacherRepository.findByUserId(userId).ifPresent(teacher -> {
+				UserProfileResponseDto.TeacherProfileDetails details = new UserProfileResponseDto.TeacherProfileDetails();
+				details.setTeacherId(teacher.getId());
+				details.setEmployeeCode(teacher.getEmployeeCode());
+				details.setQualification(teacher.getQualification());
+				details.setJoiningDate(teacher.getJoiningDate());
+				profile.setTeacherDetails(details);
+			});
+		} else if (user.getRole() == UserRole.PARENT) {
+			parentRepository.findByUserId(userId).ifPresent(parent -> {
+				UserProfileResponseDto.ParentProfileDetails details = new UserProfileResponseDto.ParentProfileDetails();
+				details.setParentId(parent.getId());
+				details.setFatherName(parent.getFatherName());
+				details.setMotherName(parent.getMotherName());
+				details.setEmergencyContact(parent.getEmergencyContact());
+				profile.setParentDetails(details);
+			});
+		}
+
+		return profile;
 	}
 }

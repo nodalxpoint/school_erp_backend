@@ -16,6 +16,8 @@ public interface StudentRepository extends JpaRepository<StudentEntity, UUID>, J
 
 	boolean existsByParent_IdAndSchool_Id(UUID parentId, UUID schoolId);
 
+	boolean existsByParent_IdAndSchool_IdAndIdNotAndIsDeletedFalse(UUID parentId, UUID schoolId, UUID studentId);
+
 	@Query("""
 			    SELECT se.studentEntity
 			    FROM StudentEnrollmentEntity se
