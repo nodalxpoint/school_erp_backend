@@ -147,16 +147,19 @@ public class AuthService {
 
 		if (request.getTeacherId() != null) {
 			TeacherEntity teacher = teacherRepository.findById(request.getTeacherId())
-					.orElseThrow(() -> new ResourceNotFoundException("Teacher not found with ID: " + request.getTeacherId()));
+					.orElseThrow(() -> new ResourceNotFoundException(
+							"Teacher not found with ID: " + request.getTeacherId()));
 			user = teacher.getUser();
 			if (user == null) {
 				throw new ResourceNotFoundException("User not found for teacher ID: " + request.getTeacherId());
 			}
 		} else if (request.getStudentId() != null) {
 			StudentEntity student = studentRepository.findById(request.getStudentId())
-					.orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + request.getStudentId()));
+					.orElseThrow(() -> new ResourceNotFoundException(
+							"Student not found with ID: " + request.getStudentId()));
 			if (student.getParent() == null || student.getParent().getUser() == null) {
-				throw new ResourceNotFoundException("Parent user not found for student with ID: " + request.getStudentId());
+				throw new ResourceNotFoundException(
+						"Parent user not found for student with ID: " + request.getStudentId());
 			}
 			user = student.getParent().getUser();
 		} else if (request.getUserId() != null) {
@@ -179,10 +182,12 @@ public class AuthService {
 		profile.setEmail(user.getEmail());
 		profile.setPhoneNumber(user.getPhoneNumber());
 		profile.setRole(user.getRole().name());
+		profile.setPassKey(user.getPassKey());
 
 		if (user.getSchool() != null) {
 			profile.setSchoolId(user.getSchool().getId());
 			profile.setSchoolName(user.getSchool().getSchoolName());
+
 		}
 
 		if (user.getRole() == UserRole.TEACHER) {
@@ -193,6 +198,7 @@ public class AuthService {
 				details.setQualification(teacher.getQualification());
 				details.setJoiningDate(teacher.getJoiningDate());
 				profile.setTeacherDetails(details);
+				details.setTeacherPassKey(user.getPassKey());
 			});
 		} else if (user.getRole() == UserRole.PARENT) {
 			parentRepository.findByUserId(userId).ifPresent(parent -> {
@@ -202,6 +208,7 @@ public class AuthService {
 				details.setMotherName(parent.getMotherName());
 				details.setEmergencyContact(parent.getEmergencyContact());
 				profile.setParentDetails(details);
+				details.setParentPassKey(user.getPassKey());
 			});
 		}
 

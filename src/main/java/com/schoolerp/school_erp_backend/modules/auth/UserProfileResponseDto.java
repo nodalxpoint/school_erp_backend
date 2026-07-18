@@ -13,6 +13,7 @@ public class UserProfileResponseDto {
     private String role;
     private UUID schoolId;
     private String schoolName;
+    private String passKey;
 
     private TeacherProfileDetails teacherDetails;
     private ParentProfileDetails parentDetails;
@@ -22,6 +23,7 @@ public class UserProfileResponseDto {
         private String employeeCode;
         private String qualification;
         private LocalDate joiningDate;
+        private String teacherPassKey;
 
         public UUID getTeacherId() {
             return teacherId;
@@ -54,6 +56,14 @@ public class UserProfileResponseDto {
         public void setJoiningDate(LocalDate joiningDate) {
             this.joiningDate = joiningDate;
         }
+
+        public String getTeacherPassKey() {
+            return teacherPassKey;
+        }
+
+        public void setTeacherPassKey(String teacherPassKey) {
+            this.teacherPassKey = teacherPassKey;
+        }
     }
 
     public static class ParentProfileDetails {
@@ -61,6 +71,7 @@ public class UserProfileResponseDto {
         private String fatherName;
         private String motherName;
         private String emergencyContact;
+        private String parentPassKey;
 
         public UUID getParentId() {
             return parentId;
@@ -92,6 +103,14 @@ public class UserProfileResponseDto {
 
         public void setEmergencyContact(String emergencyContact) {
             this.emergencyContact = emergencyContact;
+        }
+
+        public String getParentPassKey() {
+            return parentPassKey;
+        }
+
+        public void setParentPassKey(String parentPassKey) {
+            this.parentPassKey = parentPassKey;
         }
     }
 
@@ -175,4 +194,13 @@ public class UserProfileResponseDto {
     public void setParentDetails(ParentProfileDetails parentDetails) {
         this.parentDetails = parentDetails;
     }
+
+    public String getPassKey() {
+        return passKey;
+    }
+
+    public void setPassKey(String passKey) {
+        this.passKey = passKey;
+    }
+
 }
