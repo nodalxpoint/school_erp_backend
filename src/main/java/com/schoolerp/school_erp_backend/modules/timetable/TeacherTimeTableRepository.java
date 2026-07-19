@@ -1,6 +1,7 @@
 package com.schoolerp.school_erp_backend.modules.timetable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TeacherTImeTableRepository
+public interface TeacherTimeTableRepository
                 extends JpaRepository<TeacherTimeTableEntity, UUID>, JpaSpecificationExecutor<TeacherTimeTableEntity> {
 
         List<TeacherTimeTableEntity> findByAcademicSessionIdAndTeacherEntity_IdAndDayOfWeekAndPeriod(
@@ -22,4 +23,5 @@ public interface TeacherTImeTableRepository
 
         List<TeacherTimeTableEntity> findByAcademicSessionIdAndRoomNoAndDayOfWeek(
                         UUID academicSessionId, String roomNo, String dayOfWeek);
+
 }

@@ -36,7 +36,7 @@ public class TeacherTimeTableService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TeacherTimeTableService.class);
 
     @Autowired
-    private TeacherTImeTableRepository teacherTimeTableRepository;
+    private TeacherTimeTableRepository teacherTimeTableRepository;
 
     @Autowired
     private ValidationHelperService validationHelperService;
