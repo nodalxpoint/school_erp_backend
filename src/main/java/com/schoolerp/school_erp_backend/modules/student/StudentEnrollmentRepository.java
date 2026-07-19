@@ -18,6 +18,22 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
 			UUID classId,
 			UUID sectionId, UUID academicSessionId, String enrollmentStatus);
 
+	@Query("""
+	    SELECT se FROM StudentEnrollmentEntity se
+	    JOIN FETCH se.studentEntity s
+	    LEFT JOIN FETCH s.parent p
+	    LEFT JOIN FETCH p.user u
+	    WHERE se.classEntity.id = :classId
+	      AND se.sectionEntity.id = :sectionId
+	      AND se.academicSessionId = :academicSessionId
+	      AND se.enrollmentStatus = :enrollmentStatus
+	""")
+	List<StudentEnrollmentEntity> findByClassAndSectionAndSessionWithStudentAndParent(
+			@Param("classId") UUID classId,
+			@Param("sectionId") UUID sectionId,
+			@Param("academicSessionId") UUID academicSessionId,
+			@Param("enrollmentStatus") String enrollmentStatus);
+
 	boolean existsByStudentEntity_IdAndAcademicSessionId(UUID studentId, UUID academicSessionId);
 
 	Optional<StudentEnrollmentEntity> findByStudentEntity_IdAndAcademicSessionId(UUID studentId,

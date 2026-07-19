@@ -13,6 +13,8 @@ public interface StudentProgressionRepository
 
     Optional<StudentProgressionEntity> findByStudent_IdAndAcademicSession_Id(UUID studentId, UUID academicSessionId);
 
+    List<StudentProgressionEntity> findByStudent_IdInAndAcademicSession_Id(List<UUID> studentIds, UUID academicSessionId);
+
     List<StudentProgressionEntity> findByStudent_Id(UUID studentId);
 }
 

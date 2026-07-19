@@ -182,7 +182,7 @@ public class TimetableService {
                 dto.getAcademicSessionId(), dto.getClassId(), dto.getSectionId(), dto.getDayOfWeek().trim(),
                 dto.getPeriod()).ifPresent(existingTimetable -> {
                     if (dto.getId() == null || !existingTimetable.getId().equals(dto.getId())) {
-                        timetableRepository.delete(existingTimetable);
+                        timetableRepository.deleteAll();
                     }
 
                 });

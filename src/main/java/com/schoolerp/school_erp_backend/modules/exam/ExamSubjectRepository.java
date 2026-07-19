@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -35,6 +37,18 @@ public interface ExamSubjectRepository extends JpaRepository<ExamSubjectEntity, 
 	        UUID examId
 	);
 	
-	
+	@Query("""
+        SELECT es FROM ExamSubjectEntity es
+        JOIN FETCH es.subject s
+        JOIN FETCH es.exam e
+        WHERE es.classEntity.id = :classId
+          AND e.academicSessionId = :academicSessionId
+          AND (:examId IS NULL OR e.id = :examId)
+    """)
+    List<ExamSubjectEntity> findExamSubjectsByClassAndSession(
+        @Param("classId") UUID classId,
+        @Param("academicSessionId") UUID academicSessionId,
+        @Param("examId") UUID examId
+    );
 
 }
