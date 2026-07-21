@@ -49,8 +49,8 @@ public class SubjectController {
     public ResponseEntity<ApiResponse<String>> assignSubjectTeacher(
             @Valid @RequestBody AssignSubjectTeacherDto request) {
         LOGGER.debug("assignSubjectTeacher endpoint called");
-        subjectService.assignSubjectTeacher(request);
-        ApiResponse<String> response = ApiResponse.success("Subject Teacher Assigned Successfully");
+        subjectService.addOrUpdateSubjectTeacherAssignment(request);
+        ApiResponse<String> response = ApiResponse.success("Subject Teacher Assigned Successfully", null);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

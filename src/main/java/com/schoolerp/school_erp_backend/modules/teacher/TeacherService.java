@@ -262,6 +262,7 @@ public class TeacherService {
 		user.setFirstName(request.getFirstName());
 		user.setLastName(request.getLastName());
 		// Don't update email/password here unless you want to allow that
+		user.setEmail(request.getEmail());
 		userRepo.save(user);
 
 		teacher.setEmployeeCode(request.getEmployeeCode());

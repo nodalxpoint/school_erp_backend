@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public class AssignSubjectTeacherDto {
 
+    private String assignmentId;
+
     @NotBlank(message = "Teacher ID is required")
     private String teacherId;
 
@@ -18,6 +20,14 @@ public class AssignSubjectTeacherDto {
 
     @NotBlank(message = "Academic Session ID is required")
     private String academicSessionId;
+
+    public String getAssignmentId() {
+        return assignmentId;
+    }
+
+    public void setAssignmentId(String assignmentId) {
+        this.assignmentId = assignmentId;
+    }
 
     public String getTeacherId() {
         return teacherId;

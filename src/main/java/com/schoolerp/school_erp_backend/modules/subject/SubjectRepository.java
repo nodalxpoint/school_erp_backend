@@ -18,4 +18,6 @@ public interface SubjectRepository extends JpaRepository<SubjectEntity, UUID>,
 
     boolean existsByNameAndSchoolIdAndIdNotAndIsDeletedFalse(String name, UUID schoolId, UUID id);
 
+    boolean existsByCode(String code);
+
 }

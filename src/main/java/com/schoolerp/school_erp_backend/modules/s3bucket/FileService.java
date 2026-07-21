@@ -68,6 +68,7 @@ public class FileService {
     }
 
     public UploadedFileDto getFileMetadata(UUID id) {
+
         UploadedFileEntity entity = uploadedFileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("File not found with ID: " + id));
 
