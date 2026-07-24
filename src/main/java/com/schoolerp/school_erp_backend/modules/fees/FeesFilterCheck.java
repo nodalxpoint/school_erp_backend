@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
@@ -16,6 +17,10 @@ import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
 import com.schoolerp.school_erp_backend.modules.student.StudentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Component
 public class FeesFilterCheck {
@@ -176,6 +181,15 @@ public class FeesFilterCheck {
         }
 
         return Collections.emptyList();
+    }
+
+    public List<StudentFeeDto> recentFees() {
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<StudentFeeEntity> recentFeesPage = studentFeeRepository.findAllByOrderByCreatedAtDesc(pageable);
+
+        return recentFeesPage.getContent().stream().map(this::mapToDto).toList();
     }
 
     public StudentFeeDto mapToDto(StudentFeeEntity entity) {

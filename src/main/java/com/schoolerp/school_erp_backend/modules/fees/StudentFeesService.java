@@ -94,11 +94,14 @@ public class StudentFeesService {
 		Integer month = request.getFeeMonth();
 		Integer year = request.getFeeYear();
 
-		boolean exists = feeStructureRepository.existsByIdAndClasses_IdAndAcademicSessionId(feeStructureId,
-				classId, academicSessionId);
+		if (paymentStatus != null && !paymentStatus.isEmpty()) {
 
-		if (!exists) {
-			throw new ResourceNotFoundException("Fee type does not exist for this class and academic session.");
+			boolean exists = feeStructureRepository.existsByIdAndClasses_IdAndAcademicSessionId(feeStructureId,
+					classId, academicSessionId);
+
+			if (!exists) {
+				throw new ResourceNotFoundException("Fee type does not exist for this class and academic session.");
+			}
 		}
 
 		List<StudentEnrollmentEntity> enrollments = studentEnrollmentRepository
@@ -106,22 +109,33 @@ public class StudentFeesService {
 						classId,
 						sectionId,
 						academicSessionId);
-		LOGGER.debug("Enrollments: {}", enrollments);
 
 		List<UUID> studentIds = enrollments.stream()
 				.map(StudentEnrollmentEntity::getStudentEntity)
 				.map(StudentEntity::getId)
 				.toList();
-		LOGGER.debug("Student IDs: {}", studentIds);
 
-		List<StudentFeeDto> paidStudentFees = feesFilterCheck.paidFilter(paymentStatus, studentIds, feeStructureId,
-				month, year);
+		List<StudentFeeDto> recentFeesList = new ArrayList<>();
+		List<StudentFeeDto> paidStudentFees = new ArrayList<>();
+		List<StudentFeeDto> pendingStudentFees = new ArrayList<>();
+		List<StudentFeeDto> partialStudentFees = new ArrayList<>();
 
-		List<StudentFeeDto> pendingStudentFees = feesFilterCheck.pendingFilter(paymentStatus, studentIds,
-				feeStructureId, month, year);
-
-		List<StudentFeeDto> partialStudentFees = feesFilterCheck.partialFilter(paymentStatus, studentIds,
-				feeStructureId, month, year);
+		if (paymentStatus == null || paymentStatus.isBlank()) {
+			LOGGER.debug("Recent student fees fetched successfully");
+			recentFeesList = feesFilterCheck.recentFees();
+		} else if (paymentStatus.equals("PAID")) {
+			LOGGER.debug("Paid student fees fetched successfully");
+			paidStudentFees = feesFilterCheck.paidFilter(paymentStatus, studentIds, feeStructureId,
+					month, year);
+		} else if (paymentStatus.equals("PENDING")) {
+			LOGGER.debug("Pending student fees fetched successfully");
+			pendingStudentFees = feesFilterCheck.pendingFilter(paymentStatus, studentIds, feeStructureId,
+					month, year);
+		} else {
+			LOGGER.debug("Partial student fees fetched successfully");
+			partialStudentFees = feesFilterCheck.partialFilter(paymentStatus, studentIds, feeStructureId,
+					month, year);
+		}
 
 		// Combine all lists
 		List<StudentFeeDto> allStudentFees = new ArrayList<>();
@@ -129,6 +143,7 @@ public class StudentFeesService {
 		allStudentFees.addAll(paidStudentFees);
 		allStudentFees.addAll(pendingStudentFees);
 		allStudentFees.addAll(partialStudentFees);
+		allStudentFees.addAll(recentFeesList);
 
 		return PagedResponse.fromPage(
 				new PageImpl<>(
