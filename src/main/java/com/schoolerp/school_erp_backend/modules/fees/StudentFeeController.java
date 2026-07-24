@@ -35,7 +35,7 @@ public class StudentFeeController {
     public ResponseEntity<ApiResponse<StudentFeeMonthlyStatusResponse>> getMonthlyFeeStatus(
             @RequestBody MonthlyStatusRequest request) {
         StudentFeeMonthlyStatusResponse response = studentFeesService.getMonthlyFeeStatus(
-                request.getStudentId(), request.getAcademicSessionId());
+                request.getStudentId(), request.getAcademicSessionId(), request.getFeeStructureId());
         return ResponseEntity.ok(ApiResponse.success("Monthly fee status fetched successfully", response));
     }
 

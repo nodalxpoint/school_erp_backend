@@ -2,6 +2,7 @@ package com.schoolerp.school_erp_backend.common.HelperServices;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,9 +19,24 @@ public class AdmissionNoGenerator {
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
     public String generate() {
+
         int year = LocalDate.now().getYear();
-        long count = studentRepository.count() + 1;
-        return String.format("ADM-%d-%03d", year, count);
+        String admissionNo;
+
+        do {
+            String randomPart = UUID.randomUUID()
+                    .toString()
+                    .substring(0, 5)
+                    .toUpperCase();
+
+            admissionNo = String.format(
+                    "ADM-%d-%s",
+                    year,
+                    randomPart);
+
+        } while (studentRepository.existsByAdmissionNo(admissionNo));
+
+        return admissionNo;
     }
 
     public String generatePassKey() {

@@ -60,4 +60,6 @@ public interface StudentRepository extends JpaRepository<StudentEntity, UUID>, J
 
 	long countByIsDeletedFalse();
 
+	boolean existsByAdmissionNo(String admissionNo);
+
 }

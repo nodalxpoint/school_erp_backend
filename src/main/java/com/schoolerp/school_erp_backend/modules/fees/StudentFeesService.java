@@ -202,58 +202,65 @@ public class StudentFeesService {
 			entity.setRemarks(request.getRemarks());
 
 		// paidAmount always = full fee structure amount (consistent with create)
-		BigDecimal totalAmount = (entity.getFeeStructure() != null) ? entity.getFeeStructure().getAmount()
-				: entity.getAmount(); // fallback: already stored amount
-		entity.setPaidAmount(totalAmount);
 
+		entity.setPaidAmount(request.getPaidAmount());
 		// paymentStatus always PAID (consistent with create)
-		entity.setPaymentStatus(PaymentStatus.PAID);
+		entity.setPaymentStatus(request.getPaymentStatus());
 
 		studentFeeRepository.save(entity);
 		LOGGER.info("Student fee updated: id={}", request.getId());
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────
-	// Monthly Fee Status API — student ki poori session ki fees ka breakdown
-	// Input : studentId + academicSessionId
-	// Output: har month (session start → end) ka PAID / PENDING status
+	// Input : studentId + academicSessionId + optional feeStructureId
+	// Output: har month (session start → end) ka PAID / PENDING / PARTIAL status
 	// ─────────────────────────────────────────────────────────────────────────
-	public StudentFeeMonthlyStatusResponse getMonthlyFeeStatus(UUID studentId, UUID academicSessionId) {
+	public StudentFeeMonthlyStatusResponse getMonthlyFeeStatus(UUID studentId, UUID academicSessionId,
+			UUID feeStructureId) {
 
-		// 1. Student validate karo
-		StudentEntity student = studentRepository.findById(studentId)
-				.orElseThrow(() -> new ResourceNotFoundException("Student not found: " + studentId));
+		StudentEntity student = getStudent(studentId);
 
-		// 2. Academic session validate karo
-		AcademicSessionEntity session = academicSessionRepository.findById(academicSessionId)
-				.orElseThrow(() -> new ResourceNotFoundException("Academic session not found: " + academicSessionId));
+		AcademicSessionEntity session = getAcademicSession(academicSessionId);
 
-		// 3. Student ki enrollment dhundo isi session me
-		StudentEnrollmentEntity enrollment = studentEnrollmentRepository
-				.findByStudentEntity_IdAndAcademicSessionId(studentId, academicSessionId)
-				.orElseThrow(() -> new ResourceNotFoundException(
-						"Student enrollment not found for this academic session"));
+		StudentEnrollmentEntity enrollment = getStudentEnrollment(studentId, academicSessionId);
 
-		UUID classId = enrollment.getClassEntity() != null ? enrollment.getClassEntity().getId() : null;
+		UUID classId = getClassId(enrollment);
 
-		// 4. Fee structure for student's class
+		// 4. Expected Monthly Fee Amount Calculation (Specific Fee Structure Filter)
 		BigDecimal monthlyFeeAmount = BigDecimal.ZERO;
 		if (classId != null) {
-			List<FeeStructureEntity> feeStructures = feeStructureRepository
-					.findByClasses_IdAndAcademicSessionId(classId, academicSessionId);
-			if (feeStructures == null || feeStructures.isEmpty()) {
-				feeStructures = feeStructureRepository.findByClasses_Id(classId);
-			}
-			if (feeStructures != null) {
-				for (FeeStructureEntity fs : feeStructures) {
-					monthlyFeeAmount = monthlyFeeAmount.add(fs.getAmount());
+			if (feeStructureId != null) {
+				// Agar specific Fee Name select hua hai (e.g. Tuition Fee)
+				FeeStructureEntity fs = feeStructureRepository.findById(feeStructureId).orElse(null);
+				if (fs != null) {
+					monthlyFeeAmount = fs.getAmount();
+				}
+			} else {
+				// Agar "All Fee Names" selected hain (Default)
+				List<FeeStructureEntity> feeStructures = feeStructureRepository
+						.findByClasses_IdAndAcademicSessionId(classId, academicSessionId);
+				if (feeStructures == null || feeStructures.isEmpty()) {
+					feeStructures = feeStructureRepository.findByClasses_Id(classId);
+				}
+				if (feeStructures != null) {
+					for (FeeStructureEntity fs : feeStructures) {
+						monthlyFeeAmount = monthlyFeeAmount.add(fs.getAmount());
+					}
 				}
 			}
 		}
 
-		// 5. Is student ki sab paid fees ek baar mein load karo (N+1 se bachne ke liye)
+		// 5. Is student ki paid fees load karo
 		List<StudentFeeEntity> paidFees = studentFeeRepository
 				.findByStudent_IdAndAcademicSession_Id(studentId, academicSessionId);
+
+		// Agar Specific Fee Structure Filter selected hai toh paid records ko bhi
+		// filter karo
+		if (feeStructureId != null) {
+			paidFees = paidFees.stream()
+					.filter(f -> f.getFeeStructure() != null && feeStructureId.equals(f.getFeeStructure().getId()))
+					.collect(Collectors.toList());
+		}
 
 		// month+year → entity ka map bana do quick lookup ke liye
 		Map<String, StudentFeeEntity> paidMap = paidFees.stream()
@@ -285,14 +292,17 @@ public class StudentFeesService {
 			detail.setTotalAmount(monthlyFeeAmount);
 
 			if (paidMap.containsKey(key)) {
-				// PAID
+				// Payment Record Found
 				StudentFeeEntity feeEntity = paidMap.get(key);
-				detail.setStatus(PaymentStatus.PAID);
+				PaymentStatus status = feeEntity.getPaymentStatus() != null
+						? feeEntity.getPaymentStatus()
+						: PaymentStatus.PAID;
+				detail.setStatus(status);
 				detail.setPaidAmount(feeEntity.getPaidAmount() != null ? feeEntity.getPaidAmount() : monthlyFeeAmount);
 				detail.setPaidAt(feeEntity.getPaidAt());
 				detail.setFeeRecordId(feeEntity.getId());
 			} else {
-				// PENDING
+				// No Payment Found -> PENDING
 				detail.setStatus(PaymentStatus.PENDING);
 				detail.setPaidAmount(BigDecimal.ZERO);
 			}
