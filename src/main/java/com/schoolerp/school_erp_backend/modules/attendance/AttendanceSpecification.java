@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 
 import jakarta.persistence.criteria.Predicate;
 
@@ -18,6 +19,8 @@ public class AttendanceSpecification {
 	public static Specification<AttendanceEntity> filter(AttendanceFilterRequest request) {
 
 		return new SpecificationBuilder<AttendanceEntity>()
+
+				.with(schoolEqual(TenantContext.get()))
 
 				.with(classIdEqual(request.getClassId()))
 
@@ -33,6 +36,14 @@ public class AttendanceSpecification {
 				.with(attendanceMonthYearEqual(request.getMonth(), request.getYear()))
 
 				.build();
+	}
+
+	public static Specification<AttendanceEntity> schoolEqual(UUID schoolId) {
+
+		return (root, query, cb) -> {
+			if (schoolId == null) return null;
+			return cb.equal(root.get("classEntity").get("schoolId"), schoolId);
+		};
 	}
 
 	public static Specification<AttendanceEntity> classIdEqual(UUID classId) {

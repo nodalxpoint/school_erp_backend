@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
 import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
 import com.schoolerp.school_erp_backend.common.exceptions.UnauthorizedException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
@@ -24,6 +25,8 @@ public class AuthService {
 	private JwtTokenProvider jwtTokenProvider;
 	@Autowired
 	private SchoolRepository schoolRepository;
+	@Autowired
+	private ValidationHelperService validationHelperService;
 
 	public LoginResponseDto login(LoginRequestDto requestDto) {
 
@@ -55,6 +58,10 @@ public class AuthService {
 
 		User user = new User();
 
+		// Unauthenticated bootstrap endpoint — there is no request-scoped tenant to resolve
+		// from (no logged-in user yet), so this intentionally still targets the one
+		// pre-existing school via the constant. Remove once a school-onboarding flow
+		// exists to create new schools + their first admin without this hardcoding.
 		SchoolEntity school = schoolRepository.findById(UUID.fromString(CommonConstants.SCHOOL_ID))
 				.orElseThrow(() -> new RuntimeException("School not found"));
 
@@ -77,8 +84,7 @@ public class AuthService {
 			throw new ValidationException("User already exists");
 		}
 
-		SchoolEntity school = schoolRepository.findById(UUID.fromString(CommonConstants.SCHOOL_ID))
-				.orElseThrow(() -> new RuntimeException("School not found"));
+		SchoolEntity school = validationHelperService.getSchool();
 
 		User user = new User();
 

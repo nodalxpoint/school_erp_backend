@@ -1,10 +1,13 @@
 package com.schoolerp.school_erp_backend.modules.teacher;
 
 
+import java.util.UUID;
+
 import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 
 import jakarta.persistence.criteria.Join;
@@ -18,6 +21,8 @@ public class TeacherSpecification {
 
         return new SpecificationBuilder<TeacherEntity>()
 
+                .with(schoolEqual(TenantContext.get()))
+
                 .with(employeeCodeEqual(request.getEmployeeCode()))
 
                 .with(qualificationLike(request.getQualification()))
@@ -25,6 +30,11 @@ public class TeacherSpecification {
 
 
                 .build();
+    }
+
+    public static Specification<TeacherEntity> schoolEqual(UUID schoolId) {
+
+        return (root, query, cb) -> FilterUtils.joinEqual(cb, root, "school", "id", schoolId);
     }
 
     public static Specification<TeacherEntity> employeeCodeEqual(String employeeCode) {

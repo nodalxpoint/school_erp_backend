@@ -232,7 +232,8 @@ public class StudentFeesService {
 		// =========================
 
 		if (academicSessionId == null) {
-			academicSessionId = academicSessionRepository.findActiveSessionBySchoolId()
+			academicSessionId = academicSessionRepository
+					.findActiveSessionBySchoolId(validationHelperService.getSchool().getId())
 					.map(AcademicSessionEntity::getId)
 					.orElseThrow(() -> new ResourceNotFoundException("Active academic session not found"));
 		}

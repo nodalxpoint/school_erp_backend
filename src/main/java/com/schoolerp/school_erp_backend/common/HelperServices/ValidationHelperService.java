@@ -10,8 +10,13 @@ import org.springframework.stereotype.Component;
 
 import com.schoolerp.school_erp_backend.common.constants.CommonConstants;
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
+import com.schoolerp.school_erp_backend.common.exceptions.UnauthorizedException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
+import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 import com.schoolerp.school_erp_backend.modules.exam.ExamDto;
 import com.schoolerp.school_erp_backend.modules.exam.ExamRepository;
 import com.schoolerp.school_erp_backend.modules.exam.ExamSubjectDto;
@@ -21,6 +26,7 @@ import com.schoolerp.school_erp_backend.modules.school.CreateClassDto;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SchoolRepository;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.subject.SubjectEntity;
 import com.schoolerp.school_erp_backend.modules.subject.SubjectRepository;
 import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentEntity;
 import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentRepository;
@@ -75,7 +81,13 @@ public class ValidationHelperService {
 
 	public SchoolEntity getSchool() {
 
-		return schoolRepository.findById(UUID.fromString(CommonConstants.SCHOOL_ID))
+		UUID schoolId = TenantContext.get();
+
+		if (schoolId == null) {
+			throw new UnauthorizedException("No school associated with the current request");
+		}
+
+		return schoolRepository.findById(schoolId)
 				.orElseThrow(() -> new ResourceNotFoundException("School not found"));
 	}
 
@@ -106,28 +118,50 @@ public class ValidationHelperService {
 	}
 
 	public void validateTeacher(UUID teacherId) {
-		teacherRepository.findById(teacherId)
+		TeacherEntity teacher = teacherRepository.findById(teacherId)
 				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+
+		if (teacher.getSchool() == null || !teacher.getSchool().getId().equals(TenantContext.get())) {
+			throw new ResourceNotFoundException("Teacher not found");
+		}
 	}
 
 	public void validateSubject(UUID subjectId) {
-		subjectRepository.findById(subjectId)
+		SubjectEntity subject = subjectRepository.findById(subjectId)
 				.orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+
+		if (subject.getSchool() == null || !subject.getSchool().getId().equals(TenantContext.get())) {
+			throw new ResourceNotFoundException("Subject not found");
+		}
 	}
 
 	public void validateClass(UUID classId) {
-		classesRepository.findById(classId)
+		ClassesEntity classEntity = classesRepository.findById(classId)
 				.orElseThrow(() -> new ResourceNotFoundException("Class not found"));
+
+		if (!classEntity.getSchoolId().equals(TenantContext.get())) {
+			throw new ResourceNotFoundException("Class not found");
+		}
 	}
 
 	public void validateSection(UUID sectionId) {
-		sectionRepository.findById(sectionId)
+		SectionEntity section = sectionRepository.findById(sectionId)
 				.orElseThrow(() -> new ResourceNotFoundException("Section not found"));
+
+		ClassesEntity classEntity = classesRepository.findById(section.getClassId()).orElse(null);
+
+		if (classEntity == null || !classEntity.getSchoolId().equals(TenantContext.get())) {
+			throw new ResourceNotFoundException("Section not found");
+		}
 	}
 
 	public void validateAcademicSession(UUID academicSessionId) {
-		academicSessionRepository.findById(academicSessionId)
+		AcademicSessionEntity session = academicSessionRepository.findById(academicSessionId)
 				.orElseThrow(() -> new ResourceNotFoundException("Academic Session not found"));
+
+		if (session.getSchool() == null || !session.getSchool().getId().equals(TenantContext.get())) {
+			throw new ResourceNotFoundException("Academic Session not found");
+		}
 	}
 
 	public void validateTeacherUserId(UUID userId) {

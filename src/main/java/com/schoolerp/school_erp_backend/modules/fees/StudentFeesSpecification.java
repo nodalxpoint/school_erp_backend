@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.student.StudentEnrollmentEntity;
 
 import jakarta.persistence.criteria.Root;
@@ -19,6 +20,7 @@ public class StudentFeesSpecification {
 
     public static Specification<StudentFeeEntity> filter(StudentFeesFilterRequest request) {
         return new SpecificationBuilder<StudentFeeEntity>()
+                .with(schoolEqual(TenantContext.get()))
                 .with(studentEqual(request.getStudentId()))
                 .with(academicSessionEqual(request.getAcademicSessionId()))
                 .with(feeMonthEqual(request.getFeeMonth()))

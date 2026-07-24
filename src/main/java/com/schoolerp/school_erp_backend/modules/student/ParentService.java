@@ -162,7 +162,9 @@ public class ParentService {
 
         // Enrollment details
         StudentEnrollmentEntity enrollment = null;
-        Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository.findActiveSessionBySchoolId();
+        Optional<AcademicSessionEntity> activeSessionOpt = entity.getSchool() != null
+                ? academicSessionRepository.findActiveSessionBySchoolId(entity.getSchool().getId())
+                : Optional.empty();
         if (activeSessionOpt.isPresent()) {
             enrollment = studentEnrollmentRepository
                     .findByStudentEntity_IdAndAcademicSessionId(entity.getId(), activeSessionOpt.get().getId())

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.attendance.AttendanceEntity;
 
 import jakarta.persistence.criteria.Root;
@@ -21,6 +22,8 @@ public class StudentSpecification {
 
 		return new SpecificationBuilder<StudentEntity>()
 
+				.with(schoolEqual(TenantContext.get()))
+
 				.with(firstNameLike(request.getFirstName()))
 
 				.with(lastNameLike(request.getLastName()))
@@ -33,6 +36,11 @@ public class StudentSpecification {
 				.with(attendanceStatusEqual(request.getAttendanceDate(), request.getAttendanceStatus()))
 
 				.build();
+	}
+
+	public static Specification<StudentEntity> schoolEqual(UUID schoolId) {
+
+		return (root, query, cb) -> FilterUtils.joinEqual(cb, root, "school", "id", schoolId);
 	}
 
 	public static Specification<StudentEntity> firstNameLike(String firstName) {

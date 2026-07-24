@@ -3,6 +3,7 @@ package com.schoolerp.school_erp_backend.modules.params;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
 
@@ -15,8 +16,16 @@ public class TeacherParamSpecification {
 
     public static Specification<TeacherEntity> filter(String search) {
         return new SpecificationBuilder<TeacherEntity>()
+                .with(schoolEqual(TenantContext.get()))
                 .with(nameLike(search))
                 .build();
+    }
+
+    private static Specification<TeacherEntity> schoolEqual(java.util.UUID schoolId) {
+        return (root, query, cb) -> {
+            if (schoolId == null) return null;
+            return cb.equal(root.get("school").get("id"), schoolId);
+        };
     }
 
     private static Specification<TeacherEntity> nameLike(String search) {

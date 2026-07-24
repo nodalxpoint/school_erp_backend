@@ -131,7 +131,7 @@ public class ParamService {
 	private PagedResponse<ResponseDropdownOption> fetchActiveExams(Pageable pageable) {
 
 		// Cleaner call signature
-		Page<ExamEntity> page = examRepository.findAll(ExamParamSpecification.isActiveEqualsY(), pageable);
+		Page<ExamEntity> page = examRepository.findAll(ExamParamSpecification.isActiveEqualsYForCurrentSchool(), pageable);
 
 		Page<ResponseDropdownOption> dtoPage = page
 				.map(e -> new ResponseDropdownOption(e.getId().toString(), e.getExamName()));

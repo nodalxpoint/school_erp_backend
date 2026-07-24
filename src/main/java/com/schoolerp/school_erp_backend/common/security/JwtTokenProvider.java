@@ -34,6 +34,7 @@ public class JwtTokenProvider {
                 .setSubject(user.getEmail())
                 .claim("role", user.getRole().name())
                 .claim("userId", user.getId().toString())
+                .claim("schoolId", user.getSchool() != null ? user.getSchool().getId().toString() : null)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

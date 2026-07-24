@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.student.StudentEnrollmentEntity;
 
 import jakarta.persistence.criteria.JoinType;
@@ -19,7 +20,9 @@ public class FeeStructureSpecification {
 
     public static Specification<FeeStructureEntity> filter(FeestructureFilterRequest request) {
         return new SpecificationBuilder<FeeStructureEntity>()
-                .with(schoolEqual(request.getSchoolId()))
+                // Tenant scoping must come from the authenticated request context, not client input —
+                // request.getSchoolId() is ignored here on purpose.
+                .with(schoolEqual(TenantContext.get()))
                 .with(classEqual(request.getClassId()))
                 .with(feeNameLike(request.getFeeName()))
                 .with(frequencyEqual(request.getFrequency()))

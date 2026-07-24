@@ -276,9 +276,9 @@ public class AttendanceService {
 		TeacherEntity teacher = teacherRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
 
-		// UUID schoolId = validationHelperService.getSchool().getId();
+		UUID schoolId = validationHelperService.getSchool().getId();
 
-		AcademicSessionEntity activeSessionOpt = academicSessionRepository.findActiveSessionBySchoolId()
+		AcademicSessionEntity activeSessionOpt = academicSessionRepository.findActiveSessionBySchoolId(schoolId)
 				.orElseThrow(() -> new ResourceNotFoundException("Academic session not found"));
 
 		ClassTeacherAssignmentEntity assignment = classTeacherAssignmentRepository

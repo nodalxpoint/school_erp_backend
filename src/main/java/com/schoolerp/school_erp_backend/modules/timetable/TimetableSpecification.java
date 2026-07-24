@@ -3,6 +3,7 @@ package com.schoolerp.school_erp_backend.modules.timetable;
 import org.springframework.data.jpa.domain.Specification;
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import java.util.UUID;
 
 public class TimetableSpecification {
@@ -12,6 +13,7 @@ public class TimetableSpecification {
 
     public static Specification<TimetableEntity> filter(TimetableFilterRequest request) {
         return new SpecificationBuilder<TimetableEntity>()
+                .with(schoolEqual(TenantContext.get()))
                 .with(academicSessionIdEqual(request.getAcademicSessionId()))
                 .with(classIdEqual(request.getClassId()))
                 .with(sectionIdEqual(request.getSectionId()))
@@ -19,6 +21,14 @@ public class TimetableSpecification {
                 .with(teacherIdEqual(request.getTeacherId()))
                 .with(dayOfWeekEqual(request.getDayOfWeek()))
                 .build();
+    }
+
+    public static Specification<TimetableEntity> schoolEqual(UUID schoolId) {
+        return (root, query, cb) -> {
+            if (schoolId == null)
+                return null;
+            return cb.equal(root.get("classEntity").get("schoolId"), schoolId);
+        };
     }
 
     public static Specification<TimetableEntity> academicSessionIdEqual(UUID academicSessionId) {

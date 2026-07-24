@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
 import jakarta.persistence.criteria.Root;
@@ -24,7 +25,8 @@ public class SubjectTeacherAssignmentSpecification {
 
 	public static Specification<SubjectTeacherAssignmentEntity> filter(SubjectTeacherAssignmentFilterRequest request,UUID teacherId) {
 		return new SpecificationBuilder<SubjectTeacherAssignmentEntity>()
-				
+
+				.with(schoolEqual(TenantContext.get()))
 				.with(classIdEqual(request.getClassId()))
 				.with(sectionIdEqual(request.getSectionId()))
 				.with(teacherIdEqual(teacherId))
@@ -32,6 +34,13 @@ public class SubjectTeacherAssignmentSpecification {
 				.with(academicSessionIdEqual(request.getAcademicSessionId()))
 				.with(teacherNameLike(request.getTeacherName()))
 				.build();
+	}
+
+	public static Specification<SubjectTeacherAssignmentEntity> schoolEqual(UUID schoolId) {
+	    return (root, query, cb) -> {
+	        if (schoolId == null) return null;
+	        return cb.equal(root.get("classes").get("schoolId"), schoolId);
+	    };
 	}
 
 	public static Specification<SubjectTeacherAssignmentEntity> classIdEqual(UUID classId) {
