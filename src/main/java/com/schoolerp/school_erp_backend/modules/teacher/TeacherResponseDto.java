@@ -20,6 +20,26 @@ public class TeacherResponseDto {
 
 	private LocalDate joiningDate;
 
+	private String passKey;
+
+	private String userId;
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public String getPassKey() {
+		return passKey;
+	}
+
+	public void setPassKey(String passKey) {
+		this.passKey = passKey;
+	}
+
 	public String getTeacherId() {
 		return teacherId;
 	}

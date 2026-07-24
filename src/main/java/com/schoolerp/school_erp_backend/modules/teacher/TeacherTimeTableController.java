@@ -15,6 +15,8 @@ import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableFilterRequest;
 import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableService;
 import com.schoolerp.school_erp_backend.modules.timetable.TimetableDto;
+import com.schoolerp.school_erp_backend.modules.timetable.TimetableFilterRequest;
+import com.schoolerp.school_erp_backend.modules.timetable.TimetableService;
 
 import jakarta.validation.Valid;
 
@@ -25,20 +27,20 @@ public class TeacherTimeTableController {
     private static final Logger LOGGER = LoggerFactory.getLogger(TeacherTimeTableController.class);
 
     @Autowired
-    private TeacherTimeTableService teacherTimeTableService;
+    private TimetableService timetableService;
 
     @PostMapping("/list")
     public ResponseEntity<PagedResponse<TimetableDto>> filterTeacherTimeTable(
-            @RequestBody TeacherTimeTableFilterRequest request) {
+            @RequestBody TimetableFilterRequest request) {
         LOGGER.debug("filterTeacherTimeTable called");
-        PagedResponse<TimetableDto> response = teacherTimeTableService.filterTeacherTimeTable(request);
+        PagedResponse<TimetableDto> response = timetableService.filterTimetable(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/addOrUpdate")
     public ResponseEntity<ApiResponse<String>> addOrUpdate(@Valid @RequestBody TimetableDto request) {
         LOGGER.debug("addOrUpdate teacher timetable called");
-        teacherTimeTableService.addOrUpdateTeacherTimeTable(request);
+        timetableService.addOrUpdateTimetable(request);
         ApiResponse<String> response = ApiResponse.success("Teacher timetable saved successfully", null);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

@@ -15,21 +15,21 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ExamRepository extends JpaRepository<ExamEntity, UUID>, JpaSpecificationExecutor<ExamEntity> {
 
-    boolean existsByExamNameAndSchoolIdAndAcademicSessionId(
-            String examName, UUID schoolId, UUID academicSessionId);
+        boolean existsByExamNameAndSchoolIdAndAcademicSessionId(
+                        String examName, UUID schoolId, UUID academicSessionId);
 
-    boolean existsByExamNameAndSchoolIdAndAcademicSessionIdAndIdNot(
-            String examName, UUID schoolId, UUID academicSessionId, UUID id);
-    
-    @Override
-    @EntityGraph(attributePaths = {
-            "examSubjects",
-            "examSubjects.subject",
-            "examSubjects.classEntity"
-    })
-    Page<ExamEntity> findAll(Specification<ExamEntity> spec, Pageable pageable);
-    
-    @Modifying
-    @Query("UPDATE ExamEntity e SET e.isActive = 'N' WHERE e.isActive = 'Y'")
-    void deactivateAllActiveExams();
+        boolean existsByExamNameAndSchoolIdAndAcademicSessionIdAndIdNot(
+                        String examName, UUID schoolId, UUID academicSessionId, UUID id);
+
+        @Override
+        @EntityGraph(attributePaths = {
+                        "examSubjects",
+                        "examSubjects.subject",
+                        "examSubjects.classEntity"
+        })
+        Page<ExamEntity> findAll(Specification<ExamEntity> spec, Pageable pageable);
+
+        @Modifying
+        @Query("UPDATE ExamEntity e SET e.isActive = 'N' WHERE e.isActive = 'Y'")
+        void deactivateAllActiveExams();
 }

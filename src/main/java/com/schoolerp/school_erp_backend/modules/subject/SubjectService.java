@@ -28,6 +28,7 @@ import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
+import com.schoolerp.school_erp_backend.modules.teacher.CreateTeacherDto;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
 
@@ -93,7 +94,7 @@ public class SubjectService {
         SchoolEntity school = validationHelperService.getSchool();
         String subjectName = request.getSubjectName().trim();
 
-        boolean alreadyExists = subjectRepository.existsByNameAndSchoolId(subjectName, school.getId());
+        boolean alreadyExists = subjectRepository.existsByNameAndSchoolIdAndIsDeletedFalse(subjectName, school.getId());
         if (alreadyExists) {
             LOGGER.error("Subject '{}' already exists for school {}", subjectName, school.getId());
             throw new ValidationException("Subject '" + subjectName + "' already exists");
@@ -102,7 +103,12 @@ public class SubjectService {
         SubjectEntity entity = new SubjectEntity();
         entity.setSchool(school);
         entity.setName(subjectName);
-        if (request.getSubjectCode() != null) {
+
+        if (request.getSubjectCode() != null && !request.getSubjectCode().trim().isEmpty()) {
+            boolean subjectCodeExists = subjectRepository.existsByCode(request.getSubjectCode().trim());
+            if (subjectCodeExists) {
+                throw new ValidationException("Subject code " + request.getSubjectCode() + " already exists");
+            }
             entity.setCode(request.getSubjectCode().trim());
         }
         subjectRepository.save(entity);
@@ -117,7 +123,8 @@ public class SubjectService {
         SchoolEntity school = validationHelperService.getSchool();
         String subjectName = request.getSubjectName().trim();
 
-        boolean alreadyExists = subjectRepository.existsByNameAndSchoolIdAndIdNot(subjectName, school.getId(),
+        boolean alreadyExists = subjectRepository.existsByNameAndSchoolIdAndIdNotAndIsDeletedFalse(subjectName,
+                school.getId(),
                 subjectId);
         if (alreadyExists) {
             throw new ValidationException("Subject '" + subjectName + "' already exists for this school");
@@ -138,6 +145,7 @@ public class SubjectService {
         dto.setName(entity.getName());
         dto.setCode(entity.getCode());
         dto.setCreatedAt(entity.getCreatedAt());
+        dto.setIsDeleted(entity.getIsDeleted());
         return dto;
     }
 
@@ -210,7 +218,70 @@ public class SubjectService {
     }
 
     @Transactional
-    public void assignSubjectTeacher(AssignSubjectTeacherDto request) {
+    public void addOrUpdateSubjectTeacherAssignment(AssignSubjectTeacherDto request) {
+
+        if (request.getAssignmentId() != null && !request.getAssignmentId().isEmpty()) {
+            LOGGER.debug("Updating existing assignment: {}", request.getAssignmentId());
+            updateSubjectTeacherAssignment(request);
+        } else {
+            LOGGER.debug("Creating new assignment");
+            createSubjectTeacherAssignment(request);
+        }
+    }
+
+    private void updateSubjectTeacherAssignment(AssignSubjectTeacherDto request) {
+
+        UUID assignmentId = UUID.fromString(request.getAssignmentId());
+        UUID teacherId = UUID.fromString(request.getTeacherId());
+        UUID subjectId = UUID.fromString(request.getSubjectId());
+        UUID classId = UUID.fromString(request.getClassId());
+        UUID sectionId = UUID.fromString(request.getSectionId());
+        UUID academicSessionId = UUID.fromString(request.getAcademicSessionId());
+
+        validationHelperService.validateTeacher(teacherId);
+        validationHelperService.validateSubject(subjectId);
+        validationHelperService.validateClass(classId);
+        validationHelperService.validateSection(sectionId);
+        validationHelperService.validateAcademicSession(academicSessionId);
+
+        SubjectTeacherAssignmentEntity entity = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+
+        Optional<SubjectTeacherAssignmentEntity> duplicate = assignmentRepository
+                .findBySubject_IdAndClasses_IdAndSection_IdAndAcademicSessionIdAndIdNot(
+                        subjectId,
+                        classId,
+                        sectionId,
+                        academicSessionId,
+                        assignmentId);
+
+        if (duplicate.isPresent()) {
+            throw new RuntimeException("Subject is already assigned for this class, section and academic session.");
+        }
+
+        TeacherEntity teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+
+        SubjectEntity subject = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new RuntimeException("Subject not found"));
+
+        ClassesEntity classes = classesRepository.findById(classId)
+                .orElseThrow(() -> new RuntimeException("Class not found"));
+
+        SectionEntity section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new RuntimeException("Section not found"));
+
+        entity.setTeacher(teacher);
+        entity.setSubject(subject);
+        entity.setClasses(classes);
+        entity.setSection(section);
+        entity.setAcademicSessionId(academicSessionId);
+
+        assignmentRepository.save(entity);
+    }
+
+    @Transactional
+    public void createSubjectTeacherAssignment(AssignSubjectTeacherDto request) {
         LOGGER.debug("assignSubjectTeacher called for class: {}, section: {}, subject: {}, teacher: {}",
                 request.getClassId(), request.getSectionId(), request.getSubjectId(), request.getTeacherId());
 
@@ -256,6 +327,29 @@ public class SubjectService {
             entity.setAcademicSessionId(academicSessionId);
             assignmentRepository.save(entity);
         }
+    }
+
+    @Transactional
+    public void deleteSubject(UUID subjectId) {
+        SubjectEntity entity = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        entity.setIsDeleted(true);
+        subjectRepository.save(entity);
+    }
+
+    @Transactional
+    public void restoreSubject(UUID subjectId) {
+        SubjectEntity entity = subjectRepository.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+
+        boolean alreadyExists = subjectRepository.existsByNameAndSchoolIdAndIsDeletedFalse(entity.getName(),
+                entity.getSchool().getId());
+        if (alreadyExists) {
+            throw new ValidationException("Cannot restore. A subject named '" + entity.getName() + "' already exists.");
+        }
+
+        entity.setIsDeleted(false);
+        subjectRepository.save(entity);
     }
 
 }

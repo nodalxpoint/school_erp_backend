@@ -18,6 +18,7 @@ public class AdminSpecification {
                 .with(schoolIdEqual(schoolId))
                 .with(roleIn(UserRole.SCHOOL_ADMIN, UserRole.ACCOUNTANT))
                 .with(nameLike(request.getName()))
+                .with(userIdEqual(request.getUserId()))
                 .build();
     }
 
@@ -50,4 +51,14 @@ public class AdminSpecification {
                     cb.like(cb.lower(root.get("lastName")), likePattern));
         };
     }
+
+    private static Specification<User> userIdEqual(UUID userId) {
+        return (root, query, cb) -> {
+            if (userId == null) {
+                return null;
+            }
+            return cb.equal(root.get("id"), userId);
+        };
+    }
+
 }

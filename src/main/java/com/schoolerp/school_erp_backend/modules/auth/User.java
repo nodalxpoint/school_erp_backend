@@ -45,6 +45,9 @@ public class User {
 	@Column(name = "phone", unique = true)
 	private String phoneNumber;
 
+	@Column(name = "pass_key")
+	private String passKey;
+
 	@PrePersist
 	public void prePersist() {
 		this.createdAt = LocalDateTime.now();
@@ -142,6 +145,14 @@ public class User {
 
 	public void setPhoneNumber(String phoneNumber) {
 		this.phoneNumber = phoneNumber;
+	}
+
+	public String getPassKey() {
+		return passKey;
+	}
+
+	public void setPassKey(String passKey) {
+		this.passKey = passKey;
 	}
 
 	@Override

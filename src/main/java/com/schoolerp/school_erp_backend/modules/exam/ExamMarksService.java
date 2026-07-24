@@ -66,16 +66,11 @@ public class ExamMarksService {
 	}
 
 	private ExamMarksDto mapToStudentMarksDto(StudentMarksEntity entity) {
-		
-		
-		List<StudentEnrollmentEntity> studentEnrollDetail = studentEnrollmentRepository.findByStudentEntity_Id(entity.getStudent().getId());
+
+		List<StudentEnrollmentEntity> studentEnrollDetail = studentEnrollmentRepository
+				.findByStudentEntity_Id(entity.getStudent().getId());
 		studentEnrollDetail.get(0).getClassEntity().getClassName();
 		studentEnrollDetail.get(0).getSectionEntity().getSectionName();
-	
-		
-		
-		
-		
 
 		ExamMarksDto dto = new ExamMarksDto();
 
@@ -85,7 +80,6 @@ public class ExamMarksService {
 		dto.setExamId(entity.getExam().getId());
 		dto.setExamName(entity.getExam().getExamName());
 		dto.setAcademicSessionId(entity.getExam().getAcademicSessionId());
-		
 
 		StudentMarkDto studentMarkDto = new StudentMarkDto();
 		studentMarkDto.setStudentId(entity.getStudent().getId());
@@ -94,7 +88,13 @@ public class ExamMarksService {
 		studentMarkDto.setRemarks(entity.getRemarks());
 		studentMarkDto.setClassName(studentEnrollDetail.get(0).getClassEntity().getClassName());
 		studentMarkDto.setSectionName(studentEnrollDetail.get(0).getSectionEntity().getSectionName());
-		
+		studentMarkDto.setAdmissionNo(entity.getStudent().getAdmissionNo());
+		studentMarkDto.setRollNo(
+				studentEnrollDetail != null && !studentEnrollDetail.isEmpty() ? studentEnrollDetail.get(0).getRollNo()
+						: null);
+		studentMarkDto.setMaxMarks(entity.getTotalMarks() != null ? entity.getTotalMarks()
+				: (entity.getExamSubject() != null ? java.math.BigDecimal.valueOf(entity.getExamSubject().getMaxMarks())
+						: null));
 
 		dto.setRecords(List.of(studentMarkDto));
 
@@ -102,17 +102,17 @@ public class ExamMarksService {
 	}
 
 	@Transactional
-	public void addOrUpdateExamMarks(ExamMarksDto request,UUID userId) {
+	public void addOrUpdateExamMarks(ExamMarksDto request, UUID userId) {
 
 		if (request.getId() != null) {
-			updateExamMarks(request,userId);
+			updateExamMarks(request, userId);
 		} else {
-			createExamMarks(request,userId);
+			createExamMarks(request, userId);
 		}
 
 	}
 
-	private void createExamMarks(ExamMarksDto request,UUID userId) {
+	private void createExamMarks(ExamMarksDto request, UUID userId) {
 		validationHelperService.getSchool();
 
 		ExamSubjectEntity examSubject = validateExamSubjectMarksRequest(request);
@@ -126,10 +126,11 @@ public class ExamMarksService {
 			StudentEntity student = studentRepository.findById(studentId)
 					.orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + studentId));
 
-			Optional<StudentMarksEntity> existingMarks = studentMarksRepository.findByExamSubjectIdAndStudentIdAndExamId(
-					examSubject.getId(),
-					studentId,
-					request.getExamId());
+			Optional<StudentMarksEntity> existingMarks = studentMarksRepository
+					.findByExamSubjectIdAndStudentIdAndExamId(
+							examSubject.getId(),
+							studentId,
+							request.getExamId());
 
 			StudentMarksEntity entity;
 
@@ -144,7 +145,7 @@ public class ExamMarksService {
 				entity.setFinalized(true);
 				entity.setFinalizedBy(userId);
 			}
-			
+
 			entity.setMarksObtained(studentMark.getMarksObtained());
 			entity.setRemarks(studentMark.getRemarks());
 			entity.setTotalMarks(maxMarks);
@@ -259,15 +260,20 @@ public class ExamMarksService {
 			}
 		}
 
-		ExamSubjectEntity examSubject = examSubjectRepository.findBySubject_IdAndClassEntity_IdAndExam_Id(
-				subjectId,
-				classId,
-				examId).orElseThrow(() -> {
-					log.error("ExamSubject NOT FOUND for subjectId={}, classId={}, examId={}",
-							subjectId, classId, examId);
+		Optional<ExamSubjectEntity> examSubjectOpt = examSubjectRepository.findById(subjectId);
+		if (examSubjectOpt.isEmpty()) {
+			examSubjectOpt = examSubjectRepository.findBySubject_IdAndClassEntity_IdAndExam_Id(
+					subjectId,
+					classId,
+					examId);
+		}
 
-					return new ResourceNotFoundException("Exam Subject not found");
-				});
+		ExamSubjectEntity examSubject = examSubjectOpt.orElseThrow(() -> {
+			log.error("ExamSubject NOT FOUND for subjectId={}, classId={}, examId={}",
+					subjectId, classId, examId);
+
+			return new ResourceNotFoundException("Exam Subject not found");
+		});
 
 		// 👉 STEP 4: marks validation
 		BigDecimal maxMarks = BigDecimal.valueOf(examSubject.getMaxMarks());

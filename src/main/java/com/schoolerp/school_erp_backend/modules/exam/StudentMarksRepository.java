@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -20,5 +22,22 @@ public interface StudentMarksRepository
             UUID examId);
 
     List<StudentMarksEntity> findByStudentIdAndExamSubjectExamAcademicSessionId(UUID studentId, UUID academicSessionId);
+
+    List<StudentMarksEntity> findByStudentId(UUID studentId);
+
+    @Query("""
+        SELECT sm FROM StudentMarksEntity sm
+        JOIN FETCH sm.examSubject es
+        JOIN FETCH es.subject sub
+        JOIN FETCH sm.student s
+        WHERE s.id IN :studentIds
+          AND sm.exam.academicSessionId = :academicSessionId
+          AND (:examId IS NULL OR sm.exam.id = :examId)
+    """)
+    List<StudentMarksEntity> findByStudentIdInAndAcademicSessionIdAndOptionalExamId(
+        @Param("studentIds") List<UUID> studentIds,
+        @Param("academicSessionId") UUID academicSessionId,
+        @Param("examId") UUID examId
+    );
 
 }

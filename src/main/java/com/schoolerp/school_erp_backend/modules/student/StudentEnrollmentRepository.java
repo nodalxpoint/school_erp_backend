@@ -18,36 +18,62 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
 			UUID classId,
 			UUID sectionId, UUID academicSessionId, String enrollmentStatus);
 
+	@Query("""
+			    SELECT se FROM StudentEnrollmentEntity se
+			    JOIN FETCH se.studentEntity s
+			    LEFT JOIN FETCH s.parent p
+			    LEFT JOIN FETCH p.user u
+			    WHERE se.classEntity.id = :classId
+			      AND se.sectionEntity.id = :sectionId
+			      AND se.academicSessionId = :academicSessionId
+			      AND se.enrollmentStatus = :enrollmentStatus
+			""")
+	List<StudentEnrollmentEntity> findByClassAndSectionAndSessionWithStudentAndParent(
+			@Param("classId") UUID classId,
+			@Param("sectionId") UUID sectionId,
+			@Param("academicSessionId") UUID academicSessionId,
+			@Param("enrollmentStatus") String enrollmentStatus);
+
 	boolean existsByStudentEntity_IdAndAcademicSessionId(UUID studentId, UUID academicSessionId);
 
 	Optional<StudentEnrollmentEntity> findByStudentEntity_IdAndAcademicSessionId(UUID studentId,
 			UUID academicSessionId);
 
 	List<StudentEnrollmentEntity> findByStudentEntity_Id(UUID studentId);
-	
-	
+
 	@Query("""
-		    SELECT se.studentEntity
-		    FROM StudentEnrollmentEntity se
-		    WHERE se.classEntity.id = :classId
-		      AND se.sectionEntity.id = :sectionId
-		      AND se.academicSessionId = :academicSessionId
-		      AND NOT EXISTS (
-		            SELECT sf.id
-		            FROM StudentFeeEntity sf
-		            WHERE sf.student.id = se.studentEntity.id
-		              AND sf.academicSession.id = :academicSessionId
-		              AND sf.feeMonth = :feeMonth
-		              AND sf.feeYear = :feeYear
-		      )
-		""")
-		Page<StudentEntity> findPendingStudents(
-		        @Param("classId") UUID classId,
-		        @Param("sectionId") UUID sectionId,
-		        @Param("academicSessionId") UUID academicSessionId,
-		        @Param("feeMonth") Integer feeMonth,
-		        @Param("feeYear") Integer feeYear,
-		        Pageable pageable
-		);
+			    SELECT se.studentEntity
+			    FROM StudentEnrollmentEntity se
+			    WHERE se.classEntity.id = :classId
+			      AND se.sectionEntity.id = :sectionId
+			      AND se.academicSessionId = :academicSessionId
+			      AND NOT EXISTS (
+			            SELECT sf.id
+			            FROM StudentFeeEntity sf
+			            WHERE sf.student.id = se.studentEntity.id
+			              AND sf.academicSession.id = :academicSessionId
+			              AND sf.feeMonth = :feeMonth
+			              AND sf.feeYear = :feeYear
+			      )
+			""")
+	Page<StudentEntity> findPendingStudents(
+			@Param("classId") UUID classId,
+			@Param("sectionId") UUID sectionId,
+			@Param("academicSessionId") UUID academicSessionId,
+			@Param("feeMonth") Integer feeMonth,
+			@Param("feeYear") Integer feeYear,
+			Pageable pageable);
+
+	List<StudentEnrollmentEntity> findByClassEntity_IdAndSectionEntity_IdAndAcademicSessionId(
+			UUID classId,
+			UUID sectionId,
+			UUID academicSessionId);
+
+	List<StudentEnrollmentEntity> findByClassEntity_IdAndAcademicSessionId(
+			UUID classId,
+			UUID academicSessionId);
+
+	List<StudentEnrollmentEntity> findByAcademicSessionId(
+			UUID academicSessionId);
 
 }

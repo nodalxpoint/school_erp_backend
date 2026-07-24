@@ -1,6 +1,5 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;

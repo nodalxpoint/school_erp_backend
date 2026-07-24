@@ -1,6 +1,5 @@
 package com.schoolerp.school_erp_backend.modules.params;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
@@ -52,6 +50,9 @@ public class ParamService {
 	@Autowired
 	private ExamRepository examRepository;
 
+	@Autowired
+	private com.schoolerp.school_erp_backend.modules.fees.FeeStructureRepository feeStructureRepository;
+
 	public PagedResponse<ResponseDropdownOption> getParamList(ParamListRequest request) {
 
 		Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
@@ -66,6 +67,10 @@ public class ParamService {
 			case "academic_sessions" -> fetchAcademicSessions(request.getSearch(), pageable);
 			case "exams" -> fetchExams(request.getSearch(), pageable);
 			case "examIsActive" -> fetchActiveExams(pageable);
+			case "fee_structures", "feeStructures", "fee_types", "feeTypes" ->
+				fetchFeeStructures(request.getClassId(), request.getSearch(), pageable);
+			case "class_fee_structures", "classFeeStructures" ->
+				fetchClassFeeStructures(request.getClassId(), request.getSearch(), pageable);
 			default -> throw new IllegalArgumentException("Unknown type: " + request.getType());
 		};
 	}
@@ -137,6 +142,45 @@ public class ParamService {
 				.map(e -> new ResponseDropdownOption(e.getId().toString(), e.getExamName()));
 
 		return PagedResponse.fromPage(dtoPage, "Active Exam fetched successfully");
+	}
+
+	private PagedResponse<ResponseDropdownOption> fetchFeeStructures(String classId, String search, Pageable pageable) {
+		Page<com.schoolerp.school_erp_backend.modules.fees.FeeStructureEntity> page = feeStructureRepository.findAll(
+				FeeStructureParamSpecification.filter(classId, search), pageable);
+
+		java.util.Set<String> seenFeeNames = new java.util.LinkedHashSet<>();
+		java.util.List<ResponseDropdownOption> dtoList = new java.util.ArrayList<>();
+
+		for (com.schoolerp.school_erp_backend.modules.fees.FeeStructureEntity fs : page.getContent()) {
+			String feeName = fs.getFeeName();
+			if (feeName != null && !feeName.isBlank()) {
+				String trimmedName = feeName.trim();
+				if (seenFeeNames.add(trimmedName.toLowerCase())) {
+					dtoList.add(new ResponseDropdownOption(fs.getId().toString(), trimmedName));
+				}
+			}
+		}
+
+		Page<ResponseDropdownOption> dtoPage = new PageImpl<>(dtoList, pageable, dtoList.size());
+		return PagedResponse.fromPage(dtoPage, "Fee structures fetched successfully");
+	}
+
+	private PagedResponse<ResponseDropdownOption> fetchClassFeeStructures(String classId, String search, Pageable pageable) {
+		Page<com.schoolerp.school_erp_backend.modules.fees.FeeStructureEntity> page = feeStructureRepository.findAll(
+				FeeStructureParamSpecification.filter(classId, search), pageable);
+
+		java.util.List<ResponseDropdownOption> dtoList = new java.util.ArrayList<>();
+
+		for (com.schoolerp.school_erp_backend.modules.fees.FeeStructureEntity fs : page.getContent()) {
+			String feeName = fs.getFeeName();
+			if (feeName != null && !feeName.isBlank()) {
+				String label = feeName.trim() + (fs.getAmount() != null ? " (₹" + fs.getAmount() + ")" : "");
+				dtoList.add(new ResponseDropdownOption(fs.getId().toString(), label, fs.getAmount()));
+			}
+		}
+
+		Page<ResponseDropdownOption> dtoPage = new PageImpl<>(dtoList, pageable, dtoList.size());
+		return PagedResponse.fromPage(dtoPage, "Class fee structures fetched successfully");
 	}
 
 }

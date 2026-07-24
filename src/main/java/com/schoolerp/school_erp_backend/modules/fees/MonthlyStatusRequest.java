@@ -6,6 +6,7 @@ public class MonthlyStatusRequest {
 
     private UUID studentId;
     private UUID academicSessionId;
+    private UUID feeStructureId;
 
     public UUID getStudentId() {
         return studentId;
@@ -21,5 +22,13 @@ public class MonthlyStatusRequest {
 
     public void setAcademicSessionId(UUID academicSessionId) {
         this.academicSessionId = academicSessionId;
+    }
+
+    public UUID getFeeStructureId() {
+        return feeStructureId;
+    }
+
+    public void setFeeStructureId(UUID feeStructureId) {
+        this.feeStructureId = feeStructureId;
     }
 }

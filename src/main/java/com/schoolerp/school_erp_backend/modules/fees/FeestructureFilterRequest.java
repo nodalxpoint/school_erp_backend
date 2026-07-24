@@ -11,6 +11,7 @@ public class FeestructureFilterRequest extends BaseFilterRequest {
     private String frequency;
     private String search;
     private UUID studentId;
+    private UUID academicSessionId;
 
     public UUID getSchoolId() {
         return schoolId;
@@ -58,5 +59,13 @@ public class FeestructureFilterRequest extends BaseFilterRequest {
 
     public void setStudentId(UUID studentId) {
         this.studentId = studentId;
+    }
+
+    public UUID getAcademicSessionId() {
+        return academicSessionId;
+    }
+
+    public void setAcademicSessionId(UUID academicSessionId) {
+        this.academicSessionId = academicSessionId;
     }
 }

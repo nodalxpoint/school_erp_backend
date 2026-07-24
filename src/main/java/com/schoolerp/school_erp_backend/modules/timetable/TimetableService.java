@@ -109,52 +109,59 @@ public class TimetableService {
         }
     }
 
-    private void validateConflicts(TimetableDto request, UUID excludeId) {
-        // 1. Class Conflict Check: A class & section cannot be scheduled for more than
-        // one subject/teacher at the same day/period.
-        List<TimetableEntity> classConflicts = timetableRepository
-                .findByAcademicSessionIdAndClassEntity_IdAndSectionEntity_IdAndDayOfWeekAndPeriod(
-                        request.getAcademicSessionId(), request.getClassId(), request.getSectionId(),
-                        request.getDayOfWeek(), request.getPeriod());
+    // private void validateConflicts(TimetableDto request, UUID excludeId) {
+    // // 1. Class Conflict Check: A class & section cannot be scheduled for more
+    // than
+    // // one subject/teacher at the same day/period.
+    // List<TimetableEntity> classConflicts = timetableRepository
+    // .findByAcademicSessionIdAndClassEntity_IdAndSectionEntity_IdAndDayOfWeekAndPeriod(
+    // request.getAcademicSessionId(), request.getClassId(), request.getSectionId(),
+    // request.getDayOfWeek(), request.getPeriod());
 
-        for (TimetableEntity entry : classConflicts) {
-            if (excludeId == null || !entry.getId().equals(excludeId)) {
-                throw new ValidationException(
-                        "Scheduling conflict: This class and section already has a timetable entry for period "
-                                + request.getPeriod() + " on " + request.getDayOfWeek());
-            }
-        }
+    // for (TimetableEntity entry : classConflicts) {
+    // if (excludeId == null || !entry.getId().equals(excludeId)) {
+    // throw new ValidationException(
+    // "Scheduling conflict: This class and section already has a timetable entry
+    // for period "
+    // + request.getPeriod() + " on " + request.getDayOfWeek());
+    // }
+    // }
 
-        // 2. Teacher Conflict Check: A teacher cannot be scheduled to teach in two
-        // classes at the same day/period.
-        List<TimetableEntity> teacherConflicts = timetableRepository
-                .findByAcademicSessionIdAndTeacherEntity_IdAndDayOfWeekAndPeriod(
-                        request.getAcademicSessionId(), request.getTeacherId(), request.getDayOfWeek(),
-                        request.getPeriod());
+    // // 2. Teacher Conflict Check: A teacher cannot be scheduled to teach in two
+    // // classes at the same day/period.
+    // List<TimetableEntity> teacherConflicts = timetableRepository
+    // .findByAcademicSessionIdAndTeacherEntity_IdAndDayOfWeekAndPeriod(
+    // request.getAcademicSessionId(), request.getTeacherId(),
+    // request.getDayOfWeek(),
+    // request.getPeriod());
 
-        for (TimetableEntity entry : teacherConflicts) {
-            if (excludeId == null || !entry.getId().equals(excludeId)) {
-                throw new ValidationException("Scheduling conflict: This teacher is already scheduled for period "
-                        + request.getPeriod() + " on " + request.getDayOfWeek());
-            }
-        }
+    // for (TimetableEntity entry : teacherConflicts) {
+    // if (excludeId == null || !entry.getId().equals(excludeId)) {
+    // throw new ValidationException("Scheduling conflict: This teacher is already
+    // scheduled for period "
+    // + request.getPeriod() + " on " + request.getDayOfWeek());
+    // }
+    // }
 
-        // 3. Room Conflict Check: A room cannot be scheduled for two classes at the
-        // same day/period.
-        if (request.getRoomNo() != null && !request.getRoomNo().trim().isEmpty()) {
-            List<TimetableEntity> roomConflicts = timetableRepository
-                    .findByAcademicSessionIdAndRoomNoAndDayOfWeekAndPeriod(
-                            request.getAcademicSessionId(), request.getRoomNo().trim(), request.getDayOfWeek(),
-                            request.getPeriod());
+    // // 3. Room Conflict Check: A room cannot be scheduled for two classes at the
+    // // same day/period.
+    // if (request.getRoomNo() != null && !request.getRoomNo().trim().isEmpty()) {
+    // List<TimetableEntity> roomConflicts = timetableRepository
+    // .findByAcademicSessionIdAndRoomNoAndDayOfWeekAndPeriod(
+    // request.getAcademicSessionId(), request.getRoomNo().trim(),
+    // request.getDayOfWeek(),
+    // request.getPeriod());
 
-            for (TimetableEntity entry : roomConflicts) {
-                if (excludeId == null || !entry.getId().equals(excludeId)) {
-                    throw new ValidationException("Scheduling conflict: Room " + request.getRoomNo().trim()
-                            + " is already booked for period " + request.getPeriod() + " on " + request.getDayOfWeek());
-                }
-            }
-        }
-    }
+    // for (TimetableEntity entry : roomConflicts) {
+    // if (excludeId == null || !entry.getId().equals(excludeId)) {
+    // throw new ValidationException("Scheduling conflict: Room " +
+    // request.getRoomNo().trim()
+    // + " is already booked for period " + request.getPeriod() + " on " +
+    // request.getDayOfWeek());
+    // }
+    // }
+    // }
+    // }
 
     private void copyDtoToEntity(TimetableDto dto, TimetableEntity entity) {
         entity.setAcademicSessionId(dto.getAcademicSessionId());
@@ -170,6 +177,15 @@ public class TimetableService {
 
         TeacherEntity teacherEntity = teacherRepository.findById(dto.getTeacherId())
                 .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+
+        timetableRepository.findByAcademicSessionIdAndClassEntity_IdAndSectionEntity_IdAndDayOfWeekAndPeriod(
+                dto.getAcademicSessionId(), dto.getClassId(), dto.getSectionId(), dto.getDayOfWeek().trim(),
+                dto.getPeriod()).ifPresent(existingTimetable -> {
+                    if (dto.getId() == null || !existingTimetable.getId().equals(dto.getId())) {
+                        timetableRepository.deleteAll();
+                    }
+
+                });
 
         entity.setClassEntity(classEntity);
         entity.setSectionEntity(sectionEntity);

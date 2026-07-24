@@ -13,6 +13,12 @@ public interface SubjectTeacherAssignmentRepository extends JpaRepository<Subjec
     Optional<SubjectTeacherAssignmentEntity> findBySubject_IdAndClasses_IdAndSection_IdAndAcademicSessionId(
             UUID subjectId, UUID classId, UUID sectionId, UUID academicSessionId);
 
+    Optional<SubjectTeacherAssignmentEntity> findBySubject_IdAndClasses_IdAndSection_IdAndAcademicSessionIdAndIdNot(
+            UUID subjectId, UUID classId, UUID sectionId, UUID academicSessionId, UUID id);
+
     boolean existsBySubject_IdAndClasses_IdAndSection_IdAndAcademicSessionId(
             UUID subjectId, UUID classId, UUID sectionId, UUID academicSessionId);
+
+    java.util.List<SubjectTeacherAssignmentEntity> findByTeacher_Id(UUID teacherId);
 }
+

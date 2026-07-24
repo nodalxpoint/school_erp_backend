@@ -1,6 +1,7 @@
 package com.schoolerp.school_erp_backend.common.security;
 
 import java.util.List;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,9 +33,15 @@ public class SecurityConfig {
 
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
+				.exceptionHandling(exception -> exception
+						.authenticationEntryPoint((request, response, authException) -> {
+							response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+						})
+				)
+
 				.authorizeHttpRequests(auth -> auth
 
-						.requestMatchers("/auth/**").permitAll()
+						.requestMatchers("/auth/**", "/reports.html", "/favicon.ico").permitAll()
 
 						.anyRequest().authenticated())
 

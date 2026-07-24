@@ -32,7 +32,7 @@ import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentEn
 import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentRepository;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherEntity;
 import com.schoolerp.school_erp_backend.modules.teacher.TeacherRepository;
-import com.schoolerp.school_erp_backend.modules.timetable.TeacherTImeTableRepository;
+import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableRepository;
 
 @Component
 public class ValidationHelperService {
@@ -62,7 +62,7 @@ public class ValidationHelperService {
 	private AcademicSessionRepository academicSessionRepository;
 
 	@Autowired
-	private TeacherTImeTableRepository teacherTimeTableRepository;
+	private TeacherTimeTableRepository teacherTimeTableRepository;
 
 	@Autowired
 	private ExamRepository examRepository;
@@ -223,8 +223,11 @@ public class ValidationHelperService {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		return auth != null &&
-				auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(CommonConstants.SCHOOL_ADMIN) ||
-						a.getAuthority().equals(CommonConstants.SUPER_ADMIN));
+				auth.getAuthorities().stream()
+						.anyMatch(a -> a.getAuthority().equals("ROLE_" + CommonConstants.SCHOOL_ADMIN) ||
+								a.getAuthority().equals("ROLE_" + CommonConstants.SUPER_ADMIN) ||
+								a.getAuthority().equals(CommonConstants.SCHOOL_ADMIN) ||
+								a.getAuthority().equals(CommonConstants.SUPER_ADMIN));
 	}
 
 }

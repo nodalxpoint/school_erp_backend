@@ -52,4 +52,16 @@ public class AuthController {
 
 		return authService.createSuperAdmin();
 	}
+
+	@PostMapping("/resetPassword")
+	public ResponseEntity<ApiResponse<String>> resetPassword(
+			@Valid @RequestBody resetPasswordDto requestDto) {
+
+		String message = authService.resetPassword(requestDto);
+
+		ApiResponse<String> response = new ApiResponse<>(true, message, null, LocalDateTime.now());
+
+		return ResponseEntity.ok(response);
+	}
+
 }

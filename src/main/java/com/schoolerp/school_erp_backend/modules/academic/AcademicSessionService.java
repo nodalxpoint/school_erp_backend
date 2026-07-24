@@ -17,7 +17,6 @@ import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import org.springframework.data.domain.Pageable;
 
-
 import jakarta.transaction.Transactional;
 
 @Service
@@ -27,9 +26,9 @@ public class AcademicSessionService {
 
     @Autowired
     private AcademicSessionRepository academicSessionRepository;
-    
-	@Autowired
-	private ValidationHelperService validationHelperService;
+
+    @Autowired
+    private ValidationHelperService validationHelperService;
 
     @Transactional
     public void addOrUpdate(CreateAcademicSessionDto request) {
@@ -54,8 +53,7 @@ public class AcademicSessionService {
         boolean alreadyExists = academicSessionRepository
                 .existsBySessionNameAndSchoolId(
                         request.getSessionName(),
-                        school.getId()
-                );
+                        school.getId());
 
         LOGGER.debug("Session exists check for '{}' in school {} : {}",
                 request.getSessionName(),
@@ -106,8 +104,7 @@ public class AcademicSessionService {
         session.setIsActive(
                 request.getIsActive() != null
                         ? request.getIsActive()
-                        : true
-        );
+                        : true);
 
         LOGGER.debug("Saving academic session: {}", session);
 
@@ -120,8 +117,8 @@ public class AcademicSessionService {
     private void update(CreateAcademicSessionDto request) {
 
         AcademicSessionEntity session = academicSessionRepository
-            .findById(UUID.fromString(request.getSessionId()))
-            .orElseThrow(() -> new RuntimeException("Academic session not found"));
+                .findById(UUID.fromString(request.getSessionId()))
+                .orElseThrow(() -> new RuntimeException("Academic session not found"));
 
         if (request.getEndDate() != null && request.getStartDate() != null
                 && request.getEndDate().isBefore(request.getStartDate())) {
@@ -133,10 +130,14 @@ public class AcademicSessionService {
             deactivateAllSessions(session.getSchool().getId());
         }
 
-        if (request.getSessionName() != null) session.setSessionName(request.getSessionName().trim());
-        if (request.getStartDate() != null) session.setStartDate(request.getStartDate());
-        if (request.getEndDate() != null) session.setEndDate(request.getEndDate());
-        if (request.getIsActive() != null) session.setIsActive(request.getIsActive());
+        if (request.getSessionName() != null)
+            session.setSessionName(request.getSessionName().trim());
+        if (request.getStartDate() != null)
+            session.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null)
+            session.setEndDate(request.getEndDate());
+        if (request.getIsActive() != null)
+            session.setIsActive(request.getIsActive());
 
         academicSessionRepository.save(session);
     }
@@ -144,9 +145,8 @@ public class AcademicSessionService {
     private void deactivateAllSessions(UUID schoolId) {
 
         List<AcademicSessionEntity> sessions = academicSessionRepository
-            .findAll(Specification.where(
-                (root, query, cb) -> cb.equal(root.get("school").get("id"), schoolId)
-            ));
+                .findAll(Specification.where(
+                        (root, query, cb) -> cb.equal(root.get("school").get("id"), schoolId)));
 
         sessions.forEach(s -> s.setIsActive(false));
         academicSessionRepository.saveAll(sessions);
@@ -155,11 +155,11 @@ public class AcademicSessionService {
     public PagedResponse<AcademicSessionResponseDto> filter(AcademicSessionFilterRequest request) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
-        
+
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Page<AcademicSessionEntity> page = academicSessionRepository
-            .findAll(AcademicSessionSpecification.filter(request), pageable);
+                .findAll(AcademicSessionSpecification.filter(request), pageable);
 
         Page<AcademicSessionResponseDto> dtoPage = page.map(this::mapToDto);
 

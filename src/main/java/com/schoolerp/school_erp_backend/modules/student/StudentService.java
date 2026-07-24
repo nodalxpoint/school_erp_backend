@@ -1,11 +1,12 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +26,13 @@ import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
 import com.schoolerp.school_erp_backend.modules.attendance.AttendanceEntity;
-import com.schoolerp.school_erp_backend.modules.attendance.AttendanceRecordDto;
 import com.schoolerp.school_erp_backend.modules.attendance.AttendanceRepository;
 import com.schoolerp.school_erp_backend.modules.attendance.AttendanceSummaryDto;
 import com.schoolerp.school_erp_backend.modules.auth.User;
+import com.schoolerp.school_erp_backend.modules.exam.StudentMarksEntity;
+import com.schoolerp.school_erp_backend.modules.exam.StudentMarksRepository;
+import com.schoolerp.school_erp_backend.modules.fees.StudentFeeEntity;
+import com.schoolerp.school_erp_backend.modules.fees.StudentFeeRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
@@ -36,6 +40,15 @@ import com.schoolerp.school_erp_backend.modules.school.ClassesRepository;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 import com.schoolerp.school_erp_backend.modules.school.SectionRepository;
+import com.schoolerp.school_erp_backend.modules.subject.SubjectTeacherAssignmentEntity;
+import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentEntity;
+import com.schoolerp.school_erp_backend.modules.timetable.TeacherTimeTableEntity;
+import com.schoolerp.school_erp_backend.modules.timetable.TimetableEntity;
+import com.schoolerp.school_erp_backend.modules.udise.StudentUdiseService;
+import com.schoolerp.school_erp_backend.modules.Progression.StudentProgressionEntity;
+import com.schoolerp.school_erp_backend.modules.Progression.StudentProgressionRepository;
+import com.schoolerp.school_erp_backend.modules.udise.StudentUdiseEntity;
+import com.schoolerp.school_erp_backend.modules.udise.StudentUdiseRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -70,7 +83,22 @@ public class StudentService {
 	private AttendanceRepository attendanceRepository;
 
 	@Autowired
+	private StudentFeeRepository studentFeeRepository;
+
+	@Autowired
+	private StudentMarksRepository studentMarksRepository;
+
+	@Autowired
 	private ValidationHelperService validationHelperService;
+
+	@Autowired
+	private StudentUdiseService studentUdiseService;
+
+	@Autowired
+	private StudentProgressionRepository studentProgressionRepository;
+
+	@Autowired
+	private StudentUdiseRepository studentUdiseRepository;
 
 	public PagedResponse<StudentResponseDto> filterStudents(StudentFilterRequest request) {
 
@@ -83,15 +111,18 @@ public class StudentService {
 		Map<UUID, AttendanceEntity> attendanceMap = new HashMap<>();
 		if (request.getAttendanceDate() != null && studentPage.hasContent()) {
 
-			List<UUID> studentIds = studentPage.getContent().stream().map(StudentEntity::getId)
-					.collect(Collectors.toList());
+			List<UUID> studentIds = new ArrayList<>();
+
+			for (StudentEntity student : studentPage.getContent()) {
+				studentIds.add(student.getId());
+			}
 
 			attendanceRepository.findByAttendanceDateAndStudent_IdIn(request.getAttendanceDate(), studentIds)
 					.forEach(a -> attendanceMap.put(a.getStudentEntity().getId(), a));
 		}
 
 		Page<StudentResponseDto> dtoPage = studentPage
-				.map(student -> mapToDto(student, attendanceMap.get(student.getId())));
+				.map(student -> mapToDto(student, attendanceMap.get(student.getId()), request.getAcademicSessionId()));
 
 		return PagedResponse.fromPage(dtoPage, "Students fetched successfully");
 	}
@@ -164,6 +195,7 @@ public class StudentService {
 		user.setRole(UserRole.PARENT);
 		user.setPassword(passwordEncoder.encode(request.getParentPassword()));
 		user.setIsActive(true);
+		user.setPassKey(admissionNoGenerator.generatePassKey());
 
 		return userRepository.save(user);
 	}
@@ -212,7 +244,12 @@ public class StudentService {
 	private void updateStudent(CreateStudentDto request) {
 
 		StudentEntity student = studentRepository.findById(UUID.fromString(request.getStudentId()))
-				.orElseThrow(() -> new RuntimeException("Student not found"));
+				.orElseThrow(
+						() -> new ResourceNotFoundException("Student not found with ID: " + request.getStudentId()));
+
+		if (Boolean.TRUE.equals(student.getIsDeleted())) {
+			throw new ValidationException("Cannot update a deleted student");
+		}
 
 		if (request.getFirstName() != null)
 			student.setFirstName(request.getFirstName().trim());
@@ -224,6 +261,16 @@ public class StudentService {
 			student.setDob(request.getDob());
 		if (request.getAdmissionDate() != null)
 			student.setAdmissionDate(request.getAdmissionDate());
+
+		User parentUser = student.getParent().getUser();
+		if (request.getParentFirstName() != null)
+			parentUser.setFirstName(request.getParentFirstName());
+		if (request.getParentLastName() != null)
+			parentUser.setLastName(request.getParentLastName());
+		if (request.getParentEmail() != null)
+			parentUser.setEmail(request.getParentEmail());
+		if (request.getParentPhone() != null)
+			parentUser.setPhoneNumber(request.getParentPhone());
 
 		studentRepository.save(student);
 
@@ -258,7 +305,7 @@ public class StudentService {
 		}
 	}
 
-	private StudentResponseDto mapToDto(StudentEntity student, AttendanceEntity attendance) {
+	private StudentResponseDto mapToDto(StudentEntity student, AttendanceEntity attendance, UUID academicSessionId) {
 
 		StudentResponseDto dto = new StudentResponseDto();
 		dto.setId(student.getId());
@@ -268,17 +315,26 @@ public class StudentService {
 		dto.setGender(student.getGender());
 		dto.setDob(student.getDob());
 		dto.setAdmissionDate(student.getAdmissionDate());
+		if (student.getParent() != null && student.getParent().getUser() != null) {
+			dto.setPassKey(student.getParent().getUser().getPassKey());
+		}
 
 		// Enrollment Details
 		UUID schoolId = student.getSchool() != null ? student.getSchool().getId() : null;
 		if (schoolId != null) {
-			Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository
-					.findActiveSessionBySchoolId(schoolId);
 			StudentEnrollmentEntity enrollment = null;
-			if (activeSessionOpt.isPresent()) {
+			if (academicSessionId != null) {
 				enrollment = studentEnrollmentRepository
-						.findByStudentEntity_IdAndAcademicSessionId(student.getId(), activeSessionOpt.get().getId())
+						.findByStudentEntity_IdAndAcademicSessionId(student.getId(), academicSessionId)
 						.orElse(null);
+			} else {
+				Optional<AcademicSessionEntity> activeSessionOpt = academicSessionRepository
+						.findActiveSessionBySchoolId(schoolId);
+				if (activeSessionOpt.isPresent()) {
+					enrollment = studentEnrollmentRepository
+							.findByStudentEntity_IdAndAcademicSessionId(student.getId(), activeSessionOpt.get().getId())
+							.orElse(null);
+				}
 			}
 			if (enrollment == null) {
 				List<StudentEnrollmentEntity> enrollments = studentEnrollmentRepository
@@ -292,6 +348,9 @@ public class StudentService {
 				dto.setClassId(enrollment.getClassEntity().getId());
 				dto.setSectionId(enrollment.getSectionEntity().getId());
 				dto.setAcademicSessionId(enrollment.getAcademicSessionId());
+				String sessionName = academicSessionRepository.findById(enrollment.getAcademicSessionId())
+						.map(AcademicSessionEntity::getSessionName).orElse(null);
+				dto.setAcademicSessionName(sessionName);
 				dto.setRollNo(enrollment.getRollNo());
 				dto.setClassName(enrollment.getClassEntity().getClassName());
 				dto.setSectionName(enrollment.getSectionEntity().getSectionName());
@@ -300,7 +359,10 @@ public class StudentService {
 				dto.setGuardianName(enrollment.getStudentEntity().getParent().getUser().getFirstName() + " "
 						+ enrollment.getStudentEntity().getParent().getUser().getLastName());
 				dto.setEmergencyContact(enrollment.getStudentEntity().getParent().getEmergencyContact());
-
+				dto.setParentEmail(enrollment.getStudentEntity().getParent().getUser().getEmail());
+				dto.setParentPhone(enrollment.getStudentEntity().getParent().getUser().getPhoneNumber());
+				dto.setUdise(studentUdiseService.getUdiseByStudentAndSession(student.getId(),
+						enrollment.getAcademicSessionId()));
 			}
 		}
 		if (attendance != null) {
@@ -313,4 +375,75 @@ public class StudentService {
 
 		return dto;
 	}
+
+	@Transactional
+	public void deleteStudent(UUID studentId) {
+		if (!validationHelperService.isAdmin()) {
+			throw new ValidationException("Only school admin or super admin can delete a student.");
+		}
+
+		SchoolEntity school = validationHelperService.getSchool();
+
+		StudentEntity student = studentRepository.findById(studentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + studentId));
+
+		if (student.getSchool() == null || !school.getId().equals(student.getSchool().getId())) {
+			throw new ValidationException("Student does not belong to the same school");
+		}
+
+		if (Boolean.TRUE.equals(student.getIsDeleted())) {
+			throw new ValidationException("Student is already deleted");
+		}
+
+		List<AttendanceEntity> attendances = attendanceRepository.findByStudent_Id(studentId);
+		if (attendances != null && !attendances.isEmpty()) {
+			attendanceRepository.deleteAll(attendances);
+		}
+
+		List<StudentFeeEntity> fees = studentFeeRepository.findByStudent_Id(studentId);
+		if (fees != null && !fees.isEmpty()) {
+			studentFeeRepository.deleteAll(fees);
+		}
+
+		List<StudentMarksEntity> marks = studentMarksRepository.findByStudentId(studentId);
+		if (marks != null && !marks.isEmpty()) {
+			studentMarksRepository.deleteAll(marks);
+		}
+
+		List<StudentEnrollmentEntity> enrollments = studentEnrollmentRepository.findByStudentEntity_Id(studentId);
+		if (enrollments != null && !enrollments.isEmpty()) {
+			studentEnrollmentRepository.deleteAll(enrollments);
+		}
+
+		List<StudentProgressionEntity> progressions = studentProgressionRepository.findByStudent_Id(studentId);
+		if (progressions != null && !progressions.isEmpty()) {
+			studentProgressionRepository.deleteAll(progressions);
+		}
+
+		List<StudentUdiseEntity> udiseDetails = studentUdiseRepository.findByStudent_Id(studentId);
+		if (udiseDetails != null && !udiseDetails.isEmpty()) {
+			studentUdiseRepository.deleteAll(udiseDetails);
+		}
+
+		ParentEntity parent = student.getParent();
+		studentRepository.delete(student);
+
+		if (parent != null) {
+			UUID parentId = parent.getId();
+			UUID schoolId = school.getId();
+			boolean hasSiblingInSameSchool = studentRepository.existsByParent_IdAndSchool_IdAndIdNotAndIsDeletedFalse(
+					parentId, schoolId, studentId);
+
+			if (!hasSiblingInSameSchool) {
+				User parentUser = parent.getUser();
+				parentRepository.delete(parent);
+				if (parentUser != null) {
+					userRepository.delete(parentUser);
+				}
+			}
+		}
+
+		LOGGER.info("Student with ID: {} hard-deleted successfully", studentId);
+	}
+
 }

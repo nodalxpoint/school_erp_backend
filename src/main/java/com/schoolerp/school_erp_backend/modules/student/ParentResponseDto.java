@@ -14,6 +14,24 @@ public class ParentResponseDto {
     private String motherName;
     private String emergencyContact;
     private LocalDateTime createdAt;
+    private String passKey;
+    private UUID userId;
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public String getPassKey() {
+        return passKey;
+    }
+
+    public void setPassKey(String passKey) {
+        this.passKey = passKey;
+    }
 
     public UUID getId() {
         return id;

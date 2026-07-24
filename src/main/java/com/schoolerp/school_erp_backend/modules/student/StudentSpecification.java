@@ -1,6 +1,8 @@
 package com.schoolerp.school_erp_backend.modules.student;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -10,6 +12,7 @@ import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
 import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.attendance.AttendanceEntity;
 
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 
@@ -24,6 +27,8 @@ public class StudentSpecification {
 
 				.with(schoolEqual(TenantContext.get()))
 
+				.with(idEqual(request.getId()))
+
 				.with(firstNameLike(request.getFirstName()))
 
 				.with(lastNameLike(request.getLastName()))
@@ -33,7 +38,14 @@ public class StudentSpecification {
 				.with(classIdEqual(request.getClassId()))
 
 				.with(sectionIdEqual(request.getSectionId()))
+
+				.with(academicSessionIdEqual(request.getAcademicSessionId()))
+
+				.with(genderEqual(request.getGender()))
+
 				.with(attendanceStatusEqual(request.getAttendanceDate(), request.getAttendanceStatus()))
+
+				.with(isNotDeleted())
 
 				.build();
 	}
@@ -88,6 +100,21 @@ public class StudentSpecification {
 		};
 	}
 
+	public static Specification<StudentEntity> academicSessionIdEqual(UUID academicSessionId) {
+		return (root, query, cb) -> {
+			if (academicSessionId == null)
+				return null;
+
+			Subquery<UUID> subquery = query.subquery(UUID.class);
+			Root<StudentEnrollmentEntity> enrollment = subquery.from(StudentEnrollmentEntity.class);
+
+			subquery.select(enrollment.get("studentEntity").get("id"))
+					.where(cb.equal(enrollment.get("academicSessionId"), academicSessionId));
+
+			return root.get("id").in(subquery);
+		};
+	}
+
 	public static Specification<StudentEntity> attendanceStatusEqual(LocalDate date, String status) {
 
 		return (root, query, cb) -> {
@@ -107,6 +134,15 @@ public class StudentSpecification {
 		};
 	}
 
+	public static Specification<StudentEntity> genderEqual(String gender) {
+		return (root, query, cb) -> {
+			if (gender == null || gender.isBlank()) {
+				return null;
+			}
+			return cb.equal(cb.lower(root.get("gender")), gender.toLowerCase());
+		};
+	}
+
 	public static Specification<StudentEntity> parentIdEqual(UUID parentId) {
 
 		return (root, query, cb) -> {
@@ -117,5 +153,20 @@ public class StudentSpecification {
 
 			return cb.equal(root.get("parent").get("id"), parentId);
 		};
+	}
+
+	public static Specification<StudentEntity> idEqual(UUID id) {
+		return (root, query, cb) -> {
+			if (id == null) {
+				return null;
+			}
+			return cb.equal(root.get("id"), id);
+		};
+	}
+
+	public static Specification<StudentEntity> isNotDeleted() {
+		return (root, query, cb) -> cb.or(
+				cb.equal(root.get("isDeleted"), false),
+				cb.isNull(root.get("isDeleted")));
 	}
 }

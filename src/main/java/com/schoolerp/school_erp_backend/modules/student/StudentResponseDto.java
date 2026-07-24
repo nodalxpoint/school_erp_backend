@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import com.schoolerp.school_erp_backend.modules.attendance.AttendanceSummaryDto;
+import com.schoolerp.school_erp_backend.modules.udise.StudentUdiseResponseDto;
 
 public class StudentResponseDto {
 
@@ -21,16 +22,24 @@ public class StudentResponseDto {
     private UUID sectionId;
     private String sectionName;
     private UUID academicSessionId;
+    private String academicSessionName;
     private String rollNo;
-    
+
     private String fatherName;
     private String motherName;
 
     private String guardianName;
-    
+
     private String emergencyContact;
-    
+
+    private String parentEmail;
+    private String parentPhone;
+
     private AttendanceSummaryDto attendance;
+
+    private StudentUdiseResponseDto udise;
+
+    private String passKey;
 
     public StudentResponseDto() {
     }
@@ -139,46 +148,83 @@ public class StudentResponseDto {
         this.rollNo = rollNo;
     }
 
-	public AttendanceSummaryDto getAttendance() {
-		return attendance;
-	}
+    public AttendanceSummaryDto getAttendance() {
+        return attendance;
+    }
 
-	public void setAttendance(AttendanceSummaryDto attendance) {
-		this.attendance = attendance;
-	}
+    public void setAttendance(AttendanceSummaryDto attendance) {
+        this.attendance = attendance;
+    }
 
-	public String getFatherName() {
-		return fatherName;
-	}
+    public String getFatherName() {
+        return fatherName;
+    }
 
-	public void setFatherName(String fatherName) {
-		this.fatherName = fatherName;
-	}
+    public void setFatherName(String fatherName) {
+        this.fatherName = fatherName;
+    }
 
-	public String getMotherName() {
-		return motherName;
-	}
+    public String getMotherName() {
+        return motherName;
+    }
 
-	public void setMotherName(String motherName) {
-		this.motherName = motherName;
-	}
+    public void setMotherName(String motherName) {
+        this.motherName = motherName;
+    }
 
-	public String getGuardianName() {
-		return guardianName;
-	}
+    public String getGuardianName() {
+        return guardianName;
+    }
 
-	public void setGuardianName(String guardianName) {
-		this.guardianName = guardianName;
-	}
-	
-	public String getEmergencyContact() {
+    public void setGuardianName(String guardianName) {
+        this.guardianName = guardianName;
+    }
+
+    public String getEmergencyContact() {
         return emergencyContact;
     }
 
     public void setEmergencyContact(String emergencyContact) {
         this.emergencyContact = emergencyContact;
     }
-    
-    
 
+    public String getParentEmail() {
+        return parentEmail;
+    }
+
+    public void setParentEmail(String parentEmail) {
+        this.parentEmail = parentEmail;
+    }
+
+    public String getParentPhone() {
+        return parentPhone;
+    }
+
+    public void setParentPhone(String parentPhone) {
+        this.parentPhone = parentPhone;
+    }
+
+    public String getAcademicSessionName() {
+        return academicSessionName;
+    }
+
+    public void setAcademicSessionName(String academicSessionName) {
+        this.academicSessionName = academicSessionName;
+    }
+
+    public StudentUdiseResponseDto getUdise() {
+        return udise;
+    }
+
+    public void setUdise(StudentUdiseResponseDto udise) {
+        this.udise = udise;
+    }
+
+    public String getPassKey() {
+        return passKey;
+    }
+
+    public void setPassKey(String passKey) {
+        this.passKey = passKey;
+    }
 }

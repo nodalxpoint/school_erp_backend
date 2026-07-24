@@ -3,6 +3,8 @@ package com.schoolerp.school_erp_backend.modules.fees;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
@@ -13,16 +15,19 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 
 public class StudentFeesSpecification {
+    private static final Logger LOGGER = LoggerFactory.getLogger(StudentFeesSpecification.class);
 
     private StudentFeesSpecification() {
 
     }
 
     public static Specification<StudentFeeEntity> filter(StudentFeesFilterRequest request) {
+        LOGGER.info("filter -> request : {}", request.toString());
         return new SpecificationBuilder<StudentFeeEntity>()
                 .with(schoolEqual(TenantContext.get()))
                 .with(studentEqual(request.getStudentId()))
                 .with(academicSessionEqual(request.getAcademicSessionId()))
+                .with(feeStructureEqual(request.getFeeStructureId()))
                 .with(feeMonthEqual(request.getFeeMonth()))
                 .with(feeYearEqual(request.getFeeYear()))
                 .with(paymentStatusEqual(request.getPaymentStatus()))
@@ -31,6 +36,15 @@ public class StudentFeesSpecification {
                 .with(classEqual(request.getClassId()))
                 .with(sectionEqual(request.getSectionId()))
                 .build();
+    }
+
+    public static Specification<StudentFeeEntity> feeStructureEqual(UUID feeStructureId) {
+        return (root, query, criteriaBuilder) -> {
+            if (feeStructureId == null) {
+                return null;
+            }
+            return criteriaBuilder.equal(root.get("feeStructure").get("id"), feeStructureId);
+        };
     }
 
     public static Specification<StudentFeeEntity> schoolEqual(UUID schoolId) {
