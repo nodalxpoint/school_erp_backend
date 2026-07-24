@@ -8,19 +8,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface FeeStructureRepository
-        extends JpaRepository<FeeStructureEntity, UUID>, JpaSpecificationExecutor<FeeStructureEntity> {
+                extends JpaRepository<FeeStructureEntity, UUID>, JpaSpecificationExecutor<FeeStructureEntity> {
 
-    List<FeeStructureEntity> findByClasses_Id(UUID classId);
+        List<FeeStructureEntity> findByClasses_Id(UUID classId);
 
-    Optional<FeeStructureEntity> findFirstByClasses_Id(UUID classId);
+        Optional<FeeStructureEntity> findFirstByClasses_Id(UUID classId);
 
-    Optional<FeeStructureEntity> findBySchool_IdAndClasses_Id(UUID schoolId, UUID classId);
-    
-    List<FeeStructureEntity> findByClasses_IdAndAcademicSessionId(
-            UUID classId,
-            UUID academicSessionId
-    );
+        Optional<FeeStructureEntity> findBySchool_IdAndClasses_Id(UUID schoolId, UUID classId);
 
-    Optional<FeeStructureEntity> findBySchool_IdAndClasses_IdAndAcademicSessionId(UUID schoolId, UUID classId, UUID academicSessionId);
+        List<FeeStructureEntity> findByClasses_IdAndAcademicSessionId(
+                        UUID classId,
+                        UUID academicSessionId);
+
+        Optional<FeeStructureEntity> findBySchool_IdAndClasses_IdAndAcademicSessionId(UUID schoolId, UUID classId,
+                        UUID academicSessionId);
+
+        Optional<FeeStructureEntity> findBySchool_IdAndClasses_IdAndAcademicSessionIdAndFeeNameIgnoreCase(
+                        UUID schoolId, UUID classId, UUID academicSessionId, String feeName);
+
+        boolean existsByIdAndClasses_IdAndAcademicSessionId(UUID feeTypeId, UUID classId, UUID academicSessionId);
 
 }

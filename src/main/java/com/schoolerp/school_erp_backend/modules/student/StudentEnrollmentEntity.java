@@ -117,4 +117,11 @@ public class StudentEnrollmentEntity {
 		this.sectionEntity = sectionEntity;
 	}
 
+	@Override
+	public String toString() {
+		return "StudentEnrollmentEntity [id=" + id + ", studentEntity=" + studentEntity + ", academicSessionId="
+				+ academicSessionId + ", classEntity=" + classEntity + ", sectionEntity=" + sectionEntity
+				+ ", rollNo=" + rollNo + ", enrollmentStatus=" + enrollmentStatus + ", createdAt=" + createdAt + "]";
+	}
+
 }

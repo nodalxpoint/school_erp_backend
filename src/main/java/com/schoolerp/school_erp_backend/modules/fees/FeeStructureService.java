@@ -181,6 +181,10 @@ public class FeeStructureService {
             throw new ValidationException("Class is required");
         }
 
+        if (request.getFeeName() == null || request.getFeeName().isBlank()) {
+            throw new ValidationException("Fee name is required");
+        }
+
         UUID academicSessionId = request.getAcademicSessionId();
         if (academicSessionId == null) {
             Optional<AcademicSessionEntity> activeSession = academicSessionRepository.findActiveSessionBySchoolId();
@@ -190,10 +194,11 @@ public class FeeStructureService {
         }
 
         if (academicSessionId != null) {
-            Optional<FeeStructureEntity> existing = feeStructureRepository.findBySchool_IdAndClasses_IdAndAcademicSessionId(
+            Optional<FeeStructureEntity> existing = feeStructureRepository.findBySchool_IdAndClasses_IdAndAcademicSessionIdAndFeeNameIgnoreCase(
                     schoolId,
                     request.getClassId(),
-                    academicSessionId);
+                    academicSessionId,
+                    request.getFeeName().trim());
 
             if (existing.isPresent()) {
 
@@ -201,7 +206,7 @@ public class FeeStructureService {
                         !existing.get().getId().equals(request.getId())) {
 
                     throw new ValidationException(
-                            "Fee structure already exists for this class.");
+                            "Fee structure '" + request.getFeeName().trim() + "' already exists for this class.");
                 }
             }
         }

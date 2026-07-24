@@ -1,13 +1,22 @@
 package com.schoolerp.school_erp_backend.modules.params;
 
+import java.math.BigDecimal;
+
 public class ResponseDropdownOption {
 	
 	private String id;
     private String label;
+    private BigDecimal amount;
     
     public ResponseDropdownOption(String id, String label) {
         this.id = id;
         this.label = label;
+    }
+
+    public ResponseDropdownOption(String id, String label, BigDecimal amount) {
+        this.id = id;
+        this.label = label;
+        this.amount = amount;
     }
 
 	public String getId() {
@@ -26,13 +35,16 @@ public class ResponseDropdownOption {
 		this.label = label;
 	}
 
+	public BigDecimal getAmount() {
+		return amount;
+	}
+
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
+	}
+
 	@Override
 	public String toString() {
-		return "ResponseDropdownOption [id=" + id + ", label=" + label + "]";
+		return "ResponseDropdownOption [id=" + id + ", label=" + label + ", amount=" + amount + "]";
 	}
-    
-    
-    
-    
-
 }

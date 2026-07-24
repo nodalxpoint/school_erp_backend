@@ -18,19 +18,18 @@ public class StudentFeeController {
     @Autowired
     private StudentFeesService studentFeesService;
 
+    @PostMapping("/list")
+    public ResponseEntity<ApiResponse<PagedResponse<StudentFeeDto>>> filterStudentFees(
+            @Valid @RequestBody StudentFeesFilterRequest request) {
+        PagedResponse<StudentFeeDto> response = studentFeesService.filterFees(request);
+        return ResponseEntity.ok(ApiResponse.success("Filtered student fees successfully", response));
+    }
+
     @PostMapping("/addOrUpdate")
     public ResponseEntity<ApiResponse<String>> addOrUpdateFee(@Valid @RequestBody StudentFeeDto request) {
         studentFeesService.addOrUpdateFee(request);
         return ResponseEntity.ok(ApiResponse.success("Fee saved successfully", null));
     }
-
-    @PostMapping("/list")
-    public ResponseEntity<ApiResponse<PagedResponse<StudentFeeDto>>> filterStudentFees(
-            @Valid @RequestBody StudentFeesFilterRequest request) {
-        PagedResponse<StudentFeeDto> response = studentFeesService.filterFeessss(request);
-        return ResponseEntity.ok(ApiResponse.success("Filtered student fees successfully", response));
-    }
-
 
     @PostMapping("/monthlyStatus")
     public ResponseEntity<ApiResponse<StudentFeeMonthlyStatusResponse>> getMonthlyFeeStatus(

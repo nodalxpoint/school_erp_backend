@@ -19,15 +19,15 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
 			UUID sectionId, UUID academicSessionId, String enrollmentStatus);
 
 	@Query("""
-	    SELECT se FROM StudentEnrollmentEntity se
-	    JOIN FETCH se.studentEntity s
-	    LEFT JOIN FETCH s.parent p
-	    LEFT JOIN FETCH p.user u
-	    WHERE se.classEntity.id = :classId
-	      AND se.sectionEntity.id = :sectionId
-	      AND se.academicSessionId = :academicSessionId
-	      AND se.enrollmentStatus = :enrollmentStatus
-	""")
+			    SELECT se FROM StudentEnrollmentEntity se
+			    JOIN FETCH se.studentEntity s
+			    LEFT JOIN FETCH s.parent p
+			    LEFT JOIN FETCH p.user u
+			    WHERE se.classEntity.id = :classId
+			      AND se.sectionEntity.id = :sectionId
+			      AND se.academicSessionId = :academicSessionId
+			      AND se.enrollmentStatus = :enrollmentStatus
+			""")
 	List<StudentEnrollmentEntity> findByClassAndSectionAndSessionWithStudentAndParent(
 			@Param("classId") UUID classId,
 			@Param("sectionId") UUID sectionId,
@@ -63,5 +63,17 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
 			@Param("feeMonth") Integer feeMonth,
 			@Param("feeYear") Integer feeYear,
 			Pageable pageable);
+
+	List<StudentEnrollmentEntity> findByClassEntity_IdAndSectionEntity_IdAndAcademicSessionId(
+			UUID classId,
+			UUID sectionId,
+			UUID academicSessionId);
+
+	List<StudentEnrollmentEntity> findByClassEntity_IdAndAcademicSessionId(
+			UUID classId,
+			UUID academicSessionId);
+
+	List<StudentEnrollmentEntity> findByAcademicSessionId(
+			UUID academicSessionId);
 
 }

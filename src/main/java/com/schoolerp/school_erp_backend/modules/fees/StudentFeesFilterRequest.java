@@ -11,7 +11,7 @@ public class StudentFeesFilterRequest extends BaseFilterRequest {
 
 	private UUID academicSessionId;
 
-
+	private UUID feeStructureId;
 
 	private String paymentStatus;
 
@@ -59,8 +59,6 @@ public class StudentFeesFilterRequest extends BaseFilterRequest {
 		this.academicSessionId = academicSessionId;
 	}
 
-
-
 	public String getPaymentStatus() {
 		return paymentStatus;
 	}
@@ -99,6 +97,14 @@ public class StudentFeesFilterRequest extends BaseFilterRequest {
 
 	public void setFeeYear(Integer feeYear) {
 		this.feeYear = feeYear;
+	}
+
+	public UUID getFeeStructureId() {
+		return feeStructureId;
+	}
+
+	public void setFeeStructureId(UUID feeStructureId) {
+		this.feeStructureId = feeStructureId;
 	}
 
 }

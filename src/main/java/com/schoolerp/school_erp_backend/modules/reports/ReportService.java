@@ -22,6 +22,9 @@ import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +35,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReportService.class);
 
     @Autowired
     private StudentService studentService;
@@ -133,7 +138,11 @@ public class ReportService {
     }
 
     public List<StudentReportCardDto> generateReportCards(ReportCardRequest request) {
+        LOGGER.info("Generating report cards request - classId: {}, sectionId: {}, academicSessionId: {}, examId: {}",
+                request.getClassId(), request.getSectionId(), request.getAcademicSessionId(), request.getExamId());
+
         if (request.getClassId() == null || request.getSectionId() == null) {
+            LOGGER.error("Report card generation failed: Class ID and Section ID are required");
             throw new ValidationException("Class ID and Section ID are required");
         }
 
@@ -144,6 +153,7 @@ public class ReportService {
                     .map(AcademicSessionEntity::getId)
                     .orElseThrow(() -> new ValidationException("No active academic session found"));
         }
+        LOGGER.info("Using academicSessionId: {}", academicSessionId);
 
         // 2. Fetch Enrollments
         List<StudentEnrollmentEntity> enrollments = studentEnrollmentRepository
@@ -151,8 +161,12 @@ public class ReportService {
                         request.getClassId(), request.getSectionId(), academicSessionId, "ACTIVE");
 
         if (enrollments.isEmpty()) {
+            LOGGER.warn("No active student enrollments found for classId: {}, sectionId: {}, academicSessionId: {}",
+                    request.getClassId(), request.getSectionId(), academicSessionId);
             return new ArrayList<>();
         }
+        LOGGER.info("Fetched {} active student enrollment(s) for classId: {}, sectionId: {}",
+                enrollments.size(), request.getClassId(), request.getSectionId());
 
         // 3. Extract Student IDs
         List<UUID> studentIds = enrollments.stream()
@@ -166,12 +180,14 @@ public class ReportService {
         // Group ExamSubjects by Exam to structure the exams and their expected subjects
         Map<ExamEntity, List<ExamSubjectEntity>> examSubjectsByExam = examSubjects.stream()
                 .collect(Collectors.groupingBy(ExamSubjectEntity::getExam));
+        LOGGER.info("Fetched {} exam subject(s) across {} exam(s) for examId: {}",
+                examSubjects.size(), examSubjectsByExam.size(), request.getExamId());
 
-        // 5. Fetch all marks obtained by these students for this academic session /
-        // examId
+        // 5. Fetch all marks obtained by these students for this academic session / examId
         List<StudentMarksEntity> allMarks = studentMarksRepository
                 .findByStudentIdInAndAcademicSessionIdAndOptionalExamId(studentIds, academicSessionId,
                         request.getExamId());
+        LOGGER.info("Fetched {} student mark record(s) for {} student(s)", allMarks.size(), studentIds.size());
 
         // Map marks by Student ID and ExamSubject ID for fast lookup
         Map<UUID, Map<UUID, StudentMarksEntity>> marksLookup = new HashMap<>();
@@ -194,6 +210,9 @@ public class ReportService {
 
         Map<UUID, StudentProgressionEntity> progressionLookup = allProgression.stream()
                 .collect(Collectors.toMap(p -> p.getStudent().getId(), p -> p, (p1, p2) -> p1));
+
+        LOGGER.info("Fetched {} attendance record(s) and {} progression record(s)",
+                allAttendance.size(), allProgression.size());
 
         // Get School Name
         String schoolName = "";
@@ -394,6 +413,8 @@ public class ReportService {
             return a.getFirstName().compareToIgnoreCase(b.getFirstName());
         });
 
+        LOGGER.info("Successfully generated {} report card(s) for classId: {}, sectionId: {}",
+                reportCards.size(), request.getClassId(), request.getSectionId());
         return reportCards;
     }
 
