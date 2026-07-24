@@ -418,7 +418,7 @@ public class StudentFeesService {
 						feeYear);
 
 		if (exists) {
-			throw new IllegalStateException(
+			throw new ResourceNotFoundException(
 					"Fee record already exists for this student, fee structure, month and year.");
 		}
 	}
