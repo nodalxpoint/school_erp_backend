@@ -19,6 +19,7 @@ import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundExcept
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.common.security.CustomUserDetails;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
 import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
@@ -65,9 +66,15 @@ public class StudentUdiseService {
     public void createUdise(SaveStudentUdiseDto request) {
         StudentEntity student = studentRepository.findById(request.getStudentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        if (student.getSchool() == null || !student.getSchool().getId().equals(TenantContext.get())) {
+            throw new ResourceNotFoundException("Student not found");
+        }
 
         AcademicSessionEntity session = academicSessionRepository.findById(request.getAcademicSessionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Academic session not found"));
+        if (session.getSchool() == null || !session.getSchool().getId().equals(TenantContext.get())) {
+            throw new ResourceNotFoundException("Academic session not found");
+        }
 
         // Check uniqueness constraint (student + academic session)
         studentUdiseRepository
@@ -120,6 +127,9 @@ public class StudentUdiseService {
     public void updateUdise(SaveStudentUdiseDto request) {
         StudentUdiseEntity entity = studentUdiseRepository.findById(request.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("UDISE details not found"));
+        if (entity.getSchool() == null || !entity.getSchool().getId().equals(TenantContext.get())) {
+            throw new ResourceNotFoundException("UDISE details not found");
+        }
 
         if ("FROZEN".equals(entity.getUdiseStatus())) {
             throw new ValidationException("Cannot edit frozen UDISE details");
@@ -128,6 +138,9 @@ public class StudentUdiseService {
         if (request.getStudentId() != null) {
             StudentEntity student = studentRepository.findById(request.getStudentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+            if (student.getSchool() == null || !student.getSchool().getId().equals(TenantContext.get())) {
+                throw new ResourceNotFoundException("Student not found");
+            }
             entity.setStudent(student);
             entity.setSchool(student.getSchool());
         }
@@ -135,6 +148,9 @@ public class StudentUdiseService {
         if (request.getAcademicSessionId() != null) {
             AcademicSessionEntity session = academicSessionRepository.findById(request.getAcademicSessionId())
                     .orElseThrow(() -> new ResourceNotFoundException("Academic session not found"));
+            if (session.getSchool() == null || !session.getSchool().getId().equals(TenantContext.get())) {
+                throw new ResourceNotFoundException("Academic session not found");
+            }
             entity.setAcademicSession(session);
         }
 

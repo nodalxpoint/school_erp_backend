@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.FilterUtils;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 
 public class StudentUdiseSpecification {
 
@@ -14,9 +15,9 @@ public class StudentUdiseSpecification {
 
     public static Specification<StudentUdiseEntity> filter(StudentUdiseFilterRequest request) {
         return new SpecificationBuilder<StudentUdiseEntity>()
+                .with(schoolIdEqual(TenantContext.get()))
                 .with(studentIdEqual(request.getStudentId()))
                 .with(academicSessionIdEqual(request.getAcademicSessionId()))
-                .with(schoolIdEqual(request.getSchoolId()))
                 .with(udiseStatusEqual(request.getUdiseStatus()))
                 .with(penEqual(request.getPen()))
                 .build();

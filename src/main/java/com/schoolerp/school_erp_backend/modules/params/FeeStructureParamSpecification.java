@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.fees.FeeStructureEntity;
 
 public class FeeStructureParamSpecification {
@@ -14,9 +15,18 @@ public class FeeStructureParamSpecification {
 
     public static Specification<FeeStructureEntity> filter(String classId, String search) {
         return new SpecificationBuilder<FeeStructureEntity>()
+                .with(schoolEqual(TenantContext.get()))
                 .with(byClassId(classId))
                 .with(feeNameLike(search))
                 .build();
+    }
+
+    private static Specification<FeeStructureEntity> schoolEqual(UUID schoolId) {
+        return (root, query, cb) -> {
+            if (schoolId == null)
+                return null;
+            return cb.equal(root.get("school").get("id"), schoolId);
+        };
     }
 
     private static Specification<FeeStructureEntity> byClassId(String classId) {

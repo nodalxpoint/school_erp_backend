@@ -48,9 +48,10 @@ public class AuthController {
 	}
 
 	@PostMapping("/register-super-admin")
-	public String registerSuperAdmin() {
+	public String registerSuperAdmin(
+			@RequestHeader(value = "X-Bootstrap-Token", required = false) String bootstrapToken) {
 
-		return authService.createSuperAdmin();
+		return authService.createSuperAdmin(bootstrapToken);
 	}
 
 	@PostMapping("/register-platform-admin")

@@ -15,6 +15,7 @@ import com.schoolerp.school_erp_backend.common.exceptions.UnauthorizedException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.security.JwtTokenProvider;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
 import com.schoolerp.school_erp_backend.modules.school.SchoolRepository;
 import com.schoolerp.school_erp_backend.modules.student.StudentRepository;
@@ -89,7 +90,11 @@ public class AuthService {
 		return new LoginResponseDto(user.getRole(), token);
 	}
 
-	public String createSuperAdmin() {
+	public String createSuperAdmin(String providedBootstrapToken) {
+
+		if (!platformAdminBootstrapToken.isBlank() && !constantTimeEquals(providedBootstrapToken, platformAdminBootstrapToken)) {
+			throw new UnauthorizedException("Invalid or missing bootstrap token");
+		}
 
 		if (userRepository.existsByEmail("admin@test.com")) {
 			return "Super admin already exists";
@@ -181,6 +186,9 @@ public class AuthService {
 		User user = getUser(request);
 		if (user == null) {
 			throw new ValidationException("No valid user ID provided");
+		}
+		if (user.getSchool() == null || !user.getSchool().getId().equals(TenantContext.get())) {
+			throw new ResourceNotFoundException("No valid user ID provided");
 		}
 
 		String newPassKey = admissionNoGenerator.generatePassKey();

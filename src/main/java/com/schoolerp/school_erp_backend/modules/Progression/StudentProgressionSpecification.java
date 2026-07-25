@@ -3,6 +3,7 @@ package com.schoolerp.school_erp_backend.modules.Progression;
 import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 import com.schoolerp.school_erp_backend.common.filters.SpecificationBuilder;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 
 public class StudentProgressionSpecification {
 
@@ -11,6 +12,7 @@ public class StudentProgressionSpecification {
 
     public static Specification<StudentProgressionEntity> filter(StudentProgressionFilterRequest request) {
         return new SpecificationBuilder<StudentProgressionEntity>()
+                .with(schoolEqual(TenantContext.get()))
                 .with(studentEqual(request.getStudentId()))
                 .with(academicSessionEqual(request.getAcademicSessionId()))
                 .with(classEqual(request.getClassId()))
@@ -18,6 +20,15 @@ public class StudentProgressionSpecification {
                 .with(statusEqual(request.getStatus()))
                 .with(evaluatedByEqual(request.getEvaluatedBy()))
                 .build();
+    }
+
+    public static Specification<StudentProgressionEntity> schoolEqual(UUID schoolId) {
+        return (root, query, criteriaBuilder) -> {
+            if (schoolId == null) {
+                return null;
+            }
+            return criteriaBuilder.equal(root.get("classEntity").get("schoolId"), schoolId);
+        };
     }
 
     public static Specification<StudentProgressionEntity> studentEqual(UUID studentId) {

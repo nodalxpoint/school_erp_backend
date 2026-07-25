@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 
 import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionEntity;
 import com.schoolerp.school_erp_backend.modules.academic.AcademicSessionRepository;
 import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
@@ -78,12 +79,19 @@ public class StudentProgressionService {
         AcademicSessionEntity academicSession = academicSessionRepository.findById(request.getAcademicSessionId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Academic session not found with ID: " + request.getAcademicSessionId()));
+        if (academicSession.getSchool() == null || !academicSession.getSchool().getId().equals(TenantContext.get())) {
+            throw new ResourceNotFoundException(
+                    "Academic session not found with ID: " + request.getAcademicSessionId());
+        }
 
         TeacherEntity teacher = null;
         if (request.getEvaluatedBy() != null) {
             teacher = teacherRepository.findById(request.getEvaluatedBy())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Teacher not found with ID: " + request.getEvaluatedBy()));
+            if (teacher.getSchool() == null || !teacher.getSchool().getId().equals(TenantContext.get())) {
+                throw new ResourceNotFoundException("Teacher not found with ID: " + request.getEvaluatedBy());
+            }
         }
 
         LocalDateTime evaluatedAt = request.getEvaluatedAt() != null ? request.getEvaluatedAt() : LocalDateTime.now();
@@ -111,12 +119,21 @@ public class StudentProgressionService {
 
         StudentEntity student = studentRepository.findById(item.getStudentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with ID: " + item.getStudentId()));
+        if (student.getSchool() == null || !student.getSchool().getId().equals(TenantContext.get())) {
+            throw new ResourceNotFoundException("Student not found with ID: " + item.getStudentId());
+        }
 
         ClassesEntity classEntity = classesRepository.findById(item.getClassId())
                 .orElseThrow(() -> new ResourceNotFoundException("Class not found with ID: " + item.getClassId()));
+        if (!classEntity.getSchoolId().equals(TenantContext.get())) {
+            throw new ResourceNotFoundException("Class not found with ID: " + item.getClassId());
+        }
 
         SectionEntity sectionEntity = sectionRepository.findById(item.getSectionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Section not found with ID: " + item.getSectionId()));
+        if (!sectionEntity.getClassId().equals(classEntity.getId())) {
+            throw new ResourceNotFoundException("Section not found with ID: " + item.getSectionId());
+        }
 
         StudentProgressionEntity entity = new StudentProgressionEntity();
         entity.setStudent(student);
@@ -135,11 +152,22 @@ public class StudentProgressionService {
 
     private void updateProgression(StudentProgressionEntity entity, ProgressionItemDto item, TeacherEntity teacher,
             LocalDateTime evaluatedAt) {
+        if (entity.getStudent() == null || entity.getStudent().getSchool() == null
+                || !entity.getStudent().getSchool().getId().equals(TenantContext.get())) {
+            throw new ResourceNotFoundException("Student not found with ID: " + item.getStudentId());
+        }
+
         ClassesEntity classEntity = classesRepository.findById(item.getClassId())
                 .orElseThrow(() -> new ResourceNotFoundException("Class not found with ID: " + item.getClassId()));
+        if (!classEntity.getSchoolId().equals(TenantContext.get())) {
+            throw new ResourceNotFoundException("Class not found with ID: " + item.getClassId());
+        }
 
         SectionEntity sectionEntity = sectionRepository.findById(item.getSectionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Section not found with ID: " + item.getSectionId()));
+        if (!sectionEntity.getClassId().equals(classEntity.getId())) {
+            throw new ResourceNotFoundException("Section not found with ID: " + item.getSectionId());
+        }
 
         entity.setClassEntity(classEntity);
         entity.setSectionEntity(sectionEntity);
