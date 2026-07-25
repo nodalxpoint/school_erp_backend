@@ -1,8 +1,11 @@
 package com.schoolerp.school_erp_backend.modules.auth;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +51,21 @@ public class AuthService {
 
 	@Autowired
 	private ParentRepository parentRepository;
+
+	// Overridable via PLATFORM_ADMIN_EMAIL / PLATFORM_ADMIN_PASSWORD env vars so prod
+	// deploys never rely on the source-code default (see application.properties).
+	@Value("${platform.admin.email:platform@erp.com}")
+	private String platformAdminEmail;
+
+	@Value("${platform.admin.password:platform@123}")
+	private String platformAdminPassword;
+
+	// When set (via PLATFORM_ADMIN_BOOTSTRAP_TOKEN), register-platform-admin requires a
+	// matching X-Bootstrap-Token header. Left blank, the endpoint stays open — that's the
+	// local-dev default, so `curl localhost:8081/auth/register-platform-admin` keeps working
+	// with no extra setup. Always set this in prod.
+	@Value("${platform.admin.bootstrap-token:}")
+	private String platformAdminBootstrapToken;
 
 	public LoginResponseDto login(LoginRequestDto requestDto) {
 
@@ -99,26 +117,42 @@ public class AuthService {
 		return "Super admin created successfully";
 	}
 
-	public String createPlatformAdmin() {
+	public String createPlatformAdmin(String providedBootstrapToken) {
 
-		if (userRepository.existsByEmail("platform@erp.com")) {
+		if (!platformAdminBootstrapToken.isBlank() && !constantTimeEquals(providedBootstrapToken, platformAdminBootstrapToken)) {
+			throw new UnauthorizedException("Invalid or missing bootstrap token");
+		}
+
+		if (userRepository.existsByEmail(platformAdminEmail)) {
 			return "Platform admin already exists";
 		}
 
 		// Unauthenticated bootstrap endpoint, same pattern as createSuperAdmin() — creates
 		// the one PLATFORM_ADMIN needed to start onboarding schools. PLATFORM_ADMIN has no
 		// school (cross-tenant), so unlike createSuperAdmin() there is no school lookup here.
+		// Credentials come from PLATFORM_ADMIN_EMAIL/PLATFORM_ADMIN_PASSWORD env vars in prod —
+		// never hardcode real prod credentials here, this file is committed to git.
 		User user = new User();
 		user.setFirstName("Platform");
 		user.setLastName("Admin");
-		user.setEmail("platform@erp.com");
-		user.setPassword(passwordEncoder.encode("platform@123"));
+		user.setEmail(platformAdminEmail);
+		user.setPassword(passwordEncoder.encode(platformAdminPassword));
 		user.setRole(UserRole.PLATFORM_ADMIN);
+		user.setPlatformAdminAccessLevel(PlatformAdminAccessLevel.EDIT);
 		user.setIsActive(true);
 
 		userRepository.save(user);
 
 		return "Platform admin created successfully";
+	}
+
+	private static boolean constantTimeEquals(String provided, String expected) {
+		if (provided == null) {
+			return false;
+		}
+		return MessageDigest.isEqual(
+				provided.getBytes(StandardCharsets.UTF_8),
+				expected.getBytes(StandardCharsets.UTF_8));
 	}
 
 	public void createUser(CreateUserDto request, UserRole role) {

@@ -35,6 +35,8 @@ public class JwtTokenProvider {
                 .claim("role", user.getRole().name())
                 .claim("userId", user.getId().toString())
                 .claim("schoolId", user.getSchool() != null ? user.getSchool().getId().toString() : null)
+                .claim("platformAdminAccessLevel",
+                        user.getPlatformAdminAccessLevel() != null ? user.getPlatformAdminAccessLevel().name() : null)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

@@ -54,9 +54,10 @@ public class AuthController {
 	}
 
 	@PostMapping("/register-platform-admin")
-	public String registerPlatformAdmin() {
+	public String registerPlatformAdmin(
+			@RequestHeader(value = "X-Bootstrap-Token", required = false) String bootstrapToken) {
 
-		return authService.createPlatformAdmin();
+		return authService.createPlatformAdmin(bootstrapToken);
 	}
 
 	@PostMapping("/resetPassword")

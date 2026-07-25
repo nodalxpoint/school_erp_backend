@@ -1,5 +1,6 @@
 package com.schoolerp.school_erp_backend.modules.platformAdmin;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ public class PlatformAdminController {
 	private PlatformAdminService platformAdminService;
 
 	@PostMapping("/schools")
+	@PreAuthorize("hasAuthority('PLATFORM_ADMIN_EDIT')")
 	public ResponseEntity<ApiResponse<CreateSchoolResponseDto>> createSchool(
 			@Valid @RequestBody CreateSchoolRequestDto request) {
 
@@ -48,6 +50,7 @@ public class PlatformAdminController {
 	}
 
 	@PutMapping("/schools/{id}")
+	@PreAuthorize("hasAuthority('PLATFORM_ADMIN_EDIT')")
 	public ResponseEntity<ApiResponse<SchoolListItemDto>> updateSchool(@PathVariable UUID id,
 			@Valid @RequestBody UpdateSchoolRequestDto request) {
 
@@ -71,11 +74,41 @@ public class PlatformAdminController {
 	}
 
 	@PostMapping("/impersonate")
+	@PreAuthorize("hasAuthority('PLATFORM_ADMIN_EDIT')")
 	public ResponseEntity<ApiResponse<LoginResponseDto>> impersonate(@Valid @RequestBody ImpersonateRequestDto request,
 			@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		LoginResponseDto response = platformAdminService.impersonate(request, userDetails.getId());
 
 		return ResponseEntity.ok(ApiResponse.success("Impersonation token issued", response));
+	}
+
+	@PostMapping("/admins")
+	@PreAuthorize("hasAuthority('PLATFORM_ADMIN_EDIT')")
+	public ResponseEntity<ApiResponse<CreatePlatformAdminResponseDto>> createPlatformAdmin(
+			@Valid @RequestBody CreatePlatformAdminRequestDto request) {
+
+		CreatePlatformAdminResponseDto response = platformAdminService.createPlatformAdmin(request);
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(ApiResponse.success("Platform admin created successfully", response));
+	}
+
+	@GetMapping("/admins")
+	public ResponseEntity<ApiResponse<List<PlatformAdminUserDto>>> listPlatformAdmins() {
+
+		return ResponseEntity.ok(ApiResponse.success("Platform admins fetched successfully",
+				platformAdminService.listPlatformAdmins()));
+	}
+
+	@PutMapping("/admins/{id}")
+	@PreAuthorize("hasAuthority('PLATFORM_ADMIN_EDIT')")
+	public ResponseEntity<ApiResponse<PlatformAdminUserDto>> updatePlatformAdmin(@PathVariable UUID id,
+			@Valid @RequestBody UpdatePlatformAdminRequestDto request,
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+
+		PlatformAdminUserDto response = platformAdminService.updatePlatformAdmin(id, request, userDetails.getId());
+
+		return ResponseEntity.ok(ApiResponse.success("Platform admin updated successfully", response));
 	}
 }

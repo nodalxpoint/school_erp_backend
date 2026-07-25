@@ -1,6 +1,7 @@
 package com.schoolerp.school_erp_backend.modules.platformAdmin;
 
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.common.security.JwtTokenProvider;
 import com.schoolerp.school_erp_backend.modules.auth.LoginResponseDto;
+import com.schoolerp.school_erp_backend.modules.auth.PlatformAdminAccessLevel;
 import com.schoolerp.school_erp_backend.modules.auth.User;
 import com.schoolerp.school_erp_backend.modules.auth.UserRepository;
 import com.schoolerp.school_erp_backend.modules.auth.UserRole;
@@ -218,6 +220,81 @@ public class PlatformAdminService {
 				target.getSchool() != null ? target.getSchool().getId() : null);
 
 		return new LoginResponseDto(target.getRole(), token);
+	}
+
+	@Transactional
+	public CreatePlatformAdminResponseDto createPlatformAdmin(CreatePlatformAdminRequestDto request) {
+
+		String email = request.getEmail().trim().toLowerCase();
+
+		if (userRepository.existsByEmail(email)) {
+			throw new ValidationException("Email already registered: " + email);
+		}
+
+		String temporaryPassword = generateTemporaryPassword();
+
+		User user = new User();
+		user.setFirstName(request.getFirstName().trim());
+		user.setLastName(request.getLastName() != null ? request.getLastName().trim() : null);
+		user.setEmail(email);
+		user.setPassword(passwordEncoder.encode(temporaryPassword));
+		user.setRole(UserRole.PLATFORM_ADMIN);
+		user.setPlatformAdminAccessLevel(request.getAccessLevel());
+		user.setIsActive(true);
+
+		User saved = userRepository.save(user);
+
+		LOGGER.info("Platform admin user created: id={} email={} accessLevel={}", saved.getId(), saved.getEmail(),
+				saved.getPlatformAdminAccessLevel());
+
+		CreatePlatformAdminResponseDto response = new CreatePlatformAdminResponseDto();
+		response.setId(saved.getId());
+		response.setEmail(saved.getEmail());
+		response.setAccessLevel(saved.getPlatformAdminAccessLevel());
+		response.setTemporaryPassword(temporaryPassword);
+		return response;
+	}
+
+	public List<PlatformAdminUserDto> listPlatformAdmins() {
+		return userRepository.findByRoleOrderByCreatedAtAsc(UserRole.PLATFORM_ADMIN).stream()
+				.map(this::mapToPlatformAdminDto)
+				.toList();
+	}
+
+	@Transactional
+	public PlatformAdminUserDto updatePlatformAdmin(UUID id, UpdatePlatformAdminRequestDto request,
+			UUID actingPlatformAdminUserId) {
+
+		if (id.equals(actingPlatformAdminUserId)) {
+			throw new ValidationException("Cannot modify your own platform admin account");
+		}
+
+		User user = userRepository.findById(id)
+				.filter(u -> u.getRole() == UserRole.PLATFORM_ADMIN)
+				.orElseThrow(() -> new ResourceNotFoundException("Platform admin not found"));
+
+		user.setPlatformAdminAccessLevel(request.getAccessLevel());
+		user.setIsActive(request.getIsActive());
+
+		User saved = userRepository.save(user);
+
+		LOGGER.info("Platform admin user updated: id={} accessLevel={} isActive={} (by userId={})", saved.getId(),
+				saved.getPlatformAdminAccessLevel(), saved.getIsActive(), actingPlatformAdminUserId);
+
+		return mapToPlatformAdminDto(saved);
+	}
+
+	private PlatformAdminUserDto mapToPlatformAdminDto(User user) {
+		PlatformAdminUserDto dto = new PlatformAdminUserDto();
+		dto.setId(user.getId());
+		dto.setFirstName(user.getFirstName());
+		dto.setLastName(user.getLastName());
+		dto.setEmail(user.getEmail());
+		dto.setAccessLevel(
+				user.getPlatformAdminAccessLevel() != null ? user.getPlatformAdminAccessLevel() : PlatformAdminAccessLevel.EDIT);
+		dto.setIsActive(user.getIsActive());
+		dto.setCreatedAt(user.getCreatedAt());
+		return dto;
 	}
 
 	private SchoolListItemDto mapToListItem(SchoolEntity school) {

@@ -36,6 +36,12 @@ public class User {
 	@JoinColumn(name = "school_id", nullable = true)
 	private SchoolEntity school;
 
+	// Only set (and only meaningful) when role == PLATFORM_ADMIN. Null is treated as EDIT
+	// (grandfathers the original bootstrap platform admin created before this field existed).
+	@Enumerated(EnumType.STRING)
+	@Column(name = "platform_admin_access_level")
+	private PlatformAdminAccessLevel platformAdminAccessLevel;
+
 	@Column(nullable = false)
 	private Boolean isActive = true;
 
@@ -154,6 +160,14 @@ public class User {
 
 	public void setPassKey(String passKey) {
 		this.passKey = passKey;
+	}
+
+	public PlatformAdminAccessLevel getPlatformAdminAccessLevel() {
+		return platformAdminAccessLevel;
+	}
+
+	public void setPlatformAdminAccessLevel(PlatformAdminAccessLevel platformAdminAccessLevel) {
+		this.platformAdminAccessLevel = platformAdminAccessLevel;
 	}
 
 	@Override
