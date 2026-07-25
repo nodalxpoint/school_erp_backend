@@ -1,16 +1,27 @@
 package com.schoolerp.school_erp_backend.modules.school;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.MapKeyEnumerated;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+
+import com.schoolerp.school_erp_backend.modules.feature.FeatureKey;
 
 @Entity
 @Table(name = "schools")
@@ -56,6 +67,16 @@ public class SchoolEntity {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted;
+
+    // Explicit per-school overrides only. A feature with no entry here falls back to
+    // FeatureKey.isCore() — see SchoolFeatureService. Keeps existing schools working
+    // unchanged and avoids having to backfill a row per feature per school.
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "school_features", joinColumns = @JoinColumn(name = "school_id"))
+    @MapKeyColumn(name = "feature_key")
+    @MapKeyEnumerated(EnumType.STRING)
+    @Column(name = "enabled", nullable = false)
+    private Map<FeatureKey, Boolean> featureOverrides = new HashMap<>();
 
     @PrePersist
     protected void onCreate() {
@@ -174,6 +195,14 @@ public class SchoolEntity {
 
 	public void setIsDeleted(Boolean isDeleted) {
 		this.isDeleted = isDeleted;
+	}
+
+	public Map<FeatureKey, Boolean> getFeatureOverrides() {
+		return featureOverrides;
+	}
+
+	public void setFeatureOverrides(Map<FeatureKey, Boolean> featureOverrides) {
+		this.featureOverrides = featureOverrides;
 	}
 
 	@Override

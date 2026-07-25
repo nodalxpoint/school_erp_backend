@@ -21,6 +21,9 @@ import com.schoolerp.school_erp_backend.common.response.ApiResponse;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.common.security.CustomUserDetails;
 import com.schoolerp.school_erp_backend.modules.auth.LoginResponseDto;
+import com.schoolerp.school_erp_backend.modules.feature.SchoolFeatureDto;
+import com.schoolerp.school_erp_backend.modules.feature.SchoolFeatureService;
+import com.schoolerp.school_erp_backend.modules.feature.UpdateSchoolFeaturesRequestDto;
 
 import jakarta.validation.Valid;
 
@@ -31,6 +34,9 @@ public class PlatformAdminController {
 
 	@Autowired
 	private PlatformAdminService platformAdminService;
+
+	@Autowired
+	private SchoolFeatureService schoolFeatureService;
 
 	@PostMapping("/schools")
 	@PreAuthorize("hasAuthority('PLATFORM_ADMIN_EDIT')")
@@ -110,5 +116,24 @@ public class PlatformAdminController {
 		PlatformAdminUserDto response = platformAdminService.updatePlatformAdmin(id, request, userDetails.getId());
 
 		return ResponseEntity.ok(ApiResponse.success("Platform admin updated successfully", response));
+	}
+
+	@GetMapping("/schools/{id}/features")
+	public ResponseEntity<ApiResponse<List<SchoolFeatureDto>>> getSchoolFeatures(@PathVariable UUID id) {
+
+		return ResponseEntity.ok(
+				ApiResponse.success("School features fetched successfully", schoolFeatureService.getFeatures(id)));
+	}
+
+	@PutMapping("/schools/{id}/features")
+	@PreAuthorize("hasAuthority('PLATFORM_ADMIN_EDIT')")
+	public ResponseEntity<ApiResponse<List<SchoolFeatureDto>>> updateSchoolFeatures(@PathVariable UUID id,
+			@Valid @RequestBody UpdateSchoolFeaturesRequestDto request,
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+
+		List<SchoolFeatureDto> response = schoolFeatureService.updateFeatures(id, request.getFeatures(),
+				userDetails.getId());
+
+		return ResponseEntity.ok(ApiResponse.success("School features updated successfully", response));
 	}
 }

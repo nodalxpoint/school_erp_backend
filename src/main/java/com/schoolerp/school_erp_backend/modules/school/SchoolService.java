@@ -18,8 +18,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.schoolerp.school_erp_backend.common.HelperServices.ValidationHelperService;
+import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundException;
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+import com.schoolerp.school_erp_backend.common.security.TenantContext;
 
 import jakarta.transaction.Transactional;
 
@@ -34,6 +36,23 @@ public class SchoolService {
 	private ClassesRepository classesRepository;
 	@Autowired
 	private ValidationHelperService validationHelperService;
+	@Autowired
+	private SchoolRepository schoolRepository;
+
+	// Resolves via the JWT-derived TenantContext, never a client-supplied id — a tenant
+	// user can only ever see their own school's profile/logo.
+	public SchoolProfileDto getMySchoolProfile() {
+		UUID schoolId = TenantContext.get();
+		if (schoolId == null) {
+			throw new ResourceNotFoundException("No school in context");
+		}
+
+		SchoolEntity school = schoolRepository.findById(schoolId)
+				.orElseThrow(() -> new ResourceNotFoundException("School not found"));
+
+		return new SchoolProfileDto(school.getId(), school.getSchoolName(), school.getSchoolCode(),
+				school.getLogoUrl());
+	}
 
 	@Transactional
 	public void bulkCreateClasses(BulkCreateClassDto request) {
