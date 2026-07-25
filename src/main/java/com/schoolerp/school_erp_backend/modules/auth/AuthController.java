@@ -53,6 +53,12 @@ public class AuthController {
 		return authService.createSuperAdmin();
 	}
 
+	@PostMapping("/register-platform-admin")
+	public String registerPlatformAdmin() {
+
+		return authService.createPlatformAdmin();
+	}
+
 	@PostMapping("/resetPassword")
 	public ResponseEntity<ApiResponse<String>> resetPassword(
 			@Valid @RequestBody resetPasswordDto requestDto) {

@@ -62,4 +62,6 @@ public interface StudentRepository extends JpaRepository<StudentEntity, UUID>, J
 
 	boolean existsByAdmissionNo(String admissionNo);
 
+	Page<StudentEntity> findBySchool_IdAndIsDeletedFalse(UUID schoolId, Pageable pageable);
+
 }

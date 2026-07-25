@@ -99,6 +99,28 @@ public class AuthService {
 		return "Super admin created successfully";
 	}
 
+	public String createPlatformAdmin() {
+
+		if (userRepository.existsByEmail("platform@erp.com")) {
+			return "Platform admin already exists";
+		}
+
+		// Unauthenticated bootstrap endpoint, same pattern as createSuperAdmin() — creates
+		// the one PLATFORM_ADMIN needed to start onboarding schools. PLATFORM_ADMIN has no
+		// school (cross-tenant), so unlike createSuperAdmin() there is no school lookup here.
+		User user = new User();
+		user.setFirstName("Platform");
+		user.setLastName("Admin");
+		user.setEmail("platform@erp.com");
+		user.setPassword(passwordEncoder.encode("platform@123"));
+		user.setRole(UserRole.PLATFORM_ADMIN);
+		user.setIsActive(true);
+
+		userRepository.save(user);
+
+		return "Platform admin created successfully";
+	}
+
 	public void createUser(CreateUserDto request, UserRole role) {
 
 		if (userRepository.existsByEmail(request.getEmail())) {

@@ -31,8 +31,9 @@ public class User {
 	@Column(nullable = false)
 	private UserRole role;
 
+	// Nullable: PLATFORM_ADMIN users are cross-tenant and belong to no single school.
 	@ManyToOne
-	@JoinColumn(name = "school_id", nullable = false)
+	@JoinColumn(name = "school_id", nullable = true)
 	private SchoolEntity school;
 
 	@Column(nullable = false)
