@@ -1,27 +1,41 @@
 package com.schoolerp.school_erp_backend.modules.platformAdmin;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class UpdateSchoolRequestDto {
 
 	@NotBlank
+	@Size(max = 150)
 	private String schoolName;
 
 	@NotBlank
+	@Size(min = 2, max = 20)
+	@Pattern(regexp = "^[A-Za-z0-9_-]+$", message = "must contain only letters, numbers, hyphens, and underscores")
 	private String schoolCode;
 
+	@Email
+	@Size(max = 150)
 	private String schoolEmail;
 
+	@Pattern(regexp = "^$|^[0-9+\\-\\s()]{7,20}$", message = "must be a valid phone number")
 	private String schoolPhone;
 
+	@Size(max = 500)
 	private String address;
 
+	@Size(max = 100)
 	private String city;
 
+	@Size(max = 100)
 	private String state;
 
+	@Size(max = 100)
 	private String country;
 
+	@Size(max = 500)
 	private String logoUrl;
 
 	public String getSchoolName() {

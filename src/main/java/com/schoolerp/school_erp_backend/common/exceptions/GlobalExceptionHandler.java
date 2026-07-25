@@ -3,11 +3,16 @@ package com.schoolerp.school_erp_backend.common.exceptions;
 import com.schoolerp.school_erp_backend.common.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -52,6 +57,21 @@ public class GlobalExceptionHandler {
 
 		ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST.name(),
 				ex.getMessage(), request.getRequestURI());
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	}
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex,
+			HttpServletRequest request) {
+
+		Map<String, String> fieldErrors = new LinkedHashMap<>();
+		for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+			fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
+		}
+
+		ErrorResponse errorResponse = ErrorResponse.validation(HttpStatus.BAD_REQUEST.value(),
+				HttpStatus.BAD_REQUEST.name(), "Validation failed", request.getRequestURI(), fieldErrors);
 
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
