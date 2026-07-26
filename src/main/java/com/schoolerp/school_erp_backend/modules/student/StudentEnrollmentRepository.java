@@ -76,4 +76,44 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
 	List<StudentEnrollmentEntity> findByAcademicSessionId(
 			UUID academicSessionId);
 
+	@Query(value = """
+			SELECT COUNT(DISTINCT se.student_id)
+			FROM teachers t
+			JOIN class_teacher_assignments cta ON t.id = cta.teacher_id
+			JOIN student_enrollments se
+			  ON cta.class_id = se.class_id
+			 AND cta.section_id = se.section_id
+			 AND cta.academic_session_id = se.academic_session_id
+			JOIN students s ON se.student_id = s.id
+			WHERE t.user_id = :userId
+			  AND cta.academic_session_id = :academicSessionId
+			  AND (s.is_deleted = FALSE OR s.is_deleted IS NULL)
+			  AND s.status = 'ACTIVE'
+			""", nativeQuery = true)
+	long countAssignedStudentsByTeacherUserIdAndAcademicSessionId(
+			@Param("userId") UUID userId,
+			@Param("academicSessionId") UUID academicSessionId);
+
+	// 2. Today Present Students (Returns 1)
+	@Query(value = """
+			SELECT COUNT(DISTINCT se.student_id)
+			FROM teachers t
+			JOIN class_teacher_assignments cta ON t.id = cta.teacher_id
+			JOIN student_enrollments se
+			  ON cta.class_id = se.class_id
+			 AND cta.section_id = se.section_id
+			 AND cta.academic_session_id = se.academic_session_id
+			JOIN students s ON se.student_id = s.id
+			JOIN attendance a ON s.id = a.student_id AND cta.academic_session_id = a.academic_session_id
+			WHERE t.user_id = :userId
+			  AND cta.academic_session_id = :academicSessionId
+			  AND (s.is_deleted = FALSE OR s.is_deleted IS NULL)
+			  AND s.status = 'ACTIVE'
+			  AND a.attendance_date = CURRENT_DATE
+			  AND a.status = 'PRESENT'
+			""", nativeQuery = true)
+	long countPresentStudentsTodayByTeacherUserIdAndAcademicSessionId(
+			@Param("userId") UUID userId,
+			@Param("academicSessionId") UUID academicSessionId);
+
 }
