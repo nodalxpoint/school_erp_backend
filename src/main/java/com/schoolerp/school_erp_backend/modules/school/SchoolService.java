@@ -22,6 +22,8 @@ import com.schoolerp.school_erp_backend.common.exceptions.ResourceNotFoundExcept
 import com.schoolerp.school_erp_backend.common.exceptions.ValidationException;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
 import com.schoolerp.school_erp_backend.common.security.TenantContext;
+import com.schoolerp.school_erp_backend.modules.student.StudentEnrollmentRepository;
+import com.schoolerp.school_erp_backend.modules.teacher.ClassTeacherAssignmentRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -34,6 +36,10 @@ public class SchoolService {
 	private SectionRepository sectionRepository;
 	@Autowired
 	private ClassesRepository classesRepository;
+	@Autowired
+	private StudentEnrollmentRepository studentEnrollmentRepository;
+	@Autowired
+	private ClassTeacherAssignmentRepository classTeacherAssignmentRepository;
 	@Autowired
 	private ValidationHelperService validationHelperService;
 	@Autowired
@@ -76,14 +82,13 @@ public class SchoolService {
 		if (requestDTO.getClassId() != null && !requestDTO.getClassId().isEmpty()) {
 			LOGGER.debug("Adding Sections To Existing Class | classId={}", requestDTO.getClassId());
 			Optional<ClassesEntity> entity = classesRepository.findById(UUID.fromString(requestDTO.getClassId()));
-			if(entity.isPresent()) {
+			if (entity.isPresent()) {
 				entity.get().setClassName(requestDTO.getClassName());
-			}else {
+			} else {
 				throw new ValidationException("Class Not Found");
 			}
 			classesRepository.save(entity.get());
 			syncSections(UUID.fromString(requestDTO.getClassId()), requestDTO.getSections());
-			
 
 		} else {
 			LOGGER.debug("Creating Class Flow Started");
@@ -113,43 +118,43 @@ public class SchoolService {
 
 	private void syncSections(UUID classId, List<String> incomingSections) {
 
-	    // Normalize incoming list
-	    Set<String> incomingSet = new HashSet<>();
-	    if (incomingSections != null) {
-	        for (String s : incomingSections) {
-	            if (s != null && !s.trim().isEmpty()) {
-	                incomingSet.add(s.trim().toUpperCase());
-	            }
-	        }
-	    }
+		// Normalize incoming list
+		Set<String> incomingSet = new HashSet<>();
+		if (incomingSections != null) {
+			for (String s : incomingSections) {
+				if (s != null && !s.trim().isEmpty()) {
+					incomingSet.add(s.trim().toUpperCase());
+				}
+			}
+		}
 
-	    // Fetch what's currently in DB
-	    List<SectionEntity> existingEntities = sectionRepository.findAllByClassId(classId);
-	    Set<String> existingNames = existingEntities.stream()
-	            .map(SectionEntity::getSectionName)
-	            .collect(Collectors.toSet());
+		// Fetch what's currently in DB
+		List<SectionEntity> existingEntities = sectionRepository.findAllByClassId(classId);
+		Set<String> existingNames = existingEntities.stream()
+				.map(SectionEntity::getSectionName)
+				.collect(Collectors.toSet());
 
-	    // DELETE sections that are in DB but not in incoming request
-	    List<SectionEntity> toDelete = existingEntities.stream()
-	            .filter(e -> !incomingSet.contains(e.getSectionName()))
-	            .collect(Collectors.toList());
+		// DELETE sections that are in DB but not in incoming request
+		List<SectionEntity> toDelete = existingEntities.stream()
+				.filter(e -> !incomingSet.contains(e.getSectionName()))
+				.collect(Collectors.toList());
 
-	    if (!toDelete.isEmpty()) {
-	        List<UUID> idsToDelete = toDelete.stream()
-	                .map(SectionEntity::getId)
-	                .collect(Collectors.toList());
-	        sectionRepository.deleteAllByIdInBatch(idsToDelete);
-	    }
+		if (!toDelete.isEmpty()) {
+			List<UUID> idsToDelete = toDelete.stream()
+					.map(SectionEntity::getId)
+					.collect(Collectors.toList());
+			sectionRepository.deleteAllByIdInBatch(idsToDelete);
+		}
 
-	    // ADD sections that are in incoming request but not in DB
-	    List<SectionEntity> toAdd = incomingSet.stream()
-	            .filter(name -> !existingNames.contains(name))
-	            .map(name -> buildSectionEntity(classId, name))
-	            .collect(Collectors.toList());
+		// ADD sections that are in incoming request but not in DB
+		List<SectionEntity> toAdd = incomingSet.stream()
+				.filter(name -> !existingNames.contains(name))
+				.map(name -> buildSectionEntity(classId, name))
+				.collect(Collectors.toList());
 
-	    if (!toAdd.isEmpty()) {
-	        sectionRepository.saveAll(toAdd);
-	    }
+		if (!toAdd.isEmpty()) {
+			sectionRepository.saveAll(toAdd);
+		}
 	}
 
 	private SectionEntity buildSectionEntity(UUID classId, String sectionName) {
@@ -160,6 +165,40 @@ public class SchoolService {
 		section.setSectionName(sectionName);
 
 		return section;
+	}
+
+	@Transactional
+	public void deleteClassAndSection(UUID id) {
+		LOGGER.info("Inside deleteClassAndSection service | id={}", id);
+
+		if (id == null) {
+			throw new ValidationException("Class ID is required");
+		}
+
+		ClassesEntity classEntity = classesRepository.findById(id)
+				.orElseThrow(() -> new ValidationException("Class not found"));
+
+		boolean hasStudents = studentEnrollmentRepository.existsByClassEntity_Id(id);
+		if (hasStudents) {
+			throw new ValidationException(
+					"Class and sections cannot be deleted as it is assigned to some students");
+		}
+
+		boolean hasTeacherAssignment = classTeacherAssignmentRepository.existsByClassId(id);
+		if (hasTeacherAssignment) {
+			throw new ValidationException(
+					"Class and sections cannot be deleted as a class teacher is assigned to it");
+		}
+
+		// os class ka section delete kroooooooooooooooooooooooooo
+		List<SectionEntity> sections = sectionRepository.findAllByClassId(id);
+		if (!sections.isEmpty()) {
+			List<UUID> sectionIds = sections.stream().map(SectionEntity::getId).collect(Collectors.toList());
+			sectionRepository.deleteAllByIdInBatch(sectionIds);
+		}
+
+		classesRepository.delete(classEntity);
+		LOGGER.info("Successfully deleted Class and its sections for classId={}", id);
 	}
 
 	public PagedResponse<ClassesResponseDto> getAllClassWithSections(ClassesFilterRequest request) {

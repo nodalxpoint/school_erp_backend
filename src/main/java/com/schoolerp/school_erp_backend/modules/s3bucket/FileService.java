@@ -7,8 +7,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.schoolerp.school_erp_backend.common.config.CloudflareR2Service;
+import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+import com.schoolerp.school_erp_backend.modules.attendance.AttendanceEntity;
+import com.schoolerp.school_erp_backend.modules.student.StudentEntity;
+import com.schoolerp.school_erp_backend.modules.student.StudentFilterRequest;
+import com.schoolerp.school_erp_backend.modules.student.StudentResponseDto;
+import com.schoolerp.school_erp_backend.modules.student.StudentSpecification;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -24,6 +39,20 @@ public class FileService {
 
     @Autowired
     private UploadedFileRepository uploadedFileRepository;
+
+    public PagedResponse<UploadedFileDto> filterFiles(FileFilterRequest request) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDirection()), request.getSortBy());
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        Page<UploadedFileEntity> filePage = uploadedFileRepository.findAll(FileSpecification.filter(request), pageable);
+
+        Page<UploadedFileDto> dtoPage = filePage
+                .map(file -> mapToDto(file));
+
+        return PagedResponse.fromPage(dtoPage, "Files fetched successfully");
+    }
 
     public UploadedFileDto uploadAndSave(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -116,4 +145,15 @@ public class FileService {
         }
         return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
     }
+
+    public UploadedFileDto mapToDto(UploadedFileEntity entity) {
+        return new UploadedFileDto(
+                entity.getId(),
+                entity.getFileName(),
+                entity.getFileType(),
+                entity.getFilePath(),
+                entity.getFileSize(),
+                entity.getCreatedAt());
+    }
+
 }

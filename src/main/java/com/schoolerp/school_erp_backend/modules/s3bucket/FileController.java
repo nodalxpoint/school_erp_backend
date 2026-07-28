@@ -1,6 +1,8 @@
 package com.schoolerp.school_erp_backend.modules.s3bucket;
 
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
+import com.schoolerp.school_erp_backend.common.response.PagedResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,16 @@ public class FileController {
 
     @Autowired
     private FileService fileService;
+
+    @PostMapping("/list")
+    public ResponseEntity<ApiResponse<PagedResponse<UploadedFileDto>>> listFiles(
+            @RequestBody FileFilterRequest request) {
+        LOGGER.debug("List files API called with filters: {}", request);
+        PagedResponse<UploadedFileDto> responseDto = fileService.filterFiles(request);
+        ApiResponse<PagedResponse<UploadedFileDto>> response = ApiResponse.success("Files fetched successfully",
+                responseDto);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<UploadedFileDto>> uploadFile(@RequestParam("file") MultipartFile file) {

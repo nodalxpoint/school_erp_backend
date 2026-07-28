@@ -1,9 +1,12 @@
 package com.schoolerp.school_erp_backend.modules.s3bucket;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface UploadedFileRepository extends JpaRepository<UploadedFileEntity, UUID> {
+public interface UploadedFileRepository
+        extends JpaRepository<UploadedFileEntity, UUID>,
+        JpaSpecificationExecutor<UploadedFileEntity> {
 }

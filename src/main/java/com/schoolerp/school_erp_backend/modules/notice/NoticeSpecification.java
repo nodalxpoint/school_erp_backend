@@ -40,13 +40,11 @@ public class NoticeSpecification {
     }
 
     public static Specification<NoticeEntity> classIdEqual(UUID classId) {
-
-        return (root, query, cb) -> null;
+        return (root, query, cb) -> FilterUtils.joinEqual(cb, root, "classEntity", "id", classId);
     }
 
     public static Specification<NoticeEntity> sectionIdEqual(UUID sectionId) {
-
-        return (root, query, cb) -> null;
+        return (root, query, cb) -> FilterUtils.joinEqual(cb, root, "sectionEntity", "id", sectionId);
     }
 
     public static Specification<NoticeEntity> targetTypeEqual(String targetType) {
