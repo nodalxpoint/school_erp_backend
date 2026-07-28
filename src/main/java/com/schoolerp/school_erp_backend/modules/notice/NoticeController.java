@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.schoolerp.school_erp_backend.common.response.ApiResponse;
 import com.schoolerp.school_erp_backend.common.response.PagedResponse;
-import com.schoolerp.school_erp_backend.modules.exam.ExamDto;
 
 import jakarta.validation.Valid;
 
@@ -30,21 +29,21 @@ public class NoticeController {
     private NoticeService noticeService;
 
     @PostMapping("/list")
-    public ResponseEntity<PagedResponse<NoticeDto>> filterExams(@RequestBody NoticeFilterRequest request) {
-        LOGGER.debug("filterExams endpoint called");
+    public ResponseEntity<PagedResponse<NoticeDto>> filterNotices(@RequestBody NoticeFilterRequest request) {
+        LOGGER.debug("filterNotices endpoint called");
         PagedResponse<NoticeDto> response = noticeService.filterNotices(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/addOrUpdate")
-    public ResponseEntity<ApiResponse<String>> addOrUpdateExam(@Valid @RequestBody NoticeDto request) {
-        LOGGER.debug("addOrUpdateExam endpoint called");
+    public ResponseEntity<ApiResponse<String>> addOrUpdateNotice(@Valid @RequestBody NoticeDto request) {
+        LOGGER.debug("addOrUpdateNotice endpoint called");
         noticeService.addOrUpdateNotice(request);
-        ApiResponse<String> response = ApiResponse.success("Noticed saved successfully", null);
+        ApiResponse<String> response = ApiResponse.success("Notice saved successfully", null);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("delete/{id}")
     public ResponseEntity<ApiResponse<String>> deleteNotice(@PathVariable UUID id) {
         LOGGER.debug("deleteNotice endpoint called for id: {}", id);
         noticeService.deleteNotice(id);

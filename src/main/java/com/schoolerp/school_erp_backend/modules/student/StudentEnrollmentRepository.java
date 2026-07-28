@@ -36,6 +36,8 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
 
 	boolean existsByStudentEntity_IdAndAcademicSessionId(UUID studentId, UUID academicSessionId);
 
+	boolean existsByClassEntity_Id(UUID classId);
+
 	Optional<StudentEnrollmentEntity> findByStudentEntity_IdAndAcademicSessionId(UUID studentId,
 			UUID academicSessionId);
 

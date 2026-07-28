@@ -178,14 +178,21 @@ public class TimetableService {
         TeacherEntity teacherEntity = teacherRepository.findById(dto.getTeacherId())
                 .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
 
-        timetableRepository.findByAcademicSessionIdAndClassEntity_IdAndSectionEntity_IdAndDayOfWeekAndPeriod(
-                dto.getAcademicSessionId(), dto.getClassId(), dto.getSectionId(), dto.getDayOfWeek().trim(),
-                dto.getPeriod()).ifPresent(existingTimetable -> {
-                    if (dto.getId() == null || !existingTimetable.getId().equals(dto.getId())) {
-                        timetableRepository.deleteAll();
-                    }
+        Optional<TimetableEntity> existingTimetable = timetableRepository
+                .findByAcademicSessionIdAndClassEntity_IdAndSectionEntity_IdAndDayOfWeekAndPeriod(
+                        dto.getAcademicSessionId(),
+                        dto.getClassId(),
+                        dto.getSectionId(),
+                        dto.getDayOfWeek().trim(),
+                        dto.getPeriod());
 
-                });
+        existingTimetable.ifPresent(timetable -> {
+            boolean isDifferentTimetable = dto.getId() == null || !timetable.getId().equals(dto.getId());
+
+            if (isDifferentTimetable) {
+                timetableRepository.deleteAll();
+            }
+        });
 
         entity.setClassEntity(classEntity);
         entity.setSectionEntity(sectionEntity);

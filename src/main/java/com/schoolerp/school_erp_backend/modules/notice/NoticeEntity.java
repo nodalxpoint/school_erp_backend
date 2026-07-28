@@ -14,7 +14,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.schoolerp.school_erp_backend.modules.school.ClassesEntity;
 import com.schoolerp.school_erp_backend.modules.school.SchoolEntity;
+import com.schoolerp.school_erp_backend.modules.school.SectionEntity;
 
 @Entity
 @Table(name = "notices")
@@ -45,6 +47,14 @@ public class NoticeEntity {
 
     @Column(name = "created_by")
     private UUID createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    private ClassesEntity classEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "section_id")
+    private SectionEntity sectionEntity;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -124,6 +134,22 @@ public class NoticeEntity {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public ClassesEntity getClassEntity() {
+        return classEntity;
+    }
+
+    public void setClassEntity(ClassesEntity classEntity) {
+        this.classEntity = classEntity;
+    }
+
+    public SectionEntity getSectionEntity() {
+        return sectionEntity;
+    }
+
+    public void setSectionEntity(SectionEntity sectionEntity) {
+        this.sectionEntity = sectionEntity;
     }
 
 }

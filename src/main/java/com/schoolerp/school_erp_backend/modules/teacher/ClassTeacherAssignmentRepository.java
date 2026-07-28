@@ -16,6 +16,8 @@ public interface ClassTeacherAssignmentRepository extends JpaRepository<ClassTea
 
 	boolean existsByClassIdAndSectionIdAndAcademicSessionId(UUID classId, UUID sectionId, UUID academicSessionId);
 
+	boolean existsByClassId(UUID classId);
+
 	Optional<ClassTeacherAssignmentEntity> findByTeacherIdAndAcademicSessionId(
 			UUID teacherId,
 			UUID academicSessionId);

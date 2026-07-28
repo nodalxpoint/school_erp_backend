@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,6 +58,14 @@ public class SchoolController {
 		ApiResponse<String> response = ApiResponse.success("Class created successfully", null);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
+
+	@DeleteMapping("/delete/{id}")
+	public ResponseEntity<ApiResponse<String>> deleteClassAndSection(@PathVariable UUID id) {
+		LOGGER.info("Received request in /delete/{id} | id={}", id);
+		schoolService.deleteClassAndSection(id);
+		ApiResponse<String> response = ApiResponse.success("Class and section deleted successfully", null);
+		return ResponseEntity.ok(response);
 	}
 
 }

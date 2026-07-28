@@ -7,6 +7,7 @@ import java.util.UUID;
 public class NoticeDto {
     private UUID id;
     private UUID classId;
+    private UUID sectionId;
     private String title;
     private String description;
     private String targetType;
@@ -14,9 +15,6 @@ public class NoticeDto {
     private LocalDate expiryDate;
     private UUID createdBy;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private UUID updatedBy;
-    private Boolean isActive;
     private UUID academicSessionId;
 
     public UUID getId() {
@@ -91,36 +89,20 @@ public class NoticeDto {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public UUID getUpdatedBy() {
-        return updatedBy;
-    }
-
-    public void setUpdatedBy(UUID updatedBy) {
-        this.updatedBy = updatedBy;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean isActive) {
-        this.isActive = isActive;
-    }
-
     public UUID getAcademicSessionId() {
         return academicSessionId;
     }
 
     public void setAcademicSessionId(UUID academicSessionId) {
         this.academicSessionId = academicSessionId;
+    }
+
+    public UUID getSectionId() {
+        return sectionId;
+    }
+
+    public void setSectionId(UUID sectionId) {
+        this.sectionId = sectionId;
     }
 
 }
